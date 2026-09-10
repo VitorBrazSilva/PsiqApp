@@ -1,0 +1,882 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>PsiqApp MVP - Documento Técnico Visual</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 13mm;
+    }
+
+    :root {
+      --ink: #172033;
+      --muted: #5b6475;
+      --line: #d9dee8;
+      --soft: #f6f8fb;
+      --blue: #2f6feb;
+      --teal: #14866d;
+      --amber: #b7791f;
+      --red: #b42318;
+      --purple: #7048b6;
+      --panel: #ffffff;
+      --shadow: 0 12px 30px rgba(23, 32, 51, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #ffffff;
+      font: 12.5px/1.48 "Segoe UI", Arial, sans-serif;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    h1, h2, h3, p {
+      margin-top: 0;
+    }
+
+    h1 {
+      font-size: 32px;
+      line-height: 1.08;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: 20px;
+      margin: 26px 0 12px;
+      padding-top: 4px;
+      border-top: 2px solid var(--line);
+    }
+
+    h3 {
+      font-size: 15px;
+      margin: 16px 0 8px;
+      color: #24314a;
+    }
+
+    p {
+      margin-bottom: 9px;
+    }
+
+    ul, ol {
+      margin-top: 6px;
+      padding-left: 22px;
+    }
+
+    li {
+      margin: 3px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 16px;
+      font-size: 11.7px;
+    }
+
+    th {
+      background: #eef3fb;
+      color: #24314a;
+      text-align: left;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 7px 8px;
+      vertical-align: top;
+    }
+
+    code {
+      font-family: "Cascadia Mono", Consolas, monospace;
+      font-size: 11.3px;
+      background: #eef1f6;
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+
+    .cover {
+      min-height: 240mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      page-break-after: always;
+      background:
+        linear-gradient(135deg, rgba(47, 111, 235, 0.08), rgba(112, 72, 182, 0.06)),
+        #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 32px;
+    }
+
+    .cover-kicker {
+      display: inline-block;
+      color: #21406f;
+      background: #eaf1ff;
+      border: 1px solid #cbdafa;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .cover-subtitle {
+      max-width: 640px;
+      font-size: 16px;
+      color: var(--muted);
+    }
+
+    .meta-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .meta, .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+      page-break-inside: avoid;
+    }
+
+    .meta strong {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .callout {
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--blue);
+      background: #f7faff;
+      padding: 11px 13px;
+      border-radius: 8px;
+      margin: 11px 0 16px;
+    }
+
+    .callout.warning {
+      border-left-color: var(--amber);
+      background: #fff8eb;
+    }
+
+    .callout.danger {
+      border-left-color: var(--red);
+      background: #fff4f2;
+    }
+
+    .callout.success {
+      border-left-color: var(--teal);
+      background: #effaf6;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 12px 0 16px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 12px 0 16px;
+    }
+
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #ffffff;
+      background: var(--blue);
+    }
+
+    .badge.teal { background: var(--teal); }
+    .badge.amber { background: var(--amber); }
+    .badge.red { background: var(--red); }
+    .badge.purple { background: var(--purple); }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 8px 0 0;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      background: #f5f7fb;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 11.2px;
+      color: #39465d;
+    }
+
+    .diagram {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfcff;
+      padding: 12px;
+      margin: 12px 0 16px;
+      page-break-inside: avoid;
+    }
+
+    .diagram-title {
+      font-weight: 700;
+      color: #24314a;
+      margin-bottom: 8px;
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .section {
+      page-break-inside: avoid;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+
+    .small {
+      font-size: 11.2px;
+      color: var(--muted);
+    }
+
+    .footer {
+      margin-top: 22px;
+      border-top: 1px solid var(--line);
+      padding-top: 10px;
+      font-size: 10.8px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <div>
+      <span class="cover-kicker">Documento técnico visual</span>
+      <h1>PsiqApp MVP</h1>
+      <p class="cover-subtitle">
+        Arquitetura, persistência, worker de IA, contratos, segurança e testes em formato visual.
+        O repositório ainda está na fase de especificação SDD, sem aplicação implementada.
+      </p>
+
+      <div class="meta-row">
+        <div class="meta">
+          <strong>Backend</strong>
+          Java 21, Spring Boot 3.5.16, Maven.
+        </div>
+        <div class="meta">
+          <strong>Frontend</strong>
+          React 19.2, TypeScript, Vite 8.
+        </div>
+        <div class="meta">
+          <strong>Banco e IA</strong>
+          PostgreSQL 18.6, Flyway, OpenAI por port.
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="callout warning">
+        <strong>Estado atual:</strong> este PDF descreve a arquitetura aprovada para implementação.
+        Ele deve ser atualizado quando as tasks criarem código, migrations e testes reais.
+      </div>
+      <p class="footer">
+        Fontes canônicas: <code>tasks/prd-psiqapp-mvp/techspec.md</code>, PRD e Rules do projeto.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>1. Mapa da arquitetura</h2>
+    <div class="diagram">
+      <div class="diagram-title">Fluxo técnico geral</div>
+      <svg viewBox="0 0 1060 420" role="img" aria-label="Arquitetura técnica geral">
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L9,3 z" fill="#52627a"></path>
+          </marker>
+        </defs>
+
+        <rect x="25" y="140" width="150" height="90" rx="12" fill="#eaf1ff" stroke="#a9c0f5"></rect>
+        <text x="100" y="175" text-anchor="middle" font-size="16" font-weight="700" fill="#173b75">React SPA</text>
+        <text x="100" y="198" text-anchor="middle" font-size="12" fill="#3d4c63">127.0.0.1:5173</text>
+
+        <rect x="220" y="80" width="210" height="215" rx="14" fill="#ffffff" stroke="#d9dee8"></rect>
+        <text x="325" y="112" text-anchor="middle" font-size="17" font-weight="700" fill="#172033">Spring Boot</text>
+        <rect x="250" y="132" width="150" height="38" rx="8" fill="#f6f8fb" stroke="#d9dee8"></rect>
+        <text x="325" y="156" text-anchor="middle" font-size="12" fill="#3d4c63">Adapter Web</text>
+        <rect x="250" y="180" width="150" height="38" rx="8" fill="#f6f8fb" stroke="#d9dee8"></rect>
+        <text x="325" y="204" text-anchor="middle" font-size="12" fill="#3d4c63">Application</text>
+        <rect x="250" y="228" width="150" height="38" rx="8" fill="#f6f8fb" stroke="#d9dee8"></rect>
+        <text x="325" y="252" text-anchor="middle" font-size="12" fill="#3d4c63">Domain</text>
+
+        <rect x="485" y="48" width="175" height="112" rx="12" fill="#effaf6" stroke="#9bd4c4"></rect>
+        <text x="572" y="84" text-anchor="middle" font-size="16" font-weight="700" fill="#0f5f4e">Adapter JPA</text>
+        <text x="572" y="108" text-anchor="middle" font-size="12" fill="#3d4c63">entidades separadas</text>
+        <text x="572" y="130" text-anchor="middle" font-size="12" fill="#3d4c63">mapeamento manual</text>
+
+        <rect x="725" y="48" width="190" height="112" rx="12" fill="#effaf6" stroke="#9bd4c4"></rect>
+        <text x="820" y="84" text-anchor="middle" font-size="16" font-weight="700" fill="#0f5f4e">PostgreSQL</text>
+        <text x="820" y="108" text-anchor="middle" font-size="12" fill="#3d4c63">dados e fila</text>
+        <text x="820" y="130" text-anchor="middle" font-size="12" fill="#3d4c63">triggers append-only</text>
+
+        <rect x="485" y="245" width="175" height="112" rx="12" fill="#fff8eb" stroke="#edc77b"></rect>
+        <text x="572" y="281" text-anchor="middle" font-size="16" font-weight="700" fill="#7a4d11">Worker</text>
+        <text x="572" y="305" text-anchor="middle" font-size="12" fill="#3d4c63">polling 2s</text>
+        <text x="572" y="327" text-anchor="middle" font-size="12" fill="#3d4c63">lease e retry</text>
+
+        <rect x="725" y="245" width="190" height="112" rx="12" fill="#f7f3ff" stroke="#c7b7ee"></rect>
+        <text x="820" y="281" text-anchor="middle" font-size="16" font-weight="700" fill="#513592">OpenAI Adapter</text>
+        <text x="820" y="305" text-anchor="middle" font-size="12" fill="#3d4c63">Responses API</text>
+        <text x="820" y="327" text-anchor="middle" font-size="12" fill="#3d4c63">Structured Outputs</text>
+
+        <line x1="175" y1="185" x2="210" y2="185" stroke="#52627a" stroke-width="2" marker-end="url(#arrow)"></line>
+        <line x1="430" y1="152" x2="475" y2="105" stroke="#52627a" stroke-width="2" marker-end="url(#arrow)"></line>
+        <line x1="660" y1="104" x2="715" y2="104" stroke="#52627a" stroke-width="2" marker-end="url(#arrow)"></line>
+        <line x1="572" y1="245" x2="572" y2="170" stroke="#52627a" stroke-width="2" marker-end="url(#arrow)"></line>
+        <line x1="660" y1="301" x2="715" y2="301" stroke="#52627a" stroke-width="2" marker-end="url(#arrow)"></line>
+        <path d="M820 245 C820 190 820 185 820 160" fill="none" stroke="#52627a" stroke-width="2" marker-end="url(#arrow)"></path>
+
+        <text x="523" y="210" font-size="12" fill="#5b6475">sem IA dentro da transação clínica</text>
+        <text x="490" y="28" font-size="12" fill="#5b6475">Domain/Application não conhecem JPA ou SDK</text>
+      </svg>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>2. Stack e execução local</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Área</th>
+          <th>Decisão aprovada</th>
+          <th>Observação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Backend</td>
+          <td>Java 21 LTS, Spring Boot 3.5.16, Maven</td>
+          <td>Domínio separado de adapters.</td>
+        </tr>
+        <tr>
+          <td>Frontend</td>
+          <td>React 19.2, TypeScript, Vite 8, CSS simples</td>
+          <td>Sem Redux e sem framework CSS pesado no MVP.</td>
+        </tr>
+        <tr>
+          <td>Banco</td>
+          <td>PostgreSQL 18.6 via Docker Compose</td>
+          <td>Apenas banco containerizado.</td>
+        </tr>
+        <tr>
+          <td>IA</td>
+          <td>OpenAI por adapter, modelo <code>gpt-5.6-terra</code></td>
+          <td>Modelo por variável <code>OPENAI_MODEL</code>.</td>
+        </tr>
+        <tr>
+          <td>Portas locais</td>
+          <td>Frontend 5173, backend 8080, banco 5432</td>
+          <td>Restritas a <code>127.0.0.1</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section page-break">
+    <h2>3. Modelo de dados em desenho</h2>
+    <div class="diagram">
+      <div class="diagram-title">Relacionamentos principais do banco</div>
+      <svg viewBox="0 0 1060 610" role="img" aria-label="Modelo de dados técnico">
+        <defs>
+          <marker id="arrowDb" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L9,3 z" fill="#52627a"></path>
+          </marker>
+        </defs>
+
+        <rect x="35" y="45" width="190" height="90" rx="10" fill="#eaf1ff" stroke="#a9c0f5"></rect>
+        <text x="130" y="78" text-anchor="middle" font-size="16" font-weight="700" fill="#173b75">patient</text>
+        <text x="130" y="102" text-anchor="middle" font-size="11" fill="#3d4c63">cadastro + revisões</text>
+
+        <rect x="305" y="40" width="205" height="100" rx="10" fill="#ffffff" stroke="#d9dee8"></rect>
+        <text x="407" y="73" text-anchor="middle" font-size="16" font-weight="700" fill="#172033">appointment</text>
+        <text x="407" y="97" text-anchor="middle" font-size="11" fill="#3d4c63">agenda e status</text>
+
+        <rect x="305" y="205" width="205" height="120" rx="10" fill="#effaf6" stroke="#9bd4c4"></rect>
+        <text x="407" y="238" text-anchor="middle" font-size="16" font-weight="700" fill="#0f5f4e">clinical_record</text>
+        <text x="407" y="263" text-anchor="middle" font-size="11" fill="#3d4c63">ORIGINAL ou COMPLEMENT</text>
+        <text x="407" y="285" text-anchor="middle" font-size="11" fill="#3d4c63">append-only</text>
+
+        <rect x="600" y="192" width="220" height="146" rx="10" fill="#fff8eb" stroke="#edc77b"></rect>
+        <text x="710" y="226" text-anchor="middle" font-size="16" font-weight="700" fill="#7a4d11">analysis_generation</text>
+        <text x="710" y="250" text-anchor="middle" font-size="11" fill="#3d4c63">fila persistente</text>
+        <text x="710" y="272" text-anchor="middle" font-size="11" fill="#3d4c63">snapshot_revision</text>
+        <text x="710" y="294" text-anchor="middle" font-size="11" fill="#3d4c63">state, lease, retry</text>
+
+        <rect x="600" y="410" width="220" height="100" rx="10" fill="#f7f3ff" stroke="#c7b7ee"></rect>
+        <text x="710" y="443" text-anchor="middle" font-size="16" font-weight="700" fill="#513592">clinical_analysis</text>
+        <text x="710" y="467" text-anchor="middle" font-size="11" fill="#3d4c63">payload validado</text>
+        <text x="710" y="489" text-anchor="middle" font-size="11" fill="#3d4c63">histórico append-only</text>
+
+        <rect x="860" y="410" width="170" height="100" rx="10" fill="#f7f3ff" stroke="#c7b7ee"></rect>
+        <text x="945" y="443" text-anchor="middle" font-size="16" font-weight="700" fill="#513592">analysis_evidence</text>
+        <text x="945" y="467" text-anchor="middle" font-size="11" fill="#3d4c63">quote literal</text>
+        <text x="945" y="489" text-anchor="middle" font-size="11" fill="#3d4c63">registro do snapshot</text>
+
+        <rect x="35" y="430" width="190" height="90" rx="10" fill="#f6f8fb" stroke="#d9dee8"></rect>
+        <text x="130" y="463" text-anchor="middle" font-size="16" font-weight="700" fill="#172033">idempotency_record</text>
+        <text x="130" y="487" text-anchor="middle" font-size="11" fill="#3d4c63">criações sem duplicar</text>
+
+        <rect x="305" y="430" width="205" height="90" rx="10" fill="#f6f8fb" stroke="#d9dee8"></rect>
+        <text x="407" y="463" text-anchor="middle" font-size="16" font-weight="700" fill="#172033">analysis_attempt</text>
+        <text x="407" y="487" text-anchor="middle" font-size="11" fill="#3d4c63">auditoria por tentativa</text>
+
+        <line x1="225" y1="90" x2="295" y2="90" stroke="#52627a" stroke-width="2" marker-end="url(#arrowDb)"></line>
+        <line x1="180" y1="135" x2="340" y2="205" stroke="#52627a" stroke-width="2" marker-end="url(#arrowDb)"></line>
+        <line x1="510" y1="265" x2="590" y2="265" stroke="#52627a" stroke-width="2" marker-end="url(#arrowDb)"></line>
+        <line x1="710" y1="338" x2="710" y2="400" stroke="#52627a" stroke-width="2" marker-end="url(#arrowDb)"></line>
+        <line x1="820" y1="460" x2="850" y2="460" stroke="#52627a" stroke-width="2" marker-end="url(#arrowDb)"></line>
+        <line x1="860" y1="430" x2="515" y2="305" stroke="#52627a" stroke-width="2" marker-end="url(#arrowDb)"></line>
+        <line x1="600" y1="470" x2="520" y2="470" stroke="#52627a" stroke-width="2" marker-end="url(#arrowDb)"></line>
+
+        <path d="M407 325 C407 365 490 365 490 325" fill="none" stroke="#14866d" stroke-width="2" stroke-dasharray="6 6"></path>
+        <text x="500" y="365" font-size="11" fill="#0f5f4e">COMPLEMENT aponta para ORIGINAL do mesmo paciente</text>
+      </svg>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>4. Significado das tabelas</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Tabela</th>
+          <th>Responsabilidade</th>
+          <th>Invariantes centrais</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>patient</code></td>
+          <td>Cadastro, busca e contadores <code>clinical_revision</code>/<code>request_sequence</code>.</td>
+          <td>CPF único; linha bloqueada por <code>SELECT FOR UPDATE</code> para revisões e sequências.</td>
+        </tr>
+        <tr>
+          <td><code>appointment</code></td>
+          <td>Agenda interna com data, hora, status e notas.</td>
+          <td>Status inicial <code>AGENDADA</code>; finais: <code>REALIZADA</code>, <code>CANCELADA</code>, <code>FALTA</code>.</td>
+        </tr>
+        <tr>
+          <td><code>clinical_record</code></td>
+          <td>Fonte clínica de verdade: parecer original ou complemento.</td>
+          <td>Append-only; complemento exige original do mesmo paciente; <code>UNIQUE(patient_id, revision)</code>.</td>
+        </tr>
+        <tr>
+          <td><code>analysis_generation</code></td>
+          <td>Fila persistente e estado operacional da geração de IA.</td>
+          <td>Estados controlados; lease/token; snapshot congelado; sequência por paciente.</td>
+        </tr>
+        <tr>
+          <td><code>analysis_attempt</code></td>
+          <td>Auditoria técnica de tentativas do worker.</td>
+          <td>Não armazenar conteúdo clínico rejeitado nem secrets.</td>
+        </tr>
+        <tr>
+          <td><code>clinical_analysis</code></td>
+          <td>Análise validada e histórica.</td>
+          <td>Append-only; uma análise por geração; payload validado antes de persistir.</td>
+        </tr>
+        <tr>
+          <td><code>analysis_evidence</code></td>
+          <td>Evidências literais ligando análise a registros clínicos.</td>
+          <td>Mesmo paciente; registro dentro do snapshot; quote existente no campo citado.</td>
+        </tr>
+        <tr>
+          <td><code>idempotency_record</code></td>
+          <td>Evita duplicação em retries HTTP de criação.</td>
+          <td>Mesma chave/payload retorna resultado original; payload diferente retorna 409.</td>
+        </tr>
+        <tr>
+          <td><code>worker_heartbeat</code></td>
+          <td>Sinal operacional do worker.</td>
+          <td>Sem conteúdo clínico.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section page-break">
+    <h2>5. Worker e estados da geração</h2>
+    <div class="diagram">
+      <div class="diagram-title">Máquina de estados da geração de IA</div>
+      <svg viewBox="0 0 1060 360" role="img" aria-label="Estados do worker de IA">
+        <defs>
+          <marker id="arrowState" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L9,3 z" fill="#52627a"></path>
+          </marker>
+        </defs>
+        <rect x="45" y="130" width="150" height="70" rx="12" fill="#eaf1ff" stroke="#a9c0f5"></rect>
+        <text x="120" y="172" text-anchor="middle" font-size="16" font-weight="700" fill="#173b75">QUEUED</text>
+
+        <rect x="265" y="130" width="150" height="70" rx="12" fill="#fff8eb" stroke="#edc77b"></rect>
+        <text x="340" y="172" text-anchor="middle" font-size="16" font-weight="700" fill="#7a4d11">RUNNING</text>
+
+        <rect x="485" y="45" width="170" height="70" rx="12" fill="#fff8eb" stroke="#edc77b"></rect>
+        <text x="570" y="87" text-anchor="middle" font-size="16" font-weight="700" fill="#7a4d11">RETRY_WAIT</text>
+
+        <rect x="735" y="70" width="150" height="70" rx="12" fill="#effaf6" stroke="#9bd4c4"></rect>
+        <text x="810" y="112" text-anchor="middle" font-size="16" font-weight="700" fill="#0f5f4e">COMPLETED</text>
+
+        <rect x="735" y="210" width="150" height="70" rx="12" fill="#fff4f2" stroke="#f1a29a"></rect>
+        <text x="810" y="252" text-anchor="middle" font-size="16" font-weight="700" fill="#8a251d">FAILED</text>
+
+        <line x1="195" y1="165" x2="255" y2="165" stroke="#52627a" stroke-width="2" marker-end="url(#arrowState)"></line>
+        <text x="225" y="150" text-anchor="middle" font-size="11" fill="#5b6475">reserva</text>
+
+        <line x1="415" y1="150" x2="728" y2="112" stroke="#52627a" stroke-width="2" marker-end="url(#arrowState)"></line>
+        <text x="570" y="145" text-anchor="middle" font-size="11" fill="#5b6475">resposta válida</text>
+
+        <line x1="415" y1="165" x2="728" y2="238" stroke="#52627a" stroke-width="2" marker-end="url(#arrowState)"></line>
+        <text x="560" y="220" text-anchor="middle" font-size="11" fill="#5b6475">falha permanente</text>
+
+        <path d="M340 130 C375 65 420 50 475 70" fill="none" stroke="#52627a" stroke-width="2" marker-end="url(#arrowState)"></path>
+        <text x="405" y="70" text-anchor="middle" font-size="11" fill="#5b6475">falha transitória</text>
+
+        <path d="M570 115 C560 170 455 170 415 165" fill="none" stroke="#52627a" stroke-width="2" marker-end="url(#arrowState)"></path>
+        <text x="505" y="190" text-anchor="middle" font-size="11" fill="#5b6475">nextAttemptAt</text>
+
+        <text x="530" y="330" text-anchor="middle" font-size="12" fill="#5b6475">COMPLETED e FAILED são terminais. RETRY_WAIT libera o worker para outra geração elegível.</text>
+      </svg>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Parâmetro</th>
+          <th>Valor inicial</th>
+          <th>Motivo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Polling</td>
+          <td>2 segundos</td>
+          <td>Simplicidade local sem broker externo.</td>
+        </tr>
+        <tr>
+          <td>Concorrência</td>
+          <td>1 geração por vez</td>
+          <td>Reduz complexidade do MVP.</td>
+        </tr>
+        <tr>
+          <td>Timeout por chamada</td>
+          <td>120 segundos</td>
+          <td>Limite operacional ajustável.</td>
+        </tr>
+        <tr>
+          <td>Orçamento da tentativa</td>
+          <td>180 segundos</td>
+          <td>Inclui preparação, chamada e validação.</td>
+        </tr>
+        <tr>
+          <td>TTL do lease</td>
+          <td>240 segundos</td>
+          <td>Margem para finalização transacional.</td>
+        </tr>
+        <tr>
+          <td>Tentativas</td>
+          <td>Até 3</td>
+          <td>Retry controlado, sem repetição indefinida.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section">
+    <h2>6. Snapshot e análise atual</h2>
+    <div class="diagram">
+      <div class="diagram-title">Revisão clínica por paciente</div>
+      <svg viewBox="0 0 1060 270" role="img" aria-label="Snapshot por revisão">
+        <defs>
+          <marker id="arrowRev" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L9,3 z" fill="#52627a"></path>
+          </marker>
+        </defs>
+        <line x1="70" y1="130" x2="950" y2="130" stroke="#c8d0dd" stroke-width="4"></line>
+        <line x1="70" y1="130" x2="950" y2="130" stroke="#52627a" stroke-width="2" marker-end="url(#arrowRev)"></line>
+
+        <circle cx="180" cy="130" r="12" fill="#2f6feb"></circle>
+        <text x="180" y="100" text-anchor="middle" font-size="12" fill="#172033">rev 1</text>
+        <text x="180" y="160" text-anchor="middle" font-size="11" fill="#5b6475">original</text>
+
+        <circle cx="340" cy="130" r="12" fill="#14866d"></circle>
+        <text x="340" y="100" text-anchor="middle" font-size="12" fill="#172033">rev 2</text>
+        <text x="340" y="160" text-anchor="middle" font-size="11" fill="#5b6475">complemento</text>
+
+        <circle cx="520" cy="130" r="12" fill="#2f6feb"></circle>
+        <text x="520" y="100" text-anchor="middle" font-size="12" fill="#172033">rev 3</text>
+        <text x="520" y="160" text-anchor="middle" font-size="11" fill="#5b6475">original</text>
+
+        <rect x="120" y="190" width="460" height="52" rx="10" fill="#eaf1ff" stroke="#a9c0f5"></rect>
+        <text x="350" y="222" text-anchor="middle" font-size="13" font-weight="700" fill="#173b75">Geração A snapshot_revision = 3</text>
+
+        <circle cx="760" cy="130" r="12" fill="#14866d"></circle>
+        <text x="760" y="100" text-anchor="middle" font-size="12" fill="#172033">rev 4</text>
+        <text x="760" y="160" text-anchor="middle" font-size="11" fill="#5b6475">retroativo cadastrado depois</text>
+
+        <rect x="650" y="28" width="250" height="52" rx="10" fill="#effaf6" stroke="#9bd4c4"></rect>
+        <text x="775" y="60" text-anchor="middle" font-size="13" font-weight="700" fill="#0f5f4e">Geração B snapshot_revision = 4</text>
+
+        <text x="520" y="255" text-anchor="middle" font-size="11" fill="#5b6475">Registro retroativo entra apenas nos snapshots criados depois do salvamento.</text>
+      </svg>
+    </div>
+
+    <div class="callout">
+      <strong>Análise atual:</strong> escolher a análise válida com maior <code>snapshot_revision</code>.
+      Em empate, vence a maior <code>request_sequence</code>. Ordem de conclusão nunca decide.
+    </div>
+  </section>
+
+  <section class="section page-break">
+    <h2>7. Contrato da IA</h2>
+    <div class="grid-2">
+      <div class="card">
+        <span class="badge teal">Entrada mínima</span>
+        <ul>
+          <li>Alias temporário do registro.</li>
+          <li>Tipo <code>ORIGINAL</code> ou <code>COMPLEMENT</code>.</li>
+          <li>Referência temporária ao original, quando houver.</li>
+          <li><code>clinicalDateTime</code>.</li>
+          <li>Texto, humor e medicações.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="badge red">Nunca enviar</span>
+        <ul>
+          <li>Nome, CPF, telefone, e-mail ou nascimento.</li>
+          <li>Observações de consulta.</li>
+          <li>IDs internos.</li>
+          <li>Análises anteriores.</li>
+          <li>Dados de outro paciente.</li>
+          <li>Secrets ou configuração interna.</li>
+        </ul>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Parte da saída</th>
+          <th>Regra</th>
+          <th>Validação no backend</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>timeline</code></td>
+          <td>Item com texto, natureza e evidência.</td>
+          <td>Alias, campo e quote precisam resolver para registro do snapshot.</td>
+        </tr>
+        <tr>
+          <td><code>patterns</code></td>
+          <td>Padrões observados com evidência.</td>
+          <td>Vazio em <code>SUMMARY_ONLY</code>.</td>
+        </tr>
+        <tr>
+          <td><code>attentionPoints</code></td>
+          <td>Pontos de atenção com evidência.</td>
+          <td>Não pode virar diagnóstico ou conduta.</td>
+        </tr>
+        <tr>
+          <td><code>limitations</code></td>
+          <td>Limitações da análise.</td>
+          <td>Backend adiciona limitação fixa quando houver apenas um original.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout danger">
+      <strong>Política do MVP:</strong> rejeição integral. Se a resposta relevante violar schema, evidência, isolamento ou segurança clínica, a geração vira <code>FAILED</code> e nenhuma análise parcial é publicada.
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>8. API REST</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Rota</th>
+          <th>Uso</th>
+          <th>Observação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>POST /api/v1/patients</code></td>
+          <td>Cria paciente.</td>
+          <td>201 + <code>Idempotency-Key</code>.</td>
+        </tr>
+        <tr>
+          <td><code>GET /api/v1/patients</code></td>
+          <td>Busca/lista pacientes.</td>
+          <td><code>q</code>, <code>page</code>, <code>size</code>.</td>
+        </tr>
+        <tr>
+          <td><code>POST /api/v1/patients/{id}/appointments</code></td>
+          <td>Cria consulta.</td>
+          <td>Nasce <code>AGENDADA</code>.</td>
+        </tr>
+        <tr>
+          <td><code>POST /api/v1/appointments/{id}/status</code></td>
+          <td>Transição final de consulta.</td>
+          <td>200.</td>
+        </tr>
+        <tr>
+          <td><code>POST /api/v1/patients/{id}/clinical-records</code></td>
+          <td>Cria parecer original.</td>
+          <td>201 + geração automática.</td>
+        </tr>
+        <tr>
+          <td><code>POST /api/v1/patients/{id}/clinical-records/{originalId}/complements</code></td>
+          <td>Cria complemento.</td>
+          <td>Mesmo paciente do original.</td>
+        </tr>
+        <tr>
+          <td><code>GET /api/v1/patients/{id}/analysis-state</code></td>
+          <td>Estado atual da análise.</td>
+          <td>Inclui análise atual, geração ativa e permissão de regenerar.</td>
+        </tr>
+        <tr>
+          <td><code>POST /api/v1/patients/{id}/analysis-generations</code></td>
+          <td>Regeneração manual.</td>
+          <td>202 + <code>Idempotency-Key</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section page-break">
+    <h2>9. Segurança, privacidade e logs</h2>
+    <div class="grid-3">
+      <div class="card">
+        <span class="badge red">Dados</span>
+        <h3>Somente fictícios</h3>
+        <p>MVP local não é ambiente de prontuário real. Seeds, testes, demos e docs não devem conter dados reais.</p>
+      </div>
+      <div class="card">
+        <span class="badge amber">Logs</span>
+        <h3>Allowlist</h3>
+        <p>Registrar identificadores técnicos, estado, tentativa, duração, códigos e contagens. Não registrar prontuário ou resposta integral da IA.</p>
+      </div>
+      <div class="card">
+        <span class="badge purple">Secrets</span>
+        <h3>Fora do Git</h3>
+        <p><code>OPENAI_API_KEY</code> e credenciais ficam em ambiente local. Frontend nunca recebe secrets.</p>
+      </div>
+    </div>
+
+    <div class="callout warning">
+      <strong>Sem autenticação no MVP:</strong> acesso local controlado, loopback e sem CORS amplo.
+      Acesso remoto ou produção exigem nova decisão de segurança.
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>10. Testes críticos</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Backend e banco</h3>
+        <ul>
+          <li>Migrations, constraints e triggers.</li>
+          <li>Append-only por API e SQL direto.</li>
+          <li><code>SELECT FOR UPDATE</code> e <code>SKIP LOCKED</code>.</li>
+          <li>Idempotência e concorrência.</li>
+          <li>Falhas da IA sem rollback clínico.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>IA e segurança clínica</h3>
+        <ul>
+          <li>Zero, um e dois ou mais pareceres originais.</li>
+          <li>Complementos como fonte e evidência.</li>
+          <li>Rejeição de evidência de outro paciente.</li>
+          <li>Ausência de diagnóstico, prescrição e invenção.</li>
+          <li>Resposta inválida, insegura ou truncada como <code>FAILED</code>.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Frontend</h3>
+        <ul>
+          <li>Problem Details e mensagens de campo.</li>
+          <li>Polling de 3s somente com geração ativa e aba visível.</li>
+          <li>Descarte de resposta atrasada de outro paciente.</li>
+          <li>Não sobrescrever formulário em edição.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>E2E</h3>
+        <ul>
+          <li>Cadastro e busca.</li>
+          <li>Consulta e status.</li>
+          <li>Parecer, geração automática e evidências.</li>
+          <li>Falha de IA preservando última análise válida.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>11. Limites e pendências</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Não implementar sem nova decisão</h3>
+        <div class="pill-row">
+          <span class="pill">cloud</span>
+          <span class="pill">Kubernetes</span>
+          <span class="pill">broker externo</span>
+          <span class="pill">microservices</span>
+          <span class="pill">RAG</span>
+          <span class="pill">embeddings</span>
+          <span class="pill">banco vetorial</span>
+          <span class="pill">busca semântica</span>
+          <span class="pill">dados reais</span>
+          <span class="pill">CORS amplo</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Pendências para tasks</h3>
+        <ul>
+          <li>Versões complementares de ferramentas.</li>
+          <li>SQL final das migrations.</li>
+          <li>Nomes de variáveis e <code>.env.example</code>.</li>
+          <li>Catálogo de segurança clínica.</li>
+          <li>Limites de tokens e saída.</li>
+          <li>Mensagens finais de UX e envelopes de API.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">
+    Documento visual gerado a partir da TechSpec e Rules do PsiqApp MVP. Este PDF não substitui os documentos canônicos em Markdown.
+  </div>
+</body>
+</html>

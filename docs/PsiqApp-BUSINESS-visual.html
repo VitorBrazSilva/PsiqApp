@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>PsiqApp MVP - Documento de Negócio Visual</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 14mm;
+    }
+
+    :root {
+      --ink: #172033;
+      --muted: #5b6475;
+      --line: #d9dee8;
+      --soft: #f6f8fb;
+      --panel: #ffffff;
+      --blue: #2f6feb;
+      --teal: #14866d;
+      --amber: #b7791f;
+      --red: #b42318;
+      --purple: #7048b6;
+      --shadow: 0 12px 30px rgba(23, 32, 51, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #ffffff;
+      font: 13.5px/1.52 "Segoe UI", Arial, sans-serif;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    h1, h2, h3, p {
+      margin-top: 0;
+    }
+
+    h1 {
+      font-size: 34px;
+      line-height: 1.08;
+      letter-spacing: 0;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: 21px;
+      margin: 28px 0 12px;
+      padding-top: 4px;
+      border-top: 2px solid var(--line);
+    }
+
+    h3 {
+      font-size: 15.5px;
+      margin: 18px 0 8px;
+      color: #24314a;
+    }
+
+    p {
+      margin-bottom: 10px;
+    }
+
+    ul, ol {
+      margin-top: 6px;
+      padding-left: 22px;
+    }
+
+    li {
+      margin: 4px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 12.5px;
+    }
+
+    th {
+      background: #eef3fb;
+      color: #24314a;
+      text-align: left;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 8px 9px;
+      vertical-align: top;
+    }
+
+    code {
+      font-family: "Cascadia Mono", Consolas, monospace;
+      font-size: 12px;
+      background: #eef1f6;
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+
+    .cover {
+      min-height: 240mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      page-break-after: always;
+      background:
+        linear-gradient(135deg, rgba(47, 111, 235, 0.08), rgba(20, 134, 109, 0.06)),
+        #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 34px;
+    }
+
+    .cover-kicker {
+      display: inline-block;
+      color: #21406f;
+      background: #eaf1ff;
+      border: 1px solid #cbdafa;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .cover-subtitle {
+      max-width: 620px;
+      font-size: 17px;
+      color: var(--muted);
+    }
+
+    .cover-note {
+      border-left: 5px solid var(--red);
+      padding: 13px 16px;
+      background: #fff4f2;
+      color: #632019;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+
+    .meta-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .meta {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .meta strong {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .section {
+      page-break-inside: avoid;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+
+    .callout {
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--blue);
+      background: #f7faff;
+      padding: 12px 14px;
+      border-radius: 8px;
+      margin: 12px 0 18px;
+    }
+
+    .callout.warning {
+      border-left-color: var(--amber);
+      background: #fff8eb;
+    }
+
+    .callout.danger {
+      border-left-color: var(--red);
+      background: #fff4f2;
+    }
+
+    .callout.success {
+      border-left-color: var(--teal);
+      background: #effaf6;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 12px 0 18px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 12px 0 18px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+      page-break-inside: avoid;
+    }
+
+    .card h3 {
+      margin-top: 0;
+    }
+
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #ffffff;
+      background: var(--blue);
+    }
+
+    .badge.teal { background: var(--teal); }
+    .badge.amber { background: var(--amber); }
+    .badge.red { background: var(--red); }
+    .badge.purple { background: var(--purple); }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 8px 0 0;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      background: #f5f7fb;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 12px;
+      color: #39465d;
+    }
+
+    .diagram {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfcff;
+      padding: 12px;
+      margin: 12px 0 18px;
+      page-break-inside: avoid;
+    }
+
+    .diagram-title {
+      font-weight: 700;
+      color: #24314a;
+      margin-bottom: 8px;
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .rule-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 10px 0 18px;
+    }
+
+    .rule {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #ffffff;
+    }
+
+    .rule strong {
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .small {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .footer {
+      margin-top: 22px;
+      border-top: 1px solid var(--line);
+      padding-top: 10px;
+      font-size: 11.5px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <div>
+      <span class="cover-kicker">Documento de negócio visual</span>
+      <h1>PsiqApp MVP</h1>
+      <p class="cover-subtitle">
+        Explicação funcional, acessível e visual do produto: o que ele faz, quais regras protege,
+        como a IA participa e quais limites não podem ser ultrapassados.
+      </p>
+
+      <div class="meta-row">
+        <div class="meta">
+          <strong>Público</strong>
+          Pessoas de produto, negócio, clínica e validação.
+        </div>
+        <div class="meta">
+          <strong>Base</strong>
+          PRD, spec-review, TechSpec e Rules do projeto.
+        </div>
+        <div class="meta">
+          <strong>Status</strong>
+          MVP especificado. Aplicação ainda não implementada.
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="cover-note">
+        Uso exclusivo com dados fictícios. O MVP não está pronto para prontuários reais nem produção clínica.
+      </div>
+      <p class="footer">
+        Arquivos Markdown originais permanecem em <code>docs/BUSINESS.md</code> e <code>docs/TECHNICAL.md</code>.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>1. O produto em uma frase</h2>
+    <div class="callout success">
+      <strong>O PsiqApp organiza o prontuário psiquiátrico e gera uma leitura longitudinal de apoio, sem substituir o médico.</strong>
+      A fonte de verdade continua sendo o que o médico escreveu no prontuário.
+    </div>
+
+    <div class="grid-3">
+      <div class="card">
+        <span class="badge">1</span>
+        <h3>Centraliza</h3>
+        <p>Pacientes, consultas, pareceres clínicos, complementos e análises ficam no mesmo contexto de prontuário.</p>
+      </div>
+      <div class="card">
+        <span class="badge teal">2</span>
+        <h3>Organiza</h3>
+        <p>A linha do tempo usa a data clínica do registro, inclusive quando um parecer é cadastrado retroativamente.</p>
+      </div>
+      <div class="card">
+        <span class="badge purple">3</span>
+        <h3>Apoia</h3>
+        <p>A IA aponta padrões e pontos de atenção com evidências, mas não diagnostica, prescreve ou decide.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>2. Desenho simples do produto</h2>
+    <div class="diagram">
+      <div class="diagram-title">Como o médico usa o PsiqApp</div>
+      <svg viewBox="0 0 980 250" role="img" aria-label="Fluxo simples do produto">
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L9,3 z" fill="#52627a"></path>
+          </marker>
+        </defs>
+
+        <rect x="20" y="72" width="145" height="86" rx="12" fill="#eaf1ff" stroke="#a9c0f5"></rect>
+        <text x="92" y="106" text-anchor="middle" font-size="17" font-weight="700" fill="#173b75">Médico</text>
+        <text x="92" y="130" text-anchor="middle" font-size="12" fill="#3d4c63">registra e revisa</text>
+
+        <rect x="215" y="38" width="185" height="154" rx="12" fill="#ffffff" stroke="#d9dee8"></rect>
+        <text x="307" y="72" text-anchor="middle" font-size="17" font-weight="700" fill="#172033">PsiqApp</text>
+        <text x="307" y="100" text-anchor="middle" font-size="12" fill="#3d4c63">pacientes</text>
+        <text x="307" y="123" text-anchor="middle" font-size="12" fill="#3d4c63">consultas</text>
+        <text x="307" y="146" text-anchor="middle" font-size="12" fill="#3d4c63">prontuário</text>
+        <text x="307" y="169" text-anchor="middle" font-size="12" fill="#3d4c63">análises</text>
+
+        <rect x="455" y="72" width="165" height="86" rx="12" fill="#effaf6" stroke="#9bd4c4"></rect>
+        <text x="537" y="106" text-anchor="middle" font-size="17" font-weight="700" fill="#0f5f4e">Registros</text>
+        <text x="537" y="130" text-anchor="middle" font-size="12" fill="#3d4c63">pareceres e complementos</text>
+
+        <rect x="675" y="72" width="125" height="86" rx="12" fill="#fff8eb" stroke="#edc77b"></rect>
+        <text x="737" y="106" text-anchor="middle" font-size="17" font-weight="700" fill="#7a4d11">IA</text>
+        <text x="737" y="130" text-anchor="middle" font-size="12" fill="#3d4c63">apoio assíncrono</text>
+
+        <rect x="845" y="72" width="115" height="86" rx="12" fill="#f7f3ff" stroke="#c7b7ee"></rect>
+        <text x="902" y="106" text-anchor="middle" font-size="17" font-weight="700" fill="#513592">Análise</text>
+        <text x="902" y="130" text-anchor="middle" font-size="12" fill="#3d4c63">com evidências</text>
+
+        <line x1="165" y1="115" x2="205" y2="115" stroke="#52627a" stroke-width="2" marker-end="url(#arrow)"></line>
+        <line x1="400" y1="115" x2="445" y2="115" stroke="#52627a" stroke-width="2" marker-end="url(#arrow)"></line>
+        <line x1="620" y1="115" x2="665" y2="115" stroke="#52627a" stroke-width="2" marker-end="url(#arrow)"></line>
+        <line x1="800" y1="115" x2="835" y2="115" stroke="#52627a" stroke-width="2" marker-end="url(#arrow)"></line>
+
+        <path d="M902 168 C850 225 262 225 92 168" fill="none" stroke="#14866d" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#arrow)"></path>
+        <text x="475" y="232" text-anchor="middle" font-size="12" fill="#0f5f4e">o médico volta às evidências e decide clinicamente</text>
+      </svg>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>3. Quem usa e para quê</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Persona do MVP</h3>
+        <p>Um único médico psiquiatra em consultório próprio, usando o sistema para organizar pacientes, consultas e evolução clínica.</p>
+        <div class="pill-row">
+          <span class="pill">um médico</span>
+          <span class="pill">consultório próprio</span>
+          <span class="pill">dados fictícios</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Problema que resolve</h3>
+        <p>Históricos longos exigem releitura manual extensa. O PsiqApp ajuda a localizar o que se repetiu, mudou ou merece atenção, sempre preservando a fonte original.</p>
+        <div class="pill-row">
+          <span class="pill">menos releitura manual</span>
+          <span class="pill">linha do tempo</span>
+          <span class="pill">evidências</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>4. Conceitos do prontuário</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Conceito</th>
+          <th>Explicação simples</th>
+          <th>Regra importante</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Paciente</td>
+          <td>Cadastro usado para localizar e organizar o prontuário.</td>
+          <td>CPF deve ser válido e único.</td>
+        </tr>
+        <tr>
+          <td>Consulta</td>
+          <td>Compromisso na agenda interna do PsiqApp.</td>
+          <td>Nasce como <code>AGENDADA</code>; observações não entram na IA.</td>
+        </tr>
+        <tr>
+          <td>Parecer clínico</td>
+          <td>Registro original escrito pelo médico.</td>
+          <td>É append-only: não deve ser sobrescrito.</td>
+        </tr>
+        <tr>
+          <td>Complemento</td>
+          <td>Correção ou informação adicional ligada a um parecer original.</td>
+          <td>Deve referenciar um parecer original do mesmo paciente.</td>
+        </tr>
+        <tr>
+          <td>Análise de IA</td>
+          <td>Leitura de apoio produzida a partir dos registros clínicos.</td>
+          <td>Não é fonte clínica e não substitui o médico.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section page-break">
+    <h2>5. Linha do tempo e correções</h2>
+    <div class="diagram">
+      <div class="diagram-title">Como um complemento preserva o histórico</div>
+      <svg viewBox="0 0 980 300" role="img" aria-label="Linha do tempo com parecer e complemento">
+        <defs>
+          <marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L9,3 z" fill="#52627a"></path>
+          </marker>
+        </defs>
+        <line x1="80" y1="152" x2="900" y2="152" stroke="#c8d0dd" stroke-width="4"></line>
+        <line x1="80" y1="152" x2="900" y2="152" stroke="#52627a" stroke-width="2" marker-end="url(#arrow2)"></line>
+        <text x="80" y="190" font-size="12" fill="#5b6475">mais antigo</text>
+        <text x="815" y="190" font-size="12" fill="#5b6475">mais recente clinicamente</text>
+
+        <circle cx="230" cy="152" r="12" fill="#2f6feb"></circle>
+        <rect x="140" y="42" width="180" height="82" rx="10" fill="#eaf1ff" stroke="#a9c0f5"></rect>
+        <text x="230" y="73" text-anchor="middle" font-size="15" font-weight="700" fill="#173b75">Parecer original</text>
+        <text x="230" y="98" text-anchor="middle" font-size="12" fill="#3d4c63">texto clínico obrigatório</text>
+        <line x1="230" y1="124" x2="230" y2="140" stroke="#a9c0f5"></line>
+
+        <circle cx="520" cy="152" r="12" fill="#14866d"></circle>
+        <rect x="430" y="180" width="180" height="82" rx="10" fill="#effaf6" stroke="#9bd4c4"></rect>
+        <text x="520" y="211" text-anchor="middle" font-size="15" font-weight="700" fill="#0f5f4e">Complemento</text>
+        <text x="520" y="236" text-anchor="middle" font-size="12" fill="#3d4c63">corrige ou acrescenta</text>
+        <line x1="520" y1="164" x2="520" y2="180" stroke="#9bd4c4"></line>
+
+        <circle cx="750" cy="152" r="12" fill="#7048b6"></circle>
+        <rect x="660" y="42" width="180" height="82" rx="10" fill="#f7f3ff" stroke="#c7b7ee"></rect>
+        <text x="750" y="73" text-anchor="middle" font-size="15" font-weight="700" fill="#513592">Novo parecer</text>
+        <text x="750" y="98" text-anchor="middle" font-size="12" fill="#3d4c63">novo ponto clínico original</text>
+        <line x1="750" y1="124" x2="750" y2="140" stroke="#c7b7ee"></line>
+      </svg>
+    </div>
+
+    <div class="callout">
+      <strong>Regra de ouro:</strong> se algo já foi registrado, não se apaga nem se reescreve.
+      Correções e novas informações entram como complemento, mantendo o original disponível.
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>6. O que a IA pode e não pode fazer</h2>
+    <div class="grid-2">
+      <div class="card">
+        <span class="badge teal">Pode</span>
+        <ul>
+          <li>Organizar acontecimentos registrados.</li>
+          <li>Apontar recorrências e padrões com evidências.</li>
+          <li>Destacar pontos de atenção para revisão médica.</li>
+          <li>Declarar limitações e insuficiência de histórico.</li>
+          <li>Levar o médico de volta aos registros originais.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="badge red">Não pode</span>
+        <ul>
+          <li>Diagnosticar.</li>
+          <li>Prescrever ou recomendar dose.</li>
+          <li>Sugerir início, suspensão ou troca de medicamento.</li>
+          <li>Inventar informação ausente.</li>
+          <li>Transformar hipótese em fato.</li>
+          <li>Usar análise anterior como fonte clínica.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>7. Suficiência de histórico</h2>
+    <div class="diagram">
+      <div class="diagram-title">Quando a IA pode falar em evolução longitudinal</div>
+      <svg viewBox="0 0 980 260" role="img" aria-label="Suficiência de histórico">
+        <rect x="30" y="40" width="270" height="160" rx="14" fill="#fff4f2" stroke="#f1a29a"></rect>
+        <text x="165" y="78" text-anchor="middle" font-size="18" font-weight="700" fill="#8a251d">0 pareceres</text>
+        <text x="165" y="112" text-anchor="middle" font-size="13" fill="#3d4c63">não gera análise longitudinal</text>
+        <text x="165" y="140" text-anchor="middle" font-size="12" fill="#5b6475">falta fonte clínica mínima</text>
+
+        <rect x="355" y="40" width="270" height="160" rx="14" fill="#fff8eb" stroke="#edc77b"></rect>
+        <text x="490" y="78" text-anchor="middle" font-size="18" font-weight="700" fill="#7a4d11">1 parecer</text>
+        <text x="490" y="112" text-anchor="middle" font-size="13" fill="#3d4c63">modo SUMMARY_ONLY</text>
+        <text x="490" y="140" text-anchor="middle" font-size="12" fill="#5b6475">pode resumir, sem tendência</text>
+
+        <rect x="680" y="40" width="270" height="160" rx="14" fill="#effaf6" stroke="#9bd4c4"></rect>
+        <text x="815" y="78" text-anchor="middle" font-size="18" font-weight="700" fill="#0f5f4e">2+ pareceres</text>
+        <text x="815" y="112" text-anchor="middle" font-size="13" fill="#3d4c63">modo LONGITUDINAL</text>
+        <text x="815" y="140" text-anchor="middle" font-size="12" fill="#5b6475">pode avaliar evolução</text>
+
+        <text x="490" y="230" text-anchor="middle" font-size="12" fill="#5b6475">Complementos entram como fonte, mas não aumentam a contagem de pareceres originais.</text>
+      </svg>
+    </div>
+  </section>
+
+  <section class="section page-break">
+    <h2>8. Regras críticas em destaque</h2>
+    <div class="rule-list">
+      <div class="rule">
+        <strong>Fonte de verdade</strong>
+        Registros clínicos escritos pelo médico são a fonte clínica. Análises de IA são artefatos derivados.
+      </div>
+      <div class="rule">
+        <strong>Append-only</strong>
+        Pareceres, análises válidas e evidências históricas não devem ser sobrescritos.
+      </div>
+      <div class="rule">
+        <strong>Snapshot congelado</strong>
+        Cada geração usa o histórico existente no momento da solicitação.
+      </div>
+      <div class="rule">
+        <strong>Isolamento por paciente</strong>
+        Consulta, parecer, complemento, análise, geração e evidência nunca se misturam entre pacientes.
+      </div>
+      <div class="rule">
+        <strong>IA não bloqueia prontuário</strong>
+        Salvar parecer não depende da conclusão da IA.
+      </div>
+      <div class="rule">
+        <strong>Falha segura</strong>
+        Falha da IA não apaga, altera ou substitui dados clínicos já salvos.
+      </div>
+      <div class="rule">
+        <strong>Dados fictícios</strong>
+        MVP de validação não deve receber dados reais de pacientes.
+      </div>
+      <div class="rule">
+        <strong>Decisão médica</strong>
+        A decisão clínica final pertence sempre ao médico.
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>9. Fluxos principais</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Cadastro e prontuário</h3>
+        <ol>
+          <li>Cadastrar paciente.</li>
+          <li>Buscar por nome.</li>
+          <li>Abrir prontuário.</li>
+          <li>Visualizar dados, consultas e timeline.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3>Consulta</h3>
+        <ol>
+          <li>Criar consulta com paciente, data e hora.</li>
+          <li>Consulta nasce como <code>AGENDADA</code>.</li>
+          <li>Marcar como realizada, cancelada ou falta.</li>
+          <li>Status final fica visível.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3>Parecer e IA</h3>
+        <ol>
+          <li>Registrar parecer obrigatório.</li>
+          <li>Salvar prontuário imediatamente.</li>
+          <li>Gerar análise em segundo plano.</li>
+          <li>Exibir análise válida quando concluída.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3>Falha da IA</h3>
+        <ol>
+          <li>Geração falha ou resposta é inválida.</li>
+          <li>Prontuário permanece intacto.</li>
+          <li>Última análise válida continua atual.</li>
+          <li>Médico pode tentar novamente quando permitido.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>10. Fora do escopo do MVP</h2>
+    <div class="pill-row">
+      <span class="pill">dados reais em produção</span>
+      <span class="pill">múltiplos médicos</span>
+      <span class="pill">portal do paciente</span>
+      <span class="pill">prescrição eletrônica</span>
+      <span class="pill">diagnóstico automatizado</span>
+      <span class="pill">recomendação terapêutica</span>
+      <span class="pill">WhatsApp</span>
+      <span class="pill">Google Calendar</span>
+      <span class="pill">convênios</span>
+      <span class="pill">financeiro</span>
+      <span class="pill">RAG</span>
+      <span class="pill">embeddings</span>
+      <span class="pill">banco vetorial</span>
+      <span class="pill">busca semântica</span>
+      <span class="pill">exportação avançada</span>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>11. Como avaliar se o MVP funcionou</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Indicador</th>
+          <th>O que observar</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Encontrar paciente</td>
+          <td>Tempo e facilidade para buscar e abrir um prontuário.</td>
+        </tr>
+        <tr>
+          <td>Registrar parecer</td>
+          <td>Tempo e clareza para salvar uma evolução clínica.</td>
+        </tr>
+        <tr>
+          <td>Revisar histórico</td>
+          <td>Esforço para entender timeline, análise e evidências antes da consulta.</td>
+        </tr>
+        <tr>
+          <td>Confiabilidade da IA</td>
+          <td>Clareza dos limites, presença de evidências e ausência de afirmações indevidas.</td>
+        </tr>
+        <tr>
+          <td>Volumes simulados</td>
+          <td>Comportamento com 100 a 500 pacientes, 20 a 100 registros por paciente e casos longos.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="footer">
+    Documento visual gerado a partir de PRD, TechSpec e Rules do PsiqApp MVP. Este PDF não substitui os documentos canônicos em Markdown.
+  </div>
+</body>
+</html>
