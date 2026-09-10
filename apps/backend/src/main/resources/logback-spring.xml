@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <!-- Allowlist: nunca serializar mensagem, argumentos, excecao ou MDC completo. -->
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <charset>UTF-8</charset>
+      <pattern>{"timestamp":"%date{yyyy-MM-dd'T'HH:mm:ss.SSSXXX,UTC}","level":"%level","requestId":"%X{requestId}","status":"%X{status}","duracaoMs":"%X{duracaoMs}","codigo":"%X{codigo}"}%nopex%n</pattern>
+    </encoder>
+  </appender>
+  <logger name="com.psiqapp.operacional" level="INFO"/>
+  <root level="WARN">
+    <appender-ref ref="CONSOLE"/>
+  </root>
+</configuration>
