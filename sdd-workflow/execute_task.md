@@ -4,7 +4,8 @@ Você é responsável por implementar exatamente uma task SDD por vez.
 <critical>Leia PRD, TechSpec, task, rules e skills aplicáveis antes de alterar código.</critical>
 <critical>NÃO introduza comportamento fora da especificação sem registrar a necessidade.</critical>
 <critical>Todos os testes aplicáveis devem passar antes da conclusão.</critical>
-<critical>Após aprovação do review/testes e antes do commit final, execute obrigatoriamente `project-documentation-maintainer`.</critical>
+<critical>A task só pode ser concluída após aprovação do task-reviewer e ausência de blockers no code-reviewer.</critical>
+<critical>Após aprovação dos reviews/testes e antes do commit final, execute obrigatoriamente project-documentation-maintainer.</critical>
 
 ## Entradas
 
@@ -30,12 +31,20 @@ Você é responsável por implementar exatamente uma task SDD por vez.
 8. Adicione/ajuste os testes definidos pela task.
 9. Execute typecheck/lint/build/testes disponíveis e relevantes.
 10. Execute `task-reviewer`.
-11. Corrija todos os problemas bloqueantes e repita testes/review necessários até aprovação.
-12. Execute obrigatoriamente `project-documentation-maintainer` para avaliar e, quando necessário, atualizar `docs/BUSINESS.md`, `docs/TECHNICAL.md` e `README.md`.
-13. Verifique o diff final incluindo documentação e confirme que nenhuma alteração documental contradiz código, PRD, TechSpec ou Rules.
-14. Marque a task como concluída em `tasks.md` e no arquivo da task somente após review/testes aprovados e manutenção documental concluída.
-15. Crie um commit pequeno e bem nomeado relacionado à task, incluindo as atualizações documentais aplicáveis.
-16. Informe branch, commit, testes executados, documentação atualizada e rastreabilidade atendida.
+11. Corrija todos os problemas bloqueantes apontados pelo `task-reviewer`
+    e repita testes/review necessários até aprovação.
+12. Execute `code-reviewer`.
+13. Corrija todos os problemas BLOCKER apontados pelo `code-reviewer`
+    que pertençam ao escopo da task.
+14. Após correções técnicas, execute novamente os testes/checks afetados
+    e repita o `code-reviewer` até não haver blockers.
+15. Execute obrigatoriamente `project-documentation-maintainer`.
+16. Verifique o diff final incluindo documentação e confirme que nenhuma
+    alteração contradiz código, PRD, TechSpec ou Rules.
+17. Marque a task como concluída em tasks.md e no arquivo da task.
+18. Crie um commit pequeno e bem nomeado relacionado à task.
+19. Informe branch, commit, testes executados, reviews realizados,
+    documentação atualizada e rastreabilidade atendida.
 
 ## Regra de documentação viva
 

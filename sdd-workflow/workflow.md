@@ -36,6 +36,11 @@ testes + task-reviewer
   +--> correções --> testes/review
   |
   v
+code-reviewer
+  |
+  +--> correções técnicas --> testes/review
+  |
+  v
 project-documentation-maintainer
   |
   +--> BUSINESS.md / TECHNICAL.md / README.md quando necessário
@@ -70,3 +75,6 @@ READY
 - Task Review != QA != Feature Review.
 - Gate de domínio especializado é adicional e executado apenas quando aplicável.
 - Toda task aprovada deve passar pelo `project-documentation-maintainer` antes do commit final.
+- Task Review != Code Review != QA != Feature Review.
+- `task-reviewer` valida escopo, requisitos, ACs e evidências.
+- `code-reviewer` valida qualidade técnica, arquitetura e manutenção.
