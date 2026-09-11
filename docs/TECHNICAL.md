@@ -2,9 +2,9 @@
 
 ## 1. Estado técnico atual
 
-O repositório está na fase inicial de implementação do MVP. Existem PRD, spec-review aprovado, TechSpec aprovada, Rules do projeto, infraestrutura local de PostgreSQL via Docker Compose, placeholders de configuração, estrutura base do monorepo e CI inicial por área.
+O repositório está na fase inicial de implementação do MVP. Existem PRD, spec-review aprovado, TechSpec aprovada, Rules do projeto, infraestrutura local de PostgreSQL via Docker Compose, backend bootstrapado, placeholders de configuração, estrutura base do monorepo e CI por área.
 
-Ainda não há aplicação backend, frontend, migrations de negócio, worker de IA ou testes funcionais implementados.
+O backend possui apenas a fundação da aplicação: não há endpoints de produto, migrations de negócio, worker de IA ou frontend implementados nesta etapa.
 
 Esta documentação descreve a arquitetura técnica aprovada para implementação do MVP e registra explicitamente os limites do estado atual. Quando as tasks forem implementadas, este documento deve ser atualizado para refletir o código real, removendo ou ajustando qualquer detalhe que deixe de ser verdadeiro.
 
@@ -22,25 +22,25 @@ Fontes técnicas principais:
 
 | Área | Decisão |
 |---|---|
-| Backend | Java 21 LTS, Spring Boot 3.5.16 e Maven. |
+| Backend | Java 21 LTS, Spring Boot 3.5.16 e Maven Wrapper 3.9.16. |
 | Arquitetura backend | Hexagonal pragmática: Domain, Application e Adapters. |
 | Frontend | SPA com React 19.2, TypeScript, Vite 8 e CSS simples. |
 | Roteamento frontend | React Router declarativo. |
 | Comunicação frontend | `fetch` nativo por cliente HTTP centralizado. |
 | Banco | PostgreSQL 18.6 local. |
-| Migrations | Flyway. |
+| Migrations | Flyway 11.20.3; nesta etapa apenas o histórico do Flyway é criado em banco vazio. |
 | Persistência backend | Spring Data JPA/Hibernate no adapter de persistência. |
 | IA | OpenAI atrás de port, SDK oficial Java, Responses API e Structured Outputs. |
 | Modelo inicial | `OPENAI_MODEL=gpt-5.6-terra`, configurado por ambiente. |
 | Execução local | PostgreSQL via Docker Compose; backend e frontend executados diretamente na máquina. |
-| Testes backend | JUnit 5, Spring Boot Test, Mockito e Testcontainers PostgreSQL. |
+| Testes backend | JUnit 5, Spring Boot Test, Mockito, ArchUnit e Testcontainers PostgreSQL. |
 | Testes frontend | Vitest e Testing Library. |
 | E2E | Playwright. |
 | Observabilidade | SLF4J/Logback e Actuator local apenas para health/readiness. |
 
 Infraestrutura local já definida: `infra/compose.yaml` usa `postgres:18.6`, volume Docker nomeado `psiqapp-postgres-data`, healthcheck com `pg_isready` e publicação apenas em `127.0.0.1:5432`.
 
-Ainda ficam para tasks futuras: versão exata do Maven, Node.js LTS, TypeScript, Flyway, driver JDBC PostgreSQL, SDK OpenAI Java e comandos finais de backend/frontend.
+Ainda ficam para tasks futuras: Node.js LTS, TypeScript, driver JDBC PostgreSQL, SDK OpenAI Java e comandos finais de frontend. O backend usa Maven Wrapper 3.9.16, Flyway 11.20.3 e o driver JDBC gerenciado pelo BOM do Spring Boot.
 
 ## 3. Estrutura do monorepo
 
@@ -58,7 +58,7 @@ tasks/
   rules/
 ```
 
-No estado atual, `apps/backend` e `apps/frontend` existem apenas como diretórios reservados para as próximas tasks de bootstrap.
+`apps/backend` já contém o bootstrap Spring Boot; `apps/frontend` permanece como diretório reservado para a próxima task de bootstrap.
 
 Backend previsto:
 
@@ -104,7 +104,9 @@ Responsabilidades:
 - `adapter/out/ai`: integração com OpenAI por trás do `ClinicalAnalysisProviderPort`.
 - `config`: composição das dependências.
 
-A direção de dependência é `adapter -> application -> domain`. Domain e Application não conhecem JPA, SDK da OpenAI, controllers ou DTOs HTTP.
+A direção de dependência é `adaptador -> aplicacao -> dominio` (os pacotes de código usam os nomes portugueses da Task 02). Domain e Application não conhecem JPA, SDK da OpenAI, controllers ou DTOs HTTP.
+
+O bootstrap inclui `FiltroRequestId` e `TratadorDeErrosHttp` na fronteira web. Erros usam Problem Details seguro com `code`, `fieldErrors` quando aplicável e `requestId`. O `Clock` de produção é `java.time.Clock.systemUTC()` e pode ser substituído por um relógio fixo nos testes.
 
 ## 4. Fluxo de dados geral
 
@@ -873,7 +875,7 @@ E2E:
 
 CI:
 
-- job backend em `.github/workflows/validacao.yml`, com guarda até existir Maven Wrapper;
+- job backend em `.github/workflows/validacao.yml`, executando `./mvnw verify` com Java 21;
 - job frontend em `.github/workflows/validacao.yml`, com guarda até existir `package.json`;
 - job integrado E2E em `.github/workflows/validacao.yml`, validando o Compose e executando E2E quando o script existir;
 - sem job separado apenas para Compose.
@@ -896,7 +898,7 @@ Cenários críticos:
 - ausência de diagnóstico, prescrição, recomendação de dose e invenção de informação;
 - falha da IA sem perda ou alteração de dados clínicos.
 
-Testes automatizados não dependem de rede externa. Provider OpenAI deve ser mock/fake nos testes comuns. Testes reais contra provider exigem autorização explícita.
+Testes automatizados do bootstrap não dependem de provider externo; Testcontainers usa PostgreSQL 18.6 localmente. Provider OpenAI deve ser mock/fake nos testes comuns. Testes reais contra provider exigem autorização explícita.
 
 ## 18. Sequenciamento de implementação
 

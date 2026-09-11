@@ -16,14 +16,17 @@ jobs:
         shell: bash
         run: test -d apps/backend
 
-      - name: Run backend checks when bootstrapped
-        shell: bash
-        run: |
-          if [ -f apps/backend/mvnw ]; then
-            (cd apps/backend && ./mvnw verify)
-          else
-            echo "Backend bootstrap not implemented yet; no Maven checks to run."
-          fi
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: apps/backend/pom.xml
+
+      - name: Verify backend with PostgreSQL Testcontainers
+        working-directory: apps/backend
+        run: ./mvnw --batch-mode --no-transfer-progress verify
 
   frontend:
     name: frontend

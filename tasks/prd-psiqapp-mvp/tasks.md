@@ -5,6 +5,7 @@ Este índice organiza a implementação do MVP em tasks pequenas, coesas e adequ
 ## Status de Execução
 
 - [x] 01 `infra-bootstrap`
+- [x] 02 `backend-bootstrap`
 
 ## Sequência Recomendada
 

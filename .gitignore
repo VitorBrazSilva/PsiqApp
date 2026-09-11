@@ -16,6 +16,7 @@ dist/
 build/
 out/
 coverage/
+target/
 
 # Logs and caches
 *.log
