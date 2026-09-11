@@ -24,7 +24,7 @@ tasks/prd-psiqapp-mvp/
 ## Pre-requisitos
 
 - Docker com Docker Compose v2.
-- Java 21, Maven, Node.js e npm serao necessarios nas proximas tasks de bootstrap de backend e frontend, mas ainda nao existem checks de aplicacao.
+- Docker com Docker Compose v2, Java 21 e Maven Wrapper são necessários para o backend; Node.js e npm serão necessários na task de frontend.
 
 ## Configuracao local
 
@@ -66,7 +66,14 @@ Validar o arquivo Compose:
 docker compose --env-file .env.example -f infra/compose.yaml config --quiet
 ```
 
-Checks de backend, frontend e Playwright serao adicionados pelas respectivas tasks de bootstrap. O CI atual tem jobs separados para backend, frontend e E2E integrado, com guardas sem efeito ate esses projetos existirem.
+Executar os checks do backend:
+
+```bash
+cd apps/backend
+./mvnw verify
+```
+
+O `verify` executa testes unitários, testes de contexto HTTP e integração com PostgreSQL 18.6 via Testcontainers. Docker Desktop deve estar iniciado. Checks de frontend e Playwright serão adicionados pelas respectivas tasks de bootstrap. O CI tem jobs separados para backend, frontend e E2E integrado.
 
 ## Documentacao
 

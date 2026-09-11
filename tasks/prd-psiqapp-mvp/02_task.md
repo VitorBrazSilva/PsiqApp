@@ -2,11 +2,11 @@
 
 ## Status de execução
 
-EM ANDAMENTO — implementação local preparada em `task/02-backend-bootstrap`; conclusão bloqueada pela ausência de Docker Engine para `BackendBootstrapIT`.
+CONCLUÍDA — implementação e validação aprovadas em `task/02-backend-bootstrap`.
 
-Em 2026-09-10, `mvnw.cmd --batch-mode --no-transfer-progress package` compilou Java 21, executou 14 testes sem falhas e gerou o JAR executável. O teste HTTP de health usa indicador de banco simulado; não substitui a validação PostgreSQL/JPA/Flyway com Testcontainers. `verify` foi executado e falhou ao localizar um ambiente Docker válido. Evidências e rastreabilidade em `02_task_review.md`.
+Em 2026-09-11, `mvnw.cmd --batch-mode --no-transfer-progress verify` compilou Java 21, executou 14 testes unitários/contexto e 4 testes de integração sem falhas, iniciou PostgreSQL 18.6 via Testcontainers e gerou o JAR executável. Evidências e rastreabilidade em `02_task_review.md`.
 
-O gate de `task-reviewer` permanece em MUDANÇAS SOLICITADAS. `code-reviewer`, manutenção documental final, conclusão, commit, push e PR aguardam a aprovação desse gate, conforme `sdd-workflow/execute_task.md`. Nenhuma subtask ou teste pendente foi marcado como concluído por antecipação.
+O gate de `task-reviewer` está APROVADO. `code-reviewer` e manutenção documental foram concluídos nesta retomada; commit, push e PR seguem no mesmo fluxo desta task.
 
 ### Decisões de implementação do bootstrap
 
@@ -63,13 +63,13 @@ Criar o projeto backend Java/Spring Boot com arquitetura hexagonal pragmática, 
 
 ## Subtarefas
 
-- [ ] 2.1 Criar o projeto Maven em `apps/backend` e fixar versões aprovadas.
-- [ ] 2.2 Criar pacotes `dominio`, `aplicacao`, `adaptador` e `configuracao`.
-- [ ] 2.3 Configurar profile local com PostgreSQL, Flyway e JPA.
-- [ ] 2.4 Criar `TratadorDeErrosHttp`, `RespostaProblema` e propagação de `requestId`.
-- [ ] 2.5 Criar health/readiness local sem dependência de IA.
-- [ ] 2.6 Configurar JUnit 5, Spring Boot Test, Mockito e Testcontainers.
-- [ ] 2.7 Configurar logs por allowlist de metadados operacionais.
+- [x] 2.1 Criar o projeto Maven em `apps/backend` e fixar versões aprovadas.
+- [x] 2.2 Criar pacotes `dominio`, `aplicacao`, `adaptador` e `configuracao`.
+- [x] 2.3 Configurar profile local com PostgreSQL, Flyway e JPA.
+- [x] 2.4 Criar `TratadorDeErrosHttp`, `RespostaProblema` e propagação de `requestId`.
+- [x] 2.5 Criar health/readiness local sem dependência de IA.
+- [x] 2.6 Configurar JUnit 5, Spring Boot Test, Mockito e Testcontainers.
+- [x] 2.7 Configurar logs por allowlist de metadados operacionais.
 
 ## Critérios de sucesso
 
@@ -80,11 +80,11 @@ Criar o projeto backend Java/Spring Boot com arquitetura hexagonal pragmática, 
 
 ## Testes obrigatórios
 
-- [ ] Compilação Maven.
-- [ ] Teste de contexto Spring.
-- [ ] Teste de `TratadorDeErrosHttp` para formato Problem Details.
-- [ ] Teste de exposição local do health/readiness.
-- [ ] Verificação arquitetural simples impedindo dependência de `dominio` para `adaptador`.
+- [x] Compilação Maven.
+- [x] Teste de contexto Spring.
+- [x] Teste de `TratadorDeErrosHttp` para formato Problem Details.
+- [x] Teste de exposição local do health/readiness.
+- [x] Verificação arquitetural simples impedindo dependência de `dominio` para `adaptador`.
 
 ## Skills aplicáveis
 

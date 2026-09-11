@@ -5,7 +5,7 @@ Este índice organiza a implementação do MVP em tasks pequenas, coesas e adequ
 ## Status de Execução
 
 - [x] 01 `infra-bootstrap`
-- [ ] 02 `backend-bootstrap` — em andamento; build e 14 testes locais aprovados, integração Testcontainers bloqueada por ausência de Docker Engine. Ver `02_task_review.md`.
+- [x] 02 `backend-bootstrap`
 
 ## Sequência Recomendada
 

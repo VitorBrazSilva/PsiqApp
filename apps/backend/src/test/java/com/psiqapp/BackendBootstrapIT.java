@@ -54,7 +54,9 @@ class BackendBootstrapIT {
         for (String caminho : new String[]{"/api/v1/health", "/api/v1/health/readiness"}) {
             var resposta = http.getForEntity(caminho, JsonNode.class);
             assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
-            assertThat(resposta.getBody().toString()).isEqualTo("{\"status\":\"UP\"}");
+            assertThat(resposta.getBody().path("status").asText()).isEqualTo("UP");
+            assertThat(resposta.getBody().has("components")).isFalse();
+            assertThat(resposta.getBody().has("details")).isFalse();
             assertThat(resposta.getHeaders().getFirst("X-Request-Id")).isNotBlank();
         }
     }
