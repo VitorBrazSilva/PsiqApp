@@ -19,7 +19,8 @@ import org.springframework.http.HttpStatus;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
         "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,"
                 + "org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,"
-                + "org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration"
+                + "org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration",
+        "psiqapp.product.enabled=false"
 })
 @Import(HealthLocalTest.BancoSimulado.class)
 class HealthLocalTest {

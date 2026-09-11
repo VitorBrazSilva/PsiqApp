@@ -6,9 +6,9 @@ O PsiqApp MVP é um sistema de apoio ao atendimento psiquiátrico para um único
 
 O objetivo principal é reduzir o esforço de releitura manual do prontuário antes de uma consulta, mantendo os registros clínicos originais como fonte de verdade. A IA ajuda a organizar acontecimentos, recorrências, padrões e pontos de atenção, mas não decide, diagnostica, prescreve nem substitui o julgamento clínico.
 
-**Capacidade atual:** é possível navegar entre as áreas Pacientes, Agenda e Prontuário, que informam claramente estar em preparação. Um aviso permanece visível em todas as páginas: usar somente dados fictícios e não inserir dados reais de pacientes. Ainda não é possível cadastrar pacientes, agendar consultas, consultar registros clínicos ou gerar análises.
+**Capacidade atual:** o backend já permite cadastrar, buscar e visualizar pacientes fictícios por API, criar consultas associadas a pacientes, listar agenda e atualizar consultas agendadas para estados finais. No frontend, ainda é possível apenas navegar entre as áreas Pacientes, Agenda e Prontuário, que informam claramente estar em preparação. Um aviso permanece visível em todas as páginas: usar somente dados fictícios e não inserir dados reais de pacientes. Ainda não é possível usar esses fluxos pelo frontend, consultar registros clínicos ou gerar análises.
 
-As capacidades e regras de domínio descritas abaixo representam o MVP aprovado para implementação futura; não são funcionalidades disponíveis nesta versão. As fontes normativas permanecem o PRD e as Rules.
+As capacidades e regras de domínio descritas abaixo combinam o que já está disponível no backend com o restante do MVP aprovado para implementação futura. As fontes normativas permanecem o PRD e as Rules.
 
 ## 2. Contexto de uso
 
@@ -45,11 +45,11 @@ Antes de qualquer uso com pacientes reais, o produto precisará de decisões e i
 | Análise atual | Análise válida baseada no snapshot clínico mais recente; não é escolhida pela ordem em que a IA terminou. |
 | Geração | Processo de produção de uma análise de IA, podendo estar em geração, concluído ou falho. |
 
-## 4. Capacidades especificadas do MVP — ainda não disponíveis
+## 4. Capacidades de pacientes e consultas disponíveis no backend
 
 ### Cadastro e localização de pacientes
 
-O médico pode cadastrar pacientes com nome, CPF, data de nascimento, telefone, e-mail e queixa inicial opcional. Nome, CPF, data de nascimento, telefone e e-mail são obrigatórios.
+O backend permite cadastrar pacientes com nome, CPF, data de nascimento, telefone, e-mail e queixa inicial opcional. Nome, CPF, data de nascimento, telefone e e-mail são obrigatórios.
 
 Regras funcionais:
 
@@ -63,7 +63,7 @@ Regras funcionais:
 
 ### Consultas e agenda
 
-O médico pode criar consultas associadas a pacientes. Toda consulta precisa de paciente, data e hora. Observações são opcionais.
+O backend permite criar consultas associadas a pacientes. Toda consulta precisa de paciente, data e hora. Observações são opcionais.
 
 Status de consulta no MVP:
 
@@ -83,6 +83,8 @@ Regras funcionais:
 - O MVP não permite retornar uma consulta final para `AGENDADA`.
 - O MVP não permite alterar diretamente uma consulta de um estado final para outro estado final.
 - Observações de consulta não entram como fonte clínica da IA.
+
+## 5. Capacidades especificadas do MVP — ainda não disponíveis
 
 ### Registros clínicos
 
@@ -134,7 +136,7 @@ Ordenação funcional:
 
 Um registro retroativo aparece na posição correspondente à sua data/hora clínica, mas sua data/hora real de criação continua preservada para auditoria.
 
-## 5. Análise de IA especificada — ainda não disponível
+## 6. Análise de IA especificada — ainda não disponível
 
 ### Papel da IA
 
@@ -203,9 +205,11 @@ Quando uma geração falha:
 - o sistema deve apresentar a falha de forma compreensível;
 - o médico pode solicitar nova tentativa manual quando houver pelo menos um parecer original e nenhuma geração em andamento.
 
-## 6. Fluxos principais especificados — ainda não disponíveis
+## 7. Fluxos principais
 
 ### Fluxo 1 - Cadastro e abertura de prontuário
+
+As etapas de cadastro, busca e visualização de dados básicos existem no backend por API. A abertura de prontuário funcional no frontend ainda não está disponível.
 
 1. O médico cadastra um paciente com dados obrigatórios válidos.
 2. O sistema salva o paciente.
@@ -214,6 +218,8 @@ Quando uma geração falha:
 5. O médico abre o prontuário do paciente.
 
 ### Fluxo 2 - Criação e acompanhamento de consulta
+
+As etapas de criação, listagem de agenda e atualização de status existem no backend por API. A experiência de agenda no frontend ainda não está disponível.
 
 1. O médico cria uma consulta para um paciente, informando data e hora.
 2. A consulta nasce como `AGENDADA`.
@@ -248,7 +254,7 @@ Quando uma geração falha:
 4. O médico avalia padrões, pontos de atenção, limitações e evidências.
 5. O médico abre os registros originais quando precisa conferir a fonte.
 
-## 7. Regras de negócio consolidadas
+## 8. Regras de negócio consolidadas
 
 ### Pacientes
 
@@ -305,7 +311,7 @@ Quando uma geração falha:
 - Logs não devem expor prontuário completo, resposta clínica integral da IA, CPF completo sem necessidade, secrets ou dados clínicos sensíveis.
 - O contexto enviado ao provedor de IA deve conter apenas dados necessários do paciente analisado.
 
-## 8. Fora do escopo do MVP
+## 9. Fora do escopo do MVP
 
 Não fazem parte do MVP:
 
@@ -331,7 +337,7 @@ Não fazem parte do MVP:
 - infraestrutura completa de segurança para operação clínica real;
 - exportação avançada do prontuário.
 
-## 9. Métricas de validação
+## 10. Métricas de validação
 
 O MVP deve ser avaliado pela utilidade percebida e pelo funcionamento dos fluxos principais. As métricas previstas são observacionais, sem definir inicialmente um limite rígido como regra de produto.
 
@@ -345,7 +351,7 @@ Indicadores de validação:
 - capacidade de rastrear observações da IA até os registros originais;
 - comportamento com volumes de validação entre 100 e 500 pacientes, 20 a 100 registros por paciente e casos longos com 200 ou mais registros.
 
-## 10. Fontes canônicas
+## 11. Fontes canônicas
 
 Este documento foi criado a partir de:
 

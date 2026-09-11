@@ -7,6 +7,7 @@ Este índice organiza a implementação do MVP em tasks pequenas, coesas e adequ
 - [x] 01 `infra-bootstrap`
 - [x] 02 `backend-bootstrap`
 - [x] 03 `frontend-bootstrap`
+- [x] 04 `backend-patient-appointment`
 
 ## Sequência Recomendada
 

@@ -39,10 +39,10 @@ class BackendBootstrapIT {
     void contextoCarregaJpaFlywayPostgresEClockSemIAOuTabelasDeNegocio() {
         assertThat(jpa.isOpen()).isTrue();
         assertThat(flyway.validateWithResult().validationSuccessful).isTrue();
-        assertThat(flyway.info().all()).isEmpty();
+        assertThat(flyway.info().applied()).hasSize(1);
         assertThat(jdbc.queryForObject("select current_setting('server_version')", String.class)).startsWith("18.6");
         assertThat(jdbc.queryForList("select tablename from pg_tables where schemaname='public'", String.class))
-                .isSubsetOf("flyway_schema_history");
+                .contains("patient", "appointment", "idempotency_record", "flyway_schema_history");
         assertThat(relogio.getZone()).isEqualTo(ZoneOffset.UTC);
         assertThat(ambiente.getProperty("server.address")).isEqualTo("127.0.0.1");
         assertThat(ambiente.getProperty("spring.jpa.open-in-view")).isEqualTo("false");
@@ -62,9 +62,9 @@ class BackendBootstrapIT {
     }
 
     @Test
-    void naoExpoeEndpointsAdministrativosNemRotasDeProduto() {
+    void naoExpoeEndpointsAdministrativosNemRotasForaDoEscopo() {
         for (String caminho : new String[]{"/api/v1/env", "/api/v1/beans", "/api/v1/metrics",
-                "/actuator", "/api/v1/patients", "/api/v1/appointments", "/teste/falha"}) {
+                "/actuator", "/api/v1/clinical-records", "/teste/falha"}) {
             var resposta = http.getForEntity(caminho, JsonNode.class);
             assertThat(resposta.getStatusCode()).as(caminho).isEqualTo(HttpStatus.NOT_FOUND);
             assertThat(resposta.getBody().path("code").asText()).isEqualTo("RECURSO_NAO_ENCONTRADO");
@@ -76,6 +76,7 @@ class BackendBootstrapIT {
         var resposta = http.getForEntity("/api/v1/openapi", JsonNode.class);
         assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(resposta.getBody().path("openapi").asText()).startsWith("3.");
-        assertThat(resposta.getBody().path("paths").isEmpty()).isTrue();
+        assertThat(resposta.getBody().path("paths").has("/api/v1/patients")).isTrue();
+        assertThat(resposta.getBody().path("paths").has("/api/v1/appointments")).isTrue();
     }
 }
