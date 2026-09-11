@@ -6,7 +6,9 @@ O PsiqApp MVP é um sistema de apoio ao atendimento psiquiátrico para um único
 
 O objetivo principal é reduzir o esforço de releitura manual do prontuário antes de uma consulta, mantendo os registros clínicos originais como fonte de verdade. A IA ajuda a organizar acontecimentos, recorrências, padrões e pontos de atenção, mas não decide, diagnostica, prescreve nem substitui o julgamento clínico.
 
-**Status atual do repositório:** esta documentação descreve o MVP aprovado em PRD e TechSpec. Ainda não há aplicação implementada no repositório; portanto, o documento deve ser lido como a descrição funcional canônica do produto especificado para implementação.
+**Capacidade atual:** é possível navegar entre as áreas Pacientes, Agenda e Prontuário, que informam claramente estar em preparação. Um aviso permanece visível em todas as páginas: usar somente dados fictícios e não inserir dados reais de pacientes. Ainda não é possível cadastrar pacientes, agendar consultas, consultar registros clínicos ou gerar análises.
+
+As capacidades e regras de domínio descritas abaixo representam o MVP aprovado para implementação futura; não são funcionalidades disponíveis nesta versão. As fontes normativas permanecem o PRD e as Rules.
 
 ## 2. Contexto de uso
 
@@ -43,7 +45,7 @@ Antes de qualquer uso com pacientes reais, o produto precisará de decisões e i
 | Análise atual | Análise válida baseada no snapshot clínico mais recente; não é escolhida pela ordem em que a IA terminou. |
 | Geração | Processo de produção de uma análise de IA, podendo estar em geração, concluído ou falho. |
 
-## 4. Capacidades do MVP
+## 4. Capacidades especificadas do MVP — ainda não disponíveis
 
 ### Cadastro e localização de pacientes
 
@@ -132,7 +134,7 @@ Ordenação funcional:
 
 Um registro retroativo aparece na posição correspondente à sua data/hora clínica, mas sua data/hora real de criação continua preservada para auditoria.
 
-## 5. Análise de IA
+## 5. Análise de IA especificada — ainda não disponível
 
 ### Papel da IA
 
@@ -201,7 +203,7 @@ Quando uma geração falha:
 - o sistema deve apresentar a falha de forma compreensível;
 - o médico pode solicitar nova tentativa manual quando houver pelo menos um parecer original e nenhuma geração em andamento.
 
-## 6. Fluxos principais
+## 6. Fluxos principais especificados — ainda não disponíveis
 
 ### Fluxo 1 - Cadastro e abertura de prontuário
 

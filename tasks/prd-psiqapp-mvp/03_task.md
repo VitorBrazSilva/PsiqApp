@@ -1,5 +1,7 @@
 # Task 3.0 - frontend-bootstrap
 
+**Status: CONCLUÍDA em 2026-09-11.** Testes aprovados, task-reviewer aprovado, code-reviewer sem blockers e manutenção documental concluída. Abertura automática do PR indisponível por ausência de `gh` e navegador; título/descrição preparados em `03_pull_request.md`, conforme fallback do workflow.
+
 ## Objetivo
 
 Criar a SPA React/Vite com TypeScript, roteamento, cliente HTTP centralizado, estados básicos de UI e aviso persistente de dados fictícios.
@@ -31,13 +33,13 @@ Criar a SPA React/Vite com TypeScript, roteamento, cliente HTTP centralizado, es
 
 ## Subtarefas
 
-- [ ] 3.1 Criar projeto Vite em `apps/frontend` com versões compatíveis.
-- [ ] 3.2 Estruturar `src/app`, `src/features` e `src/shared`.
-- [ ] 3.3 Criar `ClienteApi`, `ErroApi` e utilitário de `chaveDeIdempotencia`.
-- [ ] 3.4 Criar rotas iniciais para pacientes, agenda e prontuário como placeholders navegáveis.
-- [ ] 3.5 Criar `AvisoDadosFicticios` persistente e visível.
-- [ ] 3.6 Configurar proxy Vite de `/api` para `127.0.0.1:8080`.
-- [ ] 3.7 Configurar testes unitários de componentes e cliente HTTP.
+- [x] 3.1 Criar projeto Vite em `apps/frontend` com versões compatíveis.
+- [x] 3.2 Estruturar `src/app`, `src/features` e `src/shared`.
+- [x] 3.3 Criar `ClienteApi`, `ErroApi` e utilitário de `chaveDeIdempotencia`.
+- [x] 3.4 Criar rotas iniciais para pacientes, agenda e prontuário como placeholders navegáveis.
+- [x] 3.5 Criar `AvisoDadosFicticios` persistente e visível.
+- [x] 3.6 Configurar proxy Vite de `/api` para `127.0.0.1:8080`.
+- [x] 3.7 Configurar testes unitários de componentes e cliente HTTP.
 
 ## Critérios de sucesso
 
@@ -48,10 +50,10 @@ Criar a SPA React/Vite com TypeScript, roteamento, cliente HTTP centralizado, es
 
 ## Testes obrigatórios
 
-- [ ] Typecheck TypeScript.
-- [ ] Testes de renderização do layout e do aviso persistente.
-- [ ] Testes do `ClienteApi` para sucesso, Problem Details e header `Idempotency-Key`.
-- [ ] Build Vite.
+- [x] Typecheck TypeScript.
+- [x] Testes de renderização do layout e do aviso persistente.
+- [x] Testes do `ClienteApi` para sucesso, Problem Details e header `Idempotency-Key`.
+- [x] Build Vite.
 
 ## Skills aplicáveis
 
@@ -68,4 +70,13 @@ Criar a SPA React/Vite com TypeScript, roteamento, cliente HTTP centralizado, es
 - `apps/frontend/src/shared/idempotencia/chaveDeIdempotencia.ts`
 - `apps/frontend/src/shared/componentes/AvisoDadosFicticios.tsx`
 - `apps/frontend/src/styles.css`
+
+## Evidências e limites
+
+- `03_task_review.md`: rastreabilidade e checks; 23 testes aprovados, lint, typecheck, build e smoke local de Vite/proxy.
+- `03_task_code_review.md`: revisão técnica aprovada.
+- `03_task_documentation.md`: atualização de README, BUSINESS e TECHNICAL.
+- React 19.2.8, Vite 8.3.0, Node 24.18.0 LTS, npm 11.16.0, TypeScript 6.0.3 e dependências estáveis fixadas no projeto.
+- RF-020, RNF-005 e TS-031 não são declarados funcionalmente completos: isolamento integrado, análises e polling continuam nas tasks futuras. O bootstrap fornece cliente sem contexto global de paciente e suporte a cancelamento.
+- Inspeção visual em navegador real indisponível; navegação/renderização testadas com Testing Library e responsividade revisada no CSS. E2E fora do escopo.
 
