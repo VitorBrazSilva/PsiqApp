@@ -39,14 +39,32 @@ jobs:
         shell: bash
         run: test -d apps/frontend
 
-      - name: Run frontend checks when bootstrapped
-        shell: bash
-        run: |
-          if [ -f apps/frontend/package.json ]; then
-            (cd apps/frontend && npm ci && npm run lint && npm test -- --run && npm run build)
-          else
-            echo "Frontend bootstrap not implemented yet; no Node checks to run."
-          fi
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: apps/frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: apps/frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: apps/frontend
+        run: npm ci
+
+      - name: Check frontend types
+        working-directory: apps/frontend
+        run: npm run typecheck
+
+      - name: Lint frontend
+        working-directory: apps/frontend
+        run: npm run lint
+
+      - name: Test frontend
+        working-directory: apps/frontend
+        run: npm test -- --run
+
+      - name: Build frontend
+        working-directory: apps/frontend
+        run: npm run build
 
   e2e-integrado:
     name: e2e-integrado

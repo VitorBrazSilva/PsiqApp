@@ -2,9 +2,9 @@
 
 ## 1. Estado técnico atual
 
-O repositório está na fase inicial de implementação do MVP. Existem PRD, spec-review aprovado, TechSpec aprovada, Rules do projeto, infraestrutura local de PostgreSQL via Docker Compose, backend bootstrapado, placeholders de configuração, estrutura base do monorepo e CI por área.
+O repositório está na fase inicial de implementação do MVP. Existem PRD, spec-review aprovado, TechSpec aprovada, Rules do projeto, infraestrutura local de PostgreSQL via Docker Compose, bootstrap de backend e frontend, placeholders de configuração e CI por área.
 
-O backend possui apenas a fundação da aplicação: não há endpoints de produto, migrations de negócio, worker de IA ou frontend implementados nesta etapa.
+O backend possui apenas a fundação da aplicação. O frontend possui SPA navegável, placeholders de pacientes/agenda/prontuário, aviso persistente e cliente HTTP testado. Não há endpoints de produto, migrations de negócio, fluxos clínicos ou worker de IA implementados nesta etapa.
 
 Esta documentação descreve a arquitetura técnica aprovada para implementação do MVP e registra explicitamente os limites do estado atual. Quando as tasks forem implementadas, este documento deve ser atualizado para refletir o código real, removendo ou ajustando qualquer detalhe que deixe de ser verdadeiro.
 
@@ -24,8 +24,8 @@ Fontes técnicas principais:
 |---|---|
 | Backend | Java 21 LTS, Spring Boot 3.5.16 e Maven Wrapper 3.9.16. |
 | Arquitetura backend | Hexagonal pragmática: Domain, Application e Adapters. |
-| Frontend | SPA com React 19.2, TypeScript, Vite 8 e CSS simples. |
-| Roteamento frontend | React Router declarativo. |
+| Frontend | React 19.2.8, TypeScript 6.0.3, Vite 8.3.0 e CSS simples; Node.js 24.18.0 LTS e npm 11.16.0. |
+| Roteamento frontend | React Router 8.3.1 declarativo. |
 | Comunicação frontend | `fetch` nativo por cliente HTTP centralizado. |
 | Banco | PostgreSQL 18.6 local. |
 | Migrations | Flyway 11.20.3; nesta etapa apenas o histórico do Flyway é criado em banco vazio. |
@@ -34,13 +34,13 @@ Fontes técnicas principais:
 | Modelo inicial | `OPENAI_MODEL=gpt-5.6-terra`, configurado por ambiente. |
 | Execução local | PostgreSQL via Docker Compose; backend e frontend executados diretamente na máquina. |
 | Testes backend | JUnit 5, Spring Boot Test, Mockito, ArchUnit e Testcontainers PostgreSQL. |
-| Testes frontend | Vitest e Testing Library. |
+| Testes frontend | Vitest 5.0.0, Testing Library React 16.3.3 e jsdom 30.0.1; ESLint 10.10.0. |
 | E2E | Playwright. |
 | Observabilidade | SLF4J/Logback e Actuator local apenas para health/readiness. |
 
 Infraestrutura local já definida: `infra/compose.yaml` usa `postgres:18.6`, volume Docker nomeado `psiqapp-postgres-data`, healthcheck com `pg_isready` e publicação apenas em `127.0.0.1:5432`.
 
-Ainda ficam para tasks futuras: Node.js LTS, TypeScript, driver JDBC PostgreSQL, SDK OpenAI Java e comandos finais de frontend. O backend usa Maven Wrapper 3.9.16, Flyway 11.20.3 e o driver JDBC gerenciado pelo BOM do Spring Boot.
+O frontend fixa dependências diretas no `package.json` e a árvore completa no `package-lock.json`; `.nvmrc` fixa o Node. TypeScript 6.0.3 está na faixa suportada pelo typescript-eslint 8.70.0 (`<6.1.0`); TypeScript 7 não integra esta combinação. O backend usa Maven Wrapper 3.9.16, Flyway 11.20.3 e o driver JDBC gerenciado pelo BOM do Spring Boot. A versão do SDK OpenAI permanece para a task de integração de IA.
 
 ## 3. Estrutura do monorepo
 
@@ -58,7 +58,7 @@ tasks/
   rules/
 ```
 
-`apps/backend` já contém o bootstrap Spring Boot; `apps/frontend` permanece como diretório reservado para a próxima task de bootstrap.
+`apps/backend` contém o bootstrap Spring Boot; `apps/frontend` contém o bootstrap React/Vite.
 
 Backend previsto:
 
@@ -82,7 +82,7 @@ apps/backend/src/main/java/com/psiqapp/
 └── config/
 ```
 
-Frontend previsto:
+Frontend implementado (`analyses` está apenas reservado, sem funcionalidade):
 
 ```text
 apps/frontend/src/
@@ -756,9 +756,18 @@ Busca:
 
 ## 14. Frontend
 
-Responsabilidades:
+Capacidades implementadas:
 
-- banner persistente indicando uso exclusivo de dados fictícios;
+- `src/app` compõe bootstrap, layout e rotas declarativas; `features` contém páginas placeholder; `shared` contém aviso, estado vazio, cliente HTTP, erros e idempotência.
+- `/` redireciona para `/pacientes`; `/pacientes`, `/agenda` e `/prontuario` são navegáveis, sem dados nem requisições reais. Rotas desconhecidas têm mensagem e link de retorno.
+- Aviso de uso exclusivo de dados fictícios no layout comum, sem dispensa e com posicionamento sticky; CSS responsivo simples, navegação semântica e foco visível.
+- `ClienteApi.requisitar<T>` usa base relativa `/api/v1`, JSON, `Accept` comum, `Idempotency-Key` opcional e `AbortSignal`. Não mantém cache de paciente, não faz retry automático e usa `cache: no-store`.
+- O chamador cria a chave UUID com `chaveDeIdempotencia()` uma vez por operação e mantém a mesma chave e corpo ao repetir um envio. A persistência de idempotência no backend não faz parte do bootstrap frontend.
+- `ErroApi` contém status HTTP e metadados de Problem Details (`code`, `requestId` UUID e `fieldErrors` com formato restrito). Mensagens locais substituem texto remoto; `title`, `detail`, `instance`, mensagens de campo e valores rejeitados não são retidos. O cliente trata falha de transporte, JSON inválido e sucesso 204.
+- A configuração de desenvolvimento fixa 127.0.0.1:5173, `strictPort` e proxy `/api` para 127.0.0.1:8080. Nenhum secret ou acesso a provider é necessário para iniciar a SPA.
+
+Responsabilidades especificadas para as tasks funcionais, ainda não implementadas:
+
 - cadastro e busca de pacientes;
 - agenda;
 - prontuário com dados, timeline, análise atual e histórico;
@@ -769,7 +778,7 @@ Responsabilidades:
 - mensagens fixas para seções vazias;
 - limitação explícita em `SUMMARY_ONLY`.
 
-Polling de análise:
+Polling de análise especificado para a Task 10, ainda não implementado:
 
 - a cada 3 segundos enquanto houver geração ativa e aba visível;
 - atualização imediata ao retornar à aba;
@@ -876,7 +885,7 @@ E2E:
 CI:
 
 - job backend em `.github/workflows/validacao.yml`, executando `./mvnw verify` com Java 21;
-- job frontend em `.github/workflows/validacao.yml`, com guarda até existir `package.json`;
+- job frontend em `.github/workflows/validacao.yml`, com Node fixado por `.nvmrc`, `npm ci`, typecheck, lint, testes Vitest e build;
 - job integrado E2E em `.github/workflows/validacao.yml`, validando o Compose e executando E2E quando o script existir;
 - sem job separado apenas para Compose.
 
@@ -917,7 +926,7 @@ Sequência de tasks aprovada:
 
 Dependências principais:
 
-- `infra-bootstrap` habilita backend e frontend;
+- `infra-bootstrap` habilita backend; o bootstrap frontend é independente do banco/backend;
 - `backend-clinical-records` depende de backend e infra;
 - `backend-analysis-worker` depende de clinical records e infra;
 - `backend-api-integration` depende de patient/appointment, clinical records e worker;
@@ -950,7 +959,7 @@ Não implementar no MVP sem nova decisão:
 
 Ainda precisam ser definidos durante implementação:
 
-- versões complementares de Maven, Node.js, TypeScript, Flyway, driver JDBC e SDK OpenAI;
+- versão do SDK OpenAI; versões de Maven, Node.js, TypeScript, Flyway e driver JDBC estão definidas nos bootstraps;
 - SQL final das migrations;
 - nomes finais de propriedades e variáveis de ambiente da aplicação além dos placeholders iniciais;
 - detalhes de cancelamento/timeout do SDK;
@@ -959,4 +968,4 @@ Ainda precisam ser definidos durante implementação:
 - mensagens finais de UX;
 - envelopes finais de resposta/paginação;
 - política concreta para requisições concorrentes de idempotência;
-- comandos finais de execução e checks de backend/frontend.
+- comandos de execução dos fluxos funcionais futuros; os checks dos bootstraps já estão no README.
