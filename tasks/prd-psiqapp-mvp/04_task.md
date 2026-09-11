@@ -31,13 +31,13 @@ Implementar no backend cadastro, busca e visualização de pacientes, além de c
 
 ## Subtarefas
 
-- [ ] 4.1 Criar entidades de domínio `Paciente`, `Consulta` e `StatusConsulta`.
-- [ ] 4.2 Criar casos de uso `CriarPacienteCasoDeUso`, `BuscarPacientesCasoDeUso`, `ObterPacienteCasoDeUso`, `CriarConsultaCasoDeUso`, `ListarConsultasCasoDeUso` e `AtualizarStatusConsultaCasoDeUso`.
-- [ ] 4.3 Criar ports `RepositorioPacientePort`, `RepositorioConsultaPort` e `RepositorioIdempotenciaPort`.
-- [ ] 4.4 Criar migrations para `paciente`, `consulta` e `idempotencia_operacao`.
-- [ ] 4.5 Implementar adapters JPA com mapeadores manuais e queries parametrizadas.
-- [ ] 4.6 Implementar controllers e DTOs em português: `PacienteControlador`, `ConsultaControlador`, `CriarPacienteRequisicao`, `ConsultaResposta`.
-- [ ] 4.7 Aplicar idempotência em criação de paciente e consulta.
+- [x] 4.1 Criar entidades de domínio `Paciente`, `Consulta` e `StatusConsulta`.
+- [x] 4.2 Criar casos de uso `CriarPacienteCasoDeUso`, `BuscarPacientesCasoDeUso`, `ObterPacienteCasoDeUso`, `CriarConsultaCasoDeUso`, `ListarConsultasCasoDeUso` e `AtualizarStatusConsultaCasoDeUso`.
+- [x] 4.3 Criar ports `RepositorioPacientePort`, `RepositorioConsultaPort` e `RepositorioIdempotenciaPort`.
+- [x] 4.4 Criar migrations para `paciente`, `consulta` e `idempotencia_operacao`.
+- [x] 4.5 Implementar adapters JPA com mapeadores manuais e queries parametrizadas.
+- [x] 4.6 Implementar controllers e DTOs em português: `PacienteControlador`, `ConsultaControlador`, `CriarPacienteRequisicao`, `ConsultaResposta`.
+- [x] 4.7 Aplicar idempotência em criação de paciente e consulta.
 
 ## Critérios de sucesso
 
@@ -49,11 +49,11 @@ Implementar no backend cadastro, busca e visualização de pacientes, além de c
 
 ## Testes obrigatórios
 
-- [ ] Unitários de validação de CPF, e-mail, telefone, nascimento e status.
-- [ ] Integração com Testcontainers para migrations, CPF único, busca normalizada, paginação e idempotência.
-- [ ] Testes HTTP para 201, 200, 400, 404 e 409 com Problem Details.
-- [ ] Testes de concorrência de CPF normalizado e idempotência.
-- [ ] Testes de isolamento de consultas por paciente.
+- [x] Unitários de validação de CPF, e-mail, telefone, nascimento e status.
+- [x] Integração com Testcontainers para migrations, CPF único, busca normalizada, paginação e idempotência.
+- [x] Testes HTTP para 201, 200, 400, 404 e 409 com Problem Details.
+- [x] Testes de concorrência de CPF normalizado e idempotência.
+- [x] Testes de isolamento de consultas por paciente.
 
 ## Skills aplicáveis
 

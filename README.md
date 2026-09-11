@@ -2,7 +2,7 @@
 
 PsiqApp MVP e uma aplicacao local para desenvolver e validar uma ferramenta de apoio ao prontuario psiquiatrico usando somente dados ficticios.
 
-O repositorio contem os documentos SDD aprovados, Rules, PostgreSQL local, a base Spring Boot e uma SPA navegavel com aviso persistente de dados ficticios. Pacientes, agenda e prontuario sao paginas placeholder. Cadastros, consultas, registros clinicos, APIs de produto e worker de IA ainda nao estao implementados.
+O repositorio contem os documentos SDD aprovados, Rules, PostgreSQL local, backend Spring Boot com APIs de pacientes e consultas, e uma SPA navegavel com aviso persistente de dados ficticios. No frontend, Pacientes, Agenda e Prontuario ainda sao paginas placeholder. Registros clinicos, analises de IA e worker de IA ainda nao estao implementados.
 
 ## Aviso de seguranca
 
@@ -26,7 +26,7 @@ tasks/prd-psiqapp-mvp/
 - Backend: Docker com Docker Compose v2, Java 21 e Maven Wrapper incluido no repositorio.
 - Frontend: Node.js 24.18.0 LTS e npm 11.16.0. A versao do Node esta em `apps/frontend/.nvmrc`.
 
-O frontend inicial funciona sem PostgreSQL, backend ou arquivo `.env`.
+O frontend inicial funciona sem PostgreSQL, backend ou arquivo `.env`. As APIs funcionais do backend dependem do PostgreSQL local.
 
 ## Configuracao local
 
@@ -75,7 +75,7 @@ cd apps/backend
 ./mvnw verify
 ```
 
-O `verify` executa testes unitários, testes de contexto HTTP e integração com PostgreSQL 18.6 via Testcontainers. Docker Desktop deve estar iniciado. O CI tem jobs separados para backend, frontend e E2E integrado; Playwright ainda nao esta implementado.
+O `verify` executa testes unitários, testes de contexto HTTP, arquitetura, migrations e integração das APIs de pacientes/consultas com PostgreSQL 18.6 via Testcontainers. Docker Desktop deve estar iniciado. O CI tem jobs separados para backend, frontend e E2E integrado; Playwright ainda nao esta implementado.
 
 ## Frontend local
 
@@ -87,7 +87,7 @@ npm ci
 npm run dev
 ```
 
-Abra `http://127.0.0.1:5173`. As rotas `/pacientes`, `/agenda` e `/prontuario` mostram areas em preparacao e o aviso de dados ficticios. A raiz redireciona para pacientes. O servidor exige a porta 5173 livre e encaminha `/api` para `http://127.0.0.1:8080`, sem remover o prefixo. Os placeholders nao fazem chamadas ao backend.
+Abra `http://127.0.0.1:5173`. As rotas `/pacientes`, `/agenda` e `/prontuario` mostram areas em preparacao e o aviso de dados ficticios. A raiz redireciona para pacientes. O servidor exige a porta 5173 livre e encaminha `/api` para `http://127.0.0.1:8080`, sem remover o prefixo. Os placeholders ainda nao fazem chamadas ao backend.
 
 Checks, a partir de `apps/frontend`:
 

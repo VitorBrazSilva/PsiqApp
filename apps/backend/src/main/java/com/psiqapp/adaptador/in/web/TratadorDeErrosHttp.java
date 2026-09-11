@@ -3,7 +3,11 @@ package com.psiqapp.adaptador.in.web;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
+import com.psiqapp.dominio.validacao.ConflitoException;
+import com.psiqapp.dominio.validacao.RecursoNaoEncontradoException;
+import com.psiqapp.dominio.validacao.ValidacaoException;
 import org.slf4j.MDC;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -35,6 +39,24 @@ public class TratadorDeErrosHttp extends ResponseEntityExceptionHandler {
     @ExceptionHandler(DataAccessResourceFailureException.class)
     ResponseEntity<Object> indisponibilidade(WebRequest request) {
         return resposta(HttpStatus.SERVICE_UNAVAILABLE, HttpHeaders.EMPTY, List.of(), request);
+    }
+
+    @ExceptionHandler(ValidacaoException.class)
+    ResponseEntity<Object> validacaoDominio(ValidacaoException ex, WebRequest request) {
+        var campos = ex.erros().stream()
+                .map(erro -> new RespostaProblema.ErroDeCampo(erro.campo(), erro.mensagem()))
+                .distinct().toList();
+        return resposta(HttpStatus.BAD_REQUEST, HttpHeaders.EMPTY, campos, request);
+    }
+
+    @ExceptionHandler(RecursoNaoEncontradoException.class)
+    ResponseEntity<Object> naoEncontrado(WebRequest request) {
+        return resposta(HttpStatus.NOT_FOUND, HttpHeaders.EMPTY, List.of(), request);
+    }
+
+    @ExceptionHandler({ConflitoException.class, DataIntegrityViolationException.class})
+    ResponseEntity<Object> conflito(WebRequest request) {
+        return resposta(HttpStatus.CONFLICT, HttpHeaders.EMPTY, List.of(), request);
     }
 
     @ExceptionHandler(Exception.class)

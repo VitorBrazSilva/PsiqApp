@@ -2,9 +2,9 @@
 
 ## 1. Estado técnico atual
 
-O repositório está na fase inicial de implementação do MVP. Existem PRD, spec-review aprovado, TechSpec aprovada, Rules do projeto, infraestrutura local de PostgreSQL via Docker Compose, bootstrap de backend e frontend, placeholders de configuração e CI por área.
+O repositório está na implementação incremental do MVP. Existem PRD, spec-review aprovado, TechSpec aprovada, Rules do projeto, infraestrutura local de PostgreSQL via Docker Compose, backend com APIs de pacientes e consultas, frontend bootstrap com placeholders, configuração e CI por área.
 
-O backend possui apenas a fundação da aplicação. O frontend possui SPA navegável, placeholders de pacientes/agenda/prontuário, aviso persistente e cliente HTTP testado. Não há endpoints de produto, migrations de negócio, fluxos clínicos ou worker de IA implementados nesta etapa.
+O backend possui a fundação da aplicação e os fluxos de pacientes/consultas da Task 04: domínio, casos de uso, adapters JPA, migrations, idempotência e endpoints REST. O frontend possui SPA navegável, placeholders de pacientes/agenda/prontuário, aviso persistente e cliente HTTP testado. Registros clínicos, análises de IA e worker de IA ainda não estão implementados.
 
 Esta documentação descreve a arquitetura técnica aprovada para implementação do MVP e registra explicitamente os limites do estado atual. Quando as tasks forem implementadas, este documento deve ser atualizado para refletir o código real, removendo ou ajustando qualquer detalhe que deixe de ser verdadeiro.
 
@@ -58,7 +58,7 @@ tasks/
   rules/
 ```
 
-`apps/backend` contém o bootstrap Spring Boot; `apps/frontend` contém o bootstrap React/Vite.
+`apps/backend` contém o Spring Boot com arquitetura hexagonal, health/readiness e APIs de pacientes/consultas; `apps/frontend` contém o bootstrap React/Vite.
 
 Backend previsto:
 
@@ -762,14 +762,14 @@ Capacidades implementadas:
 - `/` redireciona para `/pacientes`; `/pacientes`, `/agenda` e `/prontuario` são navegáveis, sem dados nem requisições reais. Rotas desconhecidas têm mensagem e link de retorno.
 - Aviso de uso exclusivo de dados fictícios no layout comum, sem dispensa e com posicionamento sticky; CSS responsivo simples, navegação semântica e foco visível.
 - `ClienteApi.requisitar<T>` usa base relativa `/api/v1`, JSON, `Accept` comum, `Idempotency-Key` opcional e `AbortSignal`. Não mantém cache de paciente, não faz retry automático e usa `cache: no-store`.
-- O chamador cria a chave UUID com `chaveDeIdempotencia()` uma vez por operação e mantém a mesma chave e corpo ao repetir um envio. A persistência de idempotência no backend não faz parte do bootstrap frontend.
+- O chamador cria a chave UUID com `chaveDeIdempotencia()` uma vez por operação e mantém a mesma chave e corpo ao repetir um envio. No backend, criação de pacientes e consultas já persiste idempotência; pareceres, complementos e regeneração manual pertencem a tasks futuras.
 - `ErroApi` contém status HTTP e metadados de Problem Details (`code`, `requestId` UUID e `fieldErrors` com formato restrito). Mensagens locais substituem texto remoto; `title`, `detail`, `instance`, mensagens de campo e valores rejeitados não são retidos. O cliente trata falha de transporte, JSON inválido e sucesso 204.
 - A configuração de desenvolvimento fixa 127.0.0.1:5173, `strictPort` e proxy `/api` para 127.0.0.1:8080. Nenhum secret ou acesso a provider é necessário para iniciar a SPA.
 
-Responsabilidades especificadas para as tasks funcionais, ainda não implementadas:
+Responsabilidades especificadas para tasks futuras, ainda não implementadas no frontend:
 
-- cadastro e busca de pacientes;
-- agenda;
+- telas funcionais de cadastro e busca de pacientes;
+- telas funcionais de agenda;
 - prontuário com dados, timeline, análise atual e histórico;
 - formulários de parecer e complemento;
 - evidências clicáveis para a fonte;
