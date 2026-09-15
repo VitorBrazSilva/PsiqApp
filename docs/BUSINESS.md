@@ -6,7 +6,7 @@ O PsiqApp MVP é um sistema de apoio ao atendimento psiquiátrico para um único
 
 O objetivo principal é reduzir o esforço de releitura manual do prontuário antes de uma consulta, mantendo os registros clínicos originais como fonte de verdade. A IA ajuda a organizar acontecimentos, recorrências, padrões e pontos de atenção, mas não decide, diagnostica, prescreve nem substitui o julgamento clínico.
 
-**Capacidade atual:** o backend já permite cadastrar, buscar e visualizar pacientes fictícios por API, criar consultas associadas a pacientes, listar agenda e atualizar consultas agendadas para estados finais. No frontend, ainda é possível apenas navegar entre as áreas Pacientes, Agenda e Prontuário, que informam claramente estar em preparação. Um aviso permanece visível em todas as páginas: usar somente dados fictícios e não inserir dados reais de pacientes. Ainda não é possível usar esses fluxos pelo frontend, consultar registros clínicos ou gerar análises.
+**Capacidade atual:** o backend já permite cadastrar, buscar e visualizar pacientes fictícios por API, criar consultas associadas a pacientes, listar agenda, atualizar consultas agendadas para estados finais, criar pareceres originais e complementos, consultar a linha do tempo clínica e criar a solicitação persistente de geração automática. No frontend, ainda é possível apenas navegar entre as áreas Pacientes, Agenda e Prontuário, que informam claramente estar em preparação. Um aviso permanece visível em todas as páginas: usar somente dados fictícios e não inserir dados reais de pacientes. Ainda não é possível usar esses fluxos pelo frontend, processar gerações de IA ou consultar análises concluídas.
 
 As capacidades e regras de domínio descritas abaixo combinam o que já está disponível no backend com o restante do MVP aprovado para implementação futura. As fontes normativas permanecem o PRD e as Rules.
 
@@ -84,7 +84,7 @@ Regras funcionais:
 - O MVP não permite alterar diretamente uma consulta de um estado final para outro estado final.
 - Observações de consulta não entram como fonte clínica da IA.
 
-## 5. Capacidades especificadas do MVP — ainda não disponíveis
+## 5. Capacidades de registros clínicos disponíveis no backend
 
 ### Registros clínicos
 
@@ -99,7 +99,7 @@ Um parecer clínico:
 - pode estar associado a uma consulta, mas essa associação não é obrigatória;
 - possui data/hora clínica;
 - possui data/hora real de criação;
-- dispara nova geração automática de análise quando salvo.
+- cria uma solicitação persistente de geração automática de análise quando salvo. O processamento da IA ainda não está disponível.
 
 Um complemento:
 
@@ -111,7 +111,7 @@ Um complemento:
 - possui data/hora real de criação própria;
 - pode ter estado/humor e medicações opcionais;
 - entra nas análises futuras e pode ser usado como evidência;
-- também dispara nova geração automática de análise quando salvo.
+- também cria uma solicitação persistente de geração automática de análise quando salvo. O processamento da IA ainda não está disponível.
 
 ### Preservação append-only
 
@@ -136,7 +136,7 @@ Ordenação funcional:
 
 Um registro retroativo aparece na posição correspondente à sua data/hora clínica, mas sua data/hora real de criação continua preservada para auditoria.
 
-## 6. Análise de IA especificada — ainda não disponível
+## 6. Análise de IA especificada - ainda não disponível
 
 ### Papel da IA
 
@@ -234,7 +234,7 @@ As etapas de criação, listagem de agenda e atualização de status existem no 
 3. O médico pode informar estado/humor, medicações e data/hora clínica retroativa.
 4. O sistema salva o parecer.
 5. O parecer fica disponível imediatamente no prontuário.
-6. O sistema inicia uma nova geração de análise em segundo plano.
+6. O backend cria uma solicitação persistente de geração de análise; o worker que processa a IA ainda não está disponível.
 7. O médico continua usando o sistema sem aguardar a IA.
 8. Quando uma análise válida baseada no snapshot mais recente é concluída, ela passa a ser apresentada como análise atual.
 
@@ -284,7 +284,7 @@ As etapas de criação, listagem de agenda e atualização de status existem no 
 - Data/hora real de criação é automática e não editável.
 - Pareceres e complementos são append-only.
 - Correções devem ser registradas como complementos.
-- Todo novo parecer ou complemento dispara geração automática de análise.
+- Todo novo parecer ou complemento cria solicitação persistente de geração automática de análise; o processamento dessa geração ainda não está disponível.
 
 ### Linha do tempo e snapshots
 

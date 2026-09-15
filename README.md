@@ -2,7 +2,7 @@
 
 PsiqApp MVP e uma aplicacao local para desenvolver e validar uma ferramenta de apoio ao prontuario psiquiatrico usando somente dados ficticios.
 
-O repositorio contem os documentos SDD aprovados, Rules, PostgreSQL local, backend Spring Boot com APIs de pacientes e consultas, e uma SPA navegavel com aviso persistente de dados ficticios. No frontend, Pacientes, Agenda e Prontuario ainda sao paginas placeholder. Registros clinicos, analises de IA e worker de IA ainda nao estao implementados.
+O repositorio contem os documentos SDD aprovados, Rules, PostgreSQL local, backend Spring Boot com APIs de pacientes, consultas e registros clinicos, e uma SPA navegavel com aviso persistente de dados ficticios. No frontend, Pacientes, Agenda e Prontuario ainda sao paginas placeholder. Analises concluidas de IA, worker de IA e telas funcionais ainda nao estao implementados.
 
 ## Aviso de seguranca
 
@@ -75,7 +75,7 @@ cd apps/backend
 ./mvnw verify
 ```
 
-O `verify` executa testes unitários, testes de contexto HTTP, arquitetura, migrations e integração das APIs de pacientes/consultas com PostgreSQL 18.6 via Testcontainers. Docker Desktop deve estar iniciado. O CI tem jobs separados para backend, frontend e E2E integrado; Playwright ainda nao esta implementado.
+O `verify` executa testes unitarios, testes de contexto HTTP, arquitetura, migrations e integracao das APIs de pacientes, consultas e registros clinicos com PostgreSQL 18.6 via Testcontainers. Docker Desktop deve estar iniciado. O CI tem jobs separados para backend, frontend e E2E integrado; Playwright ainda nao esta implementado.
 
 ## Frontend local
 

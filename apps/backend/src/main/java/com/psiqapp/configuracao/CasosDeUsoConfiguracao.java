@@ -2,8 +2,11 @@ package com.psiqapp.configuracao;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.psiqapp.aplicacao.port.RepositorioConsultaPort;
+import com.psiqapp.aplicacao.port.RepositorioGeracaoAnalisePort;
 import com.psiqapp.aplicacao.port.RepositorioIdempotenciaPort;
 import com.psiqapp.aplicacao.port.RepositorioPacientePort;
+import com.psiqapp.aplicacao.port.RepositorioRegistroClinicoPort;
+import com.psiqapp.aplicacao.port.RepositorioSequenciaPacientePort;
 import com.psiqapp.aplicacao.port.TransactionRunnerPort;
 import com.psiqapp.aplicacao.usecase.*;
 import java.time.Clock;
@@ -51,5 +54,38 @@ class CasosDeUsoConfiguracao {
     AtualizarStatusConsultaCasoDeUso atualizarStatusConsultaCasoDeUso(RepositorioConsultaPort consultas,
             TransactionRunnerPort transacao, Clock relogio) {
         return new AtualizarStatusConsultaCasoDeUso(consultas, transacao, relogio);
+    }
+
+    @Bean
+    CriarRegistroClinicoServico criarRegistroClinicoServico(RepositorioPacientePort pacientes,
+            RepositorioConsultaPort consultas, RepositorioRegistroClinicoPort registros,
+            RepositorioGeracaoAnalisePort geracoes, RepositorioSequenciaPacientePort sequencias,
+            Clock relogio) {
+        return new CriarRegistroClinicoServico(pacientes, consultas, registros, geracoes, sequencias, relogio);
+    }
+
+    @Bean
+    CriarParecerCasoDeUso criarParecerCasoDeUso(CriarRegistroClinicoServico criador,
+            IdempotenciaServico idempotencia, RepositorioRegistroClinicoPort registros,
+            RepositorioGeracaoAnalisePort geracoes, TransactionRunnerPort transacao) {
+        return new CriarParecerCasoDeUso(criador, idempotencia, registros, geracoes, transacao);
+    }
+
+    @Bean
+    CriarComplementoCasoDeUso criarComplementoCasoDeUso(CriarRegistroClinicoServico criador,
+            IdempotenciaServico idempotencia, RepositorioRegistroClinicoPort registros,
+            RepositorioGeracaoAnalisePort geracoes, TransactionRunnerPort transacao) {
+        return new CriarComplementoCasoDeUso(criador, idempotencia, registros, geracoes, transacao);
+    }
+
+    @Bean
+    ListarLinhaDoTempoCasoDeUso listarLinhaDoTempoCasoDeUso(RepositorioPacientePort pacientes,
+            RepositorioRegistroClinicoPort registros) {
+        return new ListarLinhaDoTempoCasoDeUso(pacientes, registros);
+    }
+
+    @Bean
+    ObterRegistroClinicoCasoDeUso obterRegistroClinicoCasoDeUso(RepositorioRegistroClinicoPort registros) {
+        return new ObterRegistroClinicoCasoDeUso(registros);
     }
 }
