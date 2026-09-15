@@ -14,7 +14,7 @@ desktop.ini
 node_modules/
 dist/
 build/
-out/
+/out/
 coverage/
 target/
 

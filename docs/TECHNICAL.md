@@ -2,9 +2,9 @@
 
 ## 1. Estado técnico atual
 
-O repositório está na implementação incremental do MVP. Existem PRD, spec-review aprovado, TechSpec aprovada, Rules do projeto, infraestrutura local de PostgreSQL via Docker Compose, backend com APIs de pacientes e consultas, frontend bootstrap com placeholders, configuração e CI por área.
+O repositório está na implementação incremental do MVP. Existem PRD, spec-review aprovado, TechSpec aprovada, Rules do projeto, infraestrutura local de PostgreSQL via Docker Compose, backend com APIs de pacientes, consultas e registros clínicos, frontend bootstrap com placeholders, configuração e CI por área.
 
-O backend possui a fundação da aplicação e os fluxos de pacientes/consultas da Task 04: domínio, casos de uso, adapters JPA, migrations, idempotência e endpoints REST. O frontend possui SPA navegável, placeholders de pacientes/agenda/prontuário, aviso persistente e cliente HTTP testado. Registros clínicos, análises de IA e worker de IA ainda não estão implementados.
+O backend possui a fundação da aplicação e os fluxos de pacientes/consultas da Task 04 e registros clínicos da Task 05: domínio, casos de uso, adapters JPA, migrations, idempotência, endpoints REST, persistência append-only de pareceres/complementos e criação transacional de `analysis_generation` em estado `QUEUED`. O frontend possui SPA navegável, placeholders de pacientes/agenda/prontuário, aviso persistente e cliente HTTP testado. Análises concluídas de IA, worker de IA, regeneração manual e telas funcionais ainda não estão implementados.
 
 Esta documentação descreve a arquitetura técnica aprovada para implementação do MVP e registra explicitamente os limites do estado atual. Quando as tasks forem implementadas, este documento deve ser atualizado para refletir o código real, removendo ou ajustando qualquer detalhe que deixe de ser verdadeiro.
 
@@ -28,7 +28,7 @@ Fontes técnicas principais:
 | Roteamento frontend | React Router 8.3.1 declarativo. |
 | Comunicação frontend | `fetch` nativo por cliente HTTP centralizado. |
 | Banco | PostgreSQL 18.6 local. |
-| Migrations | Flyway 11.20.3; nesta etapa apenas o histórico do Flyway é criado em banco vazio. |
+| Migrations | Flyway 11.20.3; migrations de pacientes/consultas/idempotência e registros clínicos/gerações iniciais. |
 | Persistência backend | Spring Data JPA/Hibernate no adapter de persistência. |
 | IA | OpenAI atrás de port, SDK oficial Java, Responses API e Structured Outputs. |
 | Modelo inicial | `OPENAI_MODEL=gpt-5.6-terra`, configurado por ambiente. |
@@ -58,7 +58,7 @@ tasks/
   rules/
 ```
 
-`apps/backend` contém o Spring Boot com arquitetura hexagonal, health/readiness e APIs de pacientes/consultas; `apps/frontend` contém o bootstrap React/Vite.
+`apps/backend` contém o Spring Boot com arquitetura hexagonal, health/readiness e APIs de pacientes/consultas/registros clínicos; `apps/frontend` contém o bootstrap React/Vite.
 
 Backend previsto:
 
@@ -659,18 +659,19 @@ Rotas propostas:
 | `POST /appointments/{id}/status` | Executa transição final de status. Retorna 200. |
 | `GET /patients/{id}/clinical-records?page&size` | Retorna timeline descendente. |
 | `POST /patients/{id}/clinical-records` | Cria parecer original. Retorna 201 e `generationId`. Exige `Idempotency-Key`. |
-| `POST /patients/{id}/clinical-records/{originalId}/complements` | Cria complemento. Retorna 201. Exige `Idempotency-Key`. |
+| `POST /patients/{id}/clinical-records/{originalId}/complements` | Cria complemento. Retorna 201 e `generationId`. Exige `Idempotency-Key`. |
 | `GET /patients/{id}/clinical-records/{recordId}` | Retorna fonte/evidência. |
-| `POST /patients/{id}/analysis-generations` | Solicita regeneração manual. Retorna 202. Exige `Idempotency-Key`. |
-| `GET /patients/{id}/analysis-state` | Retorna análise atual, geração ativa e permissões. |
-| `GET /patients/{id}/analysis-generations?page&size` | Histórico de gerações. |
-| `GET /patients/{id}/analyses/{analysisId}` | Análise histórica. |
+| `POST /patients/{id}/analysis-generations` | Planejado para Task 06/08: solicita regeneração manual. Retorna 202. Exige `Idempotency-Key`. |
+| `GET /patients/{id}/analysis-state` | Planejado para Task 06/08: retorna análise atual, geração ativa e permissões. |
+| `GET /patients/{id}/analysis-generations?page&size` | Planejado para Task 06/08: histórico de gerações. |
+| `GET /patients/{id}/analyses/{analysisId}` | Planejado para Task 06/08: análise histórica. |
 | `GET /health/readiness` | Health local sem IA. |
 
 DTOs citados na TechSpec:
 
 - `PatientCreateRequest`: `name`, `cpf`, `birthDate`, `phone`, `email`, `initialComplaint`;
-- `ClinicalRecordCreateRequest`: `text`, `mood`, `medications`, `clinicalDateTime`, `appointmentId`;
+- `CriarRegistroClinicoRequisicao`: `texto`, `humor`, `medicamentos`, `dataHoraClinica`, `consultaId`;
+- `CriarRegistroClinicoResposta`: `registro`, `generationId` e `geracao` em estado inicial `QUEUED`;
 - complemento recebe `originalId` na rota;
 - `AnalysisStateResponse`: `currentAnalysis`, `latestGeneration`, `activeGeneration`, `canRegenerate`, `reason` e cobertura.
 
@@ -917,20 +918,23 @@ Sequência de tasks aprovada:
 2. `backend-bootstrap`;
 3. `frontend-bootstrap`;
 4. `backend-patient-appointment`;
-5. `frontend-patient-appointment`;
-6. `backend-clinical-records`;
+5. `backend-clinical-records`;
+6. `backend-analysis-core`;
 7. `backend-analysis-worker`;
-8. `backend-api-integration`;
-9. `frontend-clinical-analysis`;
-10. `qa-integration`.
+8. `backend-api-contract-validation`;
+9. `frontend-patient-appointment`;
+10. `frontend-clinical-analysis`;
+11. `qa-integration`.
 
 Dependências principais:
 
 - `infra-bootstrap` habilita backend; o bootstrap frontend é independente do banco/backend;
-- `backend-clinical-records` depende de backend e infra;
-- `backend-analysis-worker` depende de clinical records e infra;
-- `backend-api-integration` depende de patient/appointment, clinical records e worker;
-- `frontend-clinical-analysis` depende da integração de API, embora possa iniciar com mocks;
+- `backend-clinical-records` depende de backend, infra e patient/appointment;
+- `backend-analysis-core` depende de backend, infra e clinical records;
+- `backend-analysis-worker` depende de clinical records, analysis core e infra;
+- `backend-api-contract-validation` depende de patient/appointment, clinical records, analysis core e worker;
+- `frontend-patient-appointment` depende de frontend bootstrap, backend patient/appointment e contract validation;
+- `frontend-clinical-analysis` depende de frontend bootstrap, clinical records, worker e contract validation;
 - `qa-integration` depende dos fluxos completos.
 
 ## 19. Limites técnicos do MVP

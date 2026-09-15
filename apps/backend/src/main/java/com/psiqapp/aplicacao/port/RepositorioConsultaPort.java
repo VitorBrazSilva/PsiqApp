@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface RepositorioConsultaPort {
+public interface RepositorioConsultaPort extends ConsultaResumo {
     Consulta salvar(Consulta consulta);
     Optional<Consulta> buscarPorId(UUID id);
     Pagina<Consulta> listar(Instant de, Instant ate, UUID pacienteId, int pagina, int tamanho);

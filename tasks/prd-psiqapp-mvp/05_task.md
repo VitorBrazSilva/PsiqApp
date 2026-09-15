@@ -33,14 +33,14 @@ Implementar pareceres originais, complementos, linha do tempo append-only e cria
 
 ## Subtarefas
 
-- [ ] 5.1 Criar domínio `RegistroClinico`, `TipoRegistroClinico`, `ParecerOriginal` e `Complemento`.
-- [ ] 5.2 Criar casos de uso `CriarParecerCasoDeUso`, `CriarComplementoCasoDeUso`, `ListarLinhaDoTempoCasoDeUso` e `ObterRegistroClinicoCasoDeUso`.
-- [ ] 5.3 Criar ports de persistência para registro clínico, geração de análise e execução transacional.
-- [ ] 5.4 Criar migrations para `registro_clinico`, revisão clínica do paciente e geração inicial.
-- [ ] 5.5 Criar triggers append-only para `registro_clinico`.
-- [ ] 5.6 Implementar criação atômica de registro, revisão e solicitação de geração.
-- [ ] 5.7 Implementar endpoints de criação/listagem/consulta de registros conforme TechSpec.
-- [ ] 5.8 Aplicar idempotência em parecer e complemento.
+- [x] 5.1 Criar domínio `RegistroClinico`, `TipoRegistroClinico`, `ParecerOriginal` e `Complemento`.
+- [x] 5.2 Criar casos de uso `CriarParecerCasoDeUso`, `CriarComplementoCasoDeUso`, `ListarLinhaDoTempoCasoDeUso` e `ObterRegistroClinicoCasoDeUso`.
+- [x] 5.3 Criar ports de persistência para registro clínico, geração de análise e execução transacional.
+- [x] 5.4 Criar migrations para `registro_clinico`, revisão clínica do paciente e geração inicial.
+- [x] 5.5 Criar triggers append-only para `registro_clinico`.
+- [x] 5.6 Implementar criação atômica de registro, revisão e solicitação de geração.
+- [x] 5.7 Implementar endpoints de criação/listagem/consulta de registros conforme TechSpec.
+- [x] 5.8 Aplicar idempotência em parecer e complemento.
 
 ## Critérios de sucesso
 
@@ -53,12 +53,12 @@ Implementar pareceres originais, complementos, linha do tempo append-only e cria
 
 ## Testes obrigatórios
 
-- [ ] Unitários de criação de parecer, complemento, datas e vínculos.
-- [ ] Integração com Testcontainers para constraints, triggers append-only, consulta do mesmo paciente e complemento apontando para complemento.
-- [ ] Testes de ordenação da linha do tempo, incluindo empate por `dataHoraClinica`.
-- [ ] Testes de snapshot: registro retroativo não altera gerações anteriores.
-- [ ] Testes de idempotência sem duplicar registro nem geração automática.
-- [ ] Testes HTTP para erros 400, 404 e 409 sem dados sensíveis.
+- [x] Unitários de criação de parecer, complemento, datas e vínculos.
+- [x] Integração com Testcontainers para constraints, triggers append-only, consulta do mesmo paciente e complemento apontando para complemento.
+- [x] Testes de ordenação da linha do tempo, incluindo empate por `dataHoraClinica`.
+- [x] Testes de snapshot: registro retroativo não altera gerações anteriores.
+- [x] Testes de idempotência sem duplicar registro nem geração automática.
+- [x] Testes HTTP para erros 400, 404 e 409 sem dados sensíveis.
 
 ## Skills aplicáveis
 
