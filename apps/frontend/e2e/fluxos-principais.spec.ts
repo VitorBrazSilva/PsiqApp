@@ -4,14 +4,14 @@ import { abrirProntuario, criarPaciente, criarParecer, ficticio } from './fixtur
 test('cadastra, busca, abre paciente e preserva aviso de dados ficticios', async ({ page }) => {
   await page.goto('/pacientes')
   await expect(page.getByText('Use somente dados fictícios.')).toBeVisible()
-  await page.getByLabel('Nome').fill(ficticio.nome)
+  await page.getByLabel('Nome', { exact: true }).fill(ficticio.nome)
   await page.getByLabel('CPF').fill(ficticio.cpf)
   await page.getByLabel('Nascimento').fill(ficticio.dataNascimento)
   await page.getByLabel('Telefone').fill(ficticio.telefone)
   await page.getByLabel('E-mail').fill(ficticio.email)
   await page.getByRole('button', { name: 'Salvar paciente' }).click()
   await expect(page.getByText(ficticio.nome)).toBeVisible()
-  await page.getByLabel('Buscar pacientes').fill(ficticio.nome)
+  await page.getByLabel('Buscar por nome').fill(ficticio.nome)
   await expect(page.getByText(ficticio.nome)).toBeVisible()
 })
 
