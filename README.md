@@ -62,6 +62,16 @@ docker compose --env-file .env -f infra/compose.yaml down
 
 O banco e publicado somente em `127.0.0.1:5432` e usa o volume Docker nomeado `psiqapp-postgres-data`.
 
+## Ambiente completo via Docker Compose
+
+Com o Docker Desktop iniciado, suba PostgreSQL, backend e frontend:
+
+```bash
+docker compose --env-file .env -f infra/compose.yaml up --build -d
+```
+
+O frontend fica disponível em `http://127.0.0.1:5173`, o backend em `http://127.0.0.1:8080` e o PostgreSQL em `127.0.0.1:5432`. O Compose aguarda o PostgreSQL e o healthcheck do backend antes de iniciar o frontend. Para acompanhar os logs, use `docker compose --env-file .env -f infra/compose.yaml logs -f`; para parar os serviços, use `docker compose --env-file .env -f infra/compose.yaml down`.
+
 ## Checks
 
 Validar o arquivo Compose:
