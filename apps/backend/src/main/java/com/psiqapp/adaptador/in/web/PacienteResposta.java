@@ -15,7 +15,14 @@ public record PacienteResposta(
         String queixaInicial,
         Instant criadoEm) {
     static PacienteResposta de(Paciente paciente) {
-        return new PacienteResposta(paciente.id(), paciente.nome(), paciente.cpf(), paciente.dataNascimento(),
+        return new PacienteResposta(paciente.id(), paciente.nome(), mascararCpf(paciente.cpf()), paciente.dataNascimento(),
                 paciente.telefone(), paciente.email(), paciente.queixaInicial(), paciente.criadoEm());
+    }
+
+    private static String mascararCpf(String cpf) {
+        if (cpf == null || cpf.length() < 2) {
+            return null;
+        }
+        return "***.***.***-" + cpf.substring(cpf.length() - 2);
     }
 }

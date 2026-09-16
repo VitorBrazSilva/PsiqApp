@@ -26,7 +26,8 @@ public class ConsultaControlador {
 
     @PostMapping("/api/v1/patients/{pacienteId}/appointments")
     ResponseEntity<ConsultaResposta> criar(@PathVariable UUID pacienteId,
-            @RequestHeader("Idempotency-Key") String chave, @RequestBody CriarConsultaRequisicao requisicao) {
+            @RequestHeader(value = "Idempotency-Key", required = false) String chave,
+            @RequestBody CriarConsultaRequisicao requisicao) {
         var consulta = criarConsulta.executar(new CriarConsultaCasoDeUso.Comando(pacienteId,
                 requisicao.agendadaPara(), requisicao.observacoes(), ChaveIdempotencia.obrigatoria(chave)));
         return ResponseEntity.created(URI.create("/api/v1/appointments/" + consulta.id())).body(ConsultaResposta.de(consulta));

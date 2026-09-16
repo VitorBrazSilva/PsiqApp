@@ -44,7 +44,7 @@ public class AnaliseControlador {
 
     @PostMapping("/analysis-generations")
     ResponseEntity<GeracaoAnaliseResposta> regenerar(@PathVariable UUID pacienteId,
-            @RequestHeader("Idempotency-Key") String chave) {
+            @RequestHeader(value = "Idempotency-Key", required = false) String chave) {
         var resultado = regenerar.executar(pacienteId, ChaveIdempotencia.obrigatoria(chave));
         return ResponseEntity.accepted()
                 .location(URI.create("/api/v1/patients/" + pacienteId + "/analysis-generations/"
