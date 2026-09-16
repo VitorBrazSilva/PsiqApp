@@ -38,15 +38,15 @@ Implementar o processamento assíncrono persistente das gerações de análise c
 
 ## Subtarefas
 
-- [ ] 7.1 Criar `ProcessarGeracaoAnaliseCasoDeUso` usando snapshot, provider, validação e finalização do core.
-- [ ] 7.2 Implementar reivindicação de geração elegível por `requestedAt ASC`, `id ASC` com `FOR UPDATE SKIP LOCKED`.
-- [ ] 7.3 Implementar reserva com token, `reservationExpiresAt`, orçamento de tentativa e rejeição de resultado tardio.
-- [ ] 7.4 Implementar retry/backoff para timeout, conexão, 429 e 5xx; encerrar sem retry para contexto excedido, credencial inválida, schema inválido ou conteúdo inseguro.
-- [ ] 7.5 Criar scheduler/poller do worker com configuração para habilitar/desabilitar no ambiente local/testes.
-- [ ] 7.6 Criar `ProvedorAnaliseClinicaPort`, fake provider determinístico e adapter OpenAI configurável por env.
-- [ ] 7.7 Desativar retries automáticos internos do SDK e registrar request ID/tokens quando disponíveis.
-- [ ] 7.8 Persistir tentativa, duração, código de resultado e auditoria permitida.
-- [ ] 7.9 Garantir que chamada externa à IA nunca ocorre dentro de transação ou lock do paciente.
+- [x] 7.1 Criar `ProcessarGeracaoAnaliseCasoDeUso` usando snapshot, provider, validação e finalização do core.
+- [x] 7.2 Implementar reivindicação de geração elegível por `requestedAt ASC`, `id ASC` com `FOR UPDATE SKIP LOCKED`.
+- [x] 7.3 Implementar reserva com token, `reservationExpiresAt`, orçamento de tentativa e rejeição de resultado tardio.
+- [x] 7.4 Implementar retry/backoff para timeout, conexão, 429 e 5xx; encerrar sem retry para contexto excedido, credencial inválida, schema inválido ou conteúdo inseguro.
+- [x] 7.5 Criar scheduler/poller do worker com configuração para habilitar/desabilitar no ambiente local/testes.
+- [x] 7.6 Criar `ProvedorAnaliseClinicaPort`, fake provider determinístico e adapter OpenAI configurável por env.
+- [x] 7.7 Desativar retries automáticos internos do SDK e registrar request ID/tokens quando disponíveis.
+- [x] 7.8 Persistir tentativa, duração, código de resultado e auditoria permitida.
+- [x] 7.9 Garantir que chamada externa à IA nunca ocorre dentro de transação ou lock do paciente.
 
 ## Critérios de sucesso
 
@@ -60,12 +60,12 @@ Implementar o processamento assíncrono persistente das gerações de análise c
 
 ## Testes obrigatórios
 
-- [ ] Integração com Testcontainers para `SKIP LOCKED`, reserva, expiração, retry, rollback de finalização e concorrência entre workers simulados.
-- [ ] Testes com fake provider para timeout, erro transitório, erro permanente, resposta truncada, schema inválido e resposta insegura.
-- [ ] Testes de que chamada externa ocorre fora da transação.
-- [ ] Testes de resultado tardio e token de reserva inválido.
-- [ ] Testes de orçamento de tentativa, TTL e limite de 3 tentativas.
-- [ ] Testes de isolamento por paciente no contexto enviado ao provider fake.
+- [x] Integração com Testcontainers para `SKIP LOCKED`, reserva, expiração, retry, rollback de finalização e concorrência entre workers simulados.
+- [x] Testes com fake provider para timeout, erro transitório, erro permanente, resposta truncada, schema inválido e resposta insegura.
+- [x] Testes de que chamada externa ocorre fora da transação.
+- [x] Testes de resultado tardio e token de reserva inválido.
+- [x] Testes de orçamento de tentativa, TTL e limite de 3 tentativas.
+- [x] Testes de isolamento por paciente no contexto enviado ao provider fake.
 
 ## Skills aplicáveis
 

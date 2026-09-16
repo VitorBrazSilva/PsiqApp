@@ -10,6 +10,7 @@ Este índice organiza a implementação do MVP em tasks pequenas, coesas e adequ
 - [x] 04 `backend-patient-appointment`
 - [x] 05 `backend-clinical-records`
 - [x] 06 `backend-analysis-core`
+- [x] 07 `backend-analysis-worker`
 
 ## Sequência Recomendada
 
