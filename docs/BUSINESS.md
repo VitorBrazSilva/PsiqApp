@@ -6,7 +6,7 @@ O PsiqApp MVP é um sistema de apoio ao atendimento psiquiátrico para um único
 
 O objetivo principal é reduzir o esforço de releitura manual do prontuário antes de uma consulta, mantendo os registros clínicos originais como fonte de verdade. A IA ajuda a organizar acontecimentos, recorrências, padrões e pontos de atenção, mas não decide, diagnostica, prescreve nem substitui o julgamento clínico.
 
-**Capacidade atual:** o backend já permite cadastrar, buscar e visualizar pacientes fictícios por API, criar consultas associadas a pacientes, listar agenda, atualizar consultas agendadas para estados finais, criar pareceres originais e complementos, consultar a linha do tempo clínica, criar a solicitação persistente de geração automática, consultar estado e histórico de gerações, consultar análises validadas persistidas, solicitar regeneração manual quando permitido e processar gerações por worker assíncrono configurável. O provider local padrão é fake e determinístico; o adapter OpenAI pode ser habilitado por ambiente. No frontend, ainda é possível apenas navegar entre as áreas Pacientes, Agenda e Prontuário, que informam claramente estar em preparação. Um aviso permanece visível em todas as páginas: usar somente dados fictícios e não inserir dados reais de pacientes. Ainda não é possível usar esses fluxos pelo frontend.
+**Capacidade atual:** o backend já permite cadastrar, buscar e visualizar pacientes fictícios por API, criar consultas associadas a pacientes, listar agenda, atualizar consultas agendadas para estados finais, criar pareceres originais e complementos, consultar a linha do tempo clínica, criar a solicitação persistente de geração automática, consultar estado e histórico de gerações, consultar análises validadas persistidas, solicitar regeneração manual quando permitido e processar gerações por worker assíncrono configurável. O provider local padrão é fake e determinístico; o adapter OpenAI pode ser habilitado por ambiente. No frontend, já é possível cadastrar pacientes, buscar por nome, abrir o prontuário básico, visualizar dados do paciente, criar consultas, consultar a agenda global ou por paciente e atualizar status finais consumindo a API real. Um aviso permanece visível em todas as páginas: usar somente dados fictícios e não inserir dados reais de pacientes. Os fluxos clínicos de pareceres, complementos, linha do tempo e análise de IA ainda não estão disponíveis no frontend.
 
 As capacidades e regras de domínio descritas abaixo combinam o que já está disponível no backend com o restante do MVP aprovado para implementação futura. As fontes normativas permanecem o PRD e as Rules.
 
@@ -216,7 +216,7 @@ O backend permite solicitar uma nova geração manual quando existe pelo menos u
 
 ### Fluxo 1 - Cadastro e abertura de prontuário
 
-As etapas de cadastro, busca e visualização de dados básicos existem no backend por API. A abertura de prontuário funcional no frontend ainda não está disponível.
+As etapas de cadastro, busca e visualização de dados básicos existem no backend por API e já estão disponíveis no frontend para pacientes fictícios.
 
 1. O médico cadastra um paciente com dados obrigatórios válidos.
 2. O sistema salva o paciente.
@@ -226,7 +226,7 @@ As etapas de cadastro, busca e visualização de dados básicos existem no backe
 
 ### Fluxo 2 - Criação e acompanhamento de consulta
 
-As etapas de criação, listagem de agenda e atualização de status existem no backend por API. A experiência de agenda no frontend ainda não está disponível.
+As etapas de criação, listagem de agenda e atualização de status existem no backend por API e já estão disponíveis no frontend. A agenda global exibe paciente, data, hora e status de cada consulta; quando o nome do paciente ainda não foi carregado na página, o frontend exibe o identificador técnico do paciente como fallback.
 
 1. O médico cria uma consulta para um paciente, informando data e hora.
 2. A consulta nasce como `AGENDADA`.

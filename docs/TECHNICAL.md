@@ -2,9 +2,9 @@
 
 ## 1. Estado técnico atual
 
-O repositório está na implementação incremental do MVP. Existem PRD, spec-review aprovado, TechSpec aprovada, Rules do projeto, infraestrutura local de PostgreSQL via Docker Compose, backend com APIs de pacientes, consultas e registros clínicos, frontend bootstrap com placeholders, configuração e CI por área.
+O repositório está na implementação incremental do MVP. Existem PRD, spec-review aprovado, TechSpec aprovada, Rules do projeto, infraestrutura local de PostgreSQL via Docker Compose, backend com APIs de pacientes, consultas e registros clínicos, frontend com fluxos funcionais de pacientes/consultas, configuração e CI por área.
 
-O backend possui a fundação da aplicação e os fluxos de pacientes/consultas da Task 04, registros clínicos da Task 05, núcleo persistente de análises da Task 06 e worker assíncrono da Task 07: domínio, casos de uso, adapters JPA/JDBC, migrations, idempotência, endpoints REST, persistência append-only de pareceres/complementos, criação transacional de `analysis_generation` em estado `QUEUED`, consulta de estado/histórico/análise, regeneração manual, lease/retry e finalização transacional de análises. O frontend possui SPA navegável, placeholders de pacientes/agenda/prontuário, aviso persistente e cliente HTTP testado. Telas funcionais ainda não estão implementadas.
+O backend possui a fundação da aplicação e os fluxos de pacientes/consultas da Task 04, registros clínicos da Task 05, núcleo persistente de análises da Task 06 e worker assíncrono da Task 07: domínio, casos de uso, adapters JPA/JDBC, migrations, idempotência, endpoints REST, persistência append-only de pareceres/complementos, criação transacional de `analysis_generation` em estado `QUEUED`, consulta de estado/histórico/análise, regeneração manual, lease/retry e finalização transacional de análises. O frontend possui SPA navegável, aviso persistente, cliente HTTP testado e telas funcionais de pacientes, agenda e prontuário básico consumindo a API real. Telas clínicas de registros/análises ainda não estão implementadas.
 
 Esta documentação descreve a arquitetura técnica aprovada para implementação do MVP e registra explicitamente os limites do estado atual. Quando as tasks forem implementadas, este documento deve ser atualizado para refletir o código real, removendo ou ajustando qualquer detalhe que deixe de ser verdadeiro.
 
@@ -761,8 +761,10 @@ Busca:
 
 Capacidades implementadas:
 
-- `src/app` compõe bootstrap, layout e rotas declarativas; `features` contém páginas placeholder; `shared` contém aviso, estado vazio, cliente HTTP, erros e idempotência.
-- `/` redireciona para `/pacientes`; `/pacientes`, `/agenda` e `/prontuario` são navegáveis, sem dados nem requisições reais. Rotas desconhecidas têm mensagem e link de retorno.
+- `src/app` compõe bootstrap, layout e rotas declarativas; `features` contém pacientes, consultas e prontuário básico; `shared` contém aviso, estado vazio, cliente HTTP, erros, formulários e idempotência.
+- `/` redireciona para `/pacientes`; `/pacientes`, `/agenda`, `/prontuario` e `/prontuario/:pacienteId` são navegáveis e consomem a API real. Rotas desconhecidas têm mensagem e link de retorno.
+- Pacientes possuem formulário de cadastro, busca por nome, lista com abertura do prontuário, validação client-side de campos obrigatórios, CPF, e-mail, telefone e nascimento, além de tratamento visual de Problem Details e erros de campo.
+- Agenda e prontuário básico possuem criação de consultas com `Idempotency-Key`, listagem de consultas, exibição de paciente/data/hora/status, estados carregando/vazio/erro e atualização de status final (`REALIZADA`, `CANCELADA`, `FALTA`). No prontuário, a criação usa sempre o paciente da rota atual.
 - Aviso de uso exclusivo de dados fictícios no layout comum, sem dispensa e com posicionamento sticky; CSS responsivo simples, navegação semântica e foco visível.
 - `ClienteApi.requisitar<T>` usa base relativa `/api/v1`, JSON, `Accept` comum, `Idempotency-Key` opcional e `AbortSignal`. Não mantém cache de paciente, não faz retry automático e usa `cache: no-store`.
 - O chamador cria a chave UUID com `chaveDeIdempotencia()` uma vez por operação e mantém a mesma chave e corpo ao repetir um envio. No backend, criação de pacientes e consultas já persiste idempotência; pareceres, complementos e regeneração manual pertencem a tasks futuras.
@@ -771,12 +773,9 @@ Capacidades implementadas:
 
 Responsabilidades especificadas para tasks futuras, ainda não implementadas no frontend:
 
-- telas funcionais de cadastro e busca de pacientes;
-- telas funcionais de agenda;
-- prontuário com dados, timeline, análise atual e histórico;
+- prontuário clínico com timeline, análise atual e histórico;
 - formulários de parecer e complemento;
 - evidências clicáveis para a fonte;
-- estados vazios compreensíveis;
 - estados de IA em geração, concluída e falha;
 - mensagens fixas para seções vazias;
 - limitação explícita em `SUMMARY_ONLY`.

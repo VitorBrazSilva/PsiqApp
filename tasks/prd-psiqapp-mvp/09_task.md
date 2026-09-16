@@ -32,13 +32,13 @@ Implementar no frontend os fluxos de cadastro, busca, dados do paciente, criaç�
 
 ## Subtarefas
 
-- [ ] 9.1 Criar feature `pacientes` com `PaginaPacientes`, `FormularioPaciente`, `ListaPacientes` e `DadosPaciente`.
-- [ ] 9.2 Criar feature `consultas` com `PaginaAgenda`, `FormularioConsulta`, `ListaConsultas` e `SeletorStatusConsulta`.
-- [ ] 9.3 Implementar serviços `servicoPacientes` e `servicoConsultas`.
-- [ ] 9.4 Implementar validação client-side coerente com o backend, sem substituir validação do servidor.
-- [ ] 9.5 Implementar estados de carregamento, vazio e erro compreensíveis.
-- [ ] 9.6 Garantir navegação da busca para o prontuário do paciente.
-- [ ] 9.7 Garantir que o aviso persistente de dados fictícios permaneça visível nos fluxos.
+- [x] 9.1 Criar feature `pacientes` com `PaginaPacientes`, `FormularioPaciente`, `ListaPacientes` e `DadosPaciente`.
+- [x] 9.2 Criar feature `consultas` com `PaginaAgenda`, `FormularioConsulta`, `ListaConsultas` e `SeletorStatusConsulta`.
+- [x] 9.3 Implementar serviços `servicoPacientes` e `servicoConsultas`.
+- [x] 9.4 Implementar validação client-side coerente com o backend, sem substituir validação do servidor.
+- [x] 9.5 Implementar estados de carregamento, vazio e erro compreensíveis.
+- [x] 9.6 Garantir navegação da busca para o prontuário do paciente.
+- [x] 9.7 Garantir que o aviso persistente de dados fictícios permaneça visível nos fluxos.
 
 ## Critérios de sucesso
 
@@ -49,11 +49,11 @@ Implementar no frontend os fluxos de cadastro, busca, dados do paciente, criaç�
 
 ## Testes obrigatórios
 
-- [ ] Unitários/componentes para formulário de paciente e consulta.
-- [ ] Testes de cliente para Problem Details e erros de campo.
-- [ ] Testes de busca com estado vazio e seleção de paciente.
-- [ ] Testes de transição de status final.
-- [ ] Build e typecheck frontend.
+- [x] Unitários/componentes para formulário de paciente e consulta.
+- [x] Testes de cliente para Problem Details e erros de campo.
+- [x] Testes de busca com estado vazio e seleção de paciente.
+- [x] Testes de transição de status final.
+- [x] Build e typecheck frontend.
 
 ## Skills aplicáveis
 
