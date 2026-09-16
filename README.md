@@ -62,6 +62,16 @@ docker compose --env-file .env -f infra/compose.yaml down
 
 O banco e publicado somente em `127.0.0.1:5432` e usa o volume Docker nomeado `psiqapp-postgres-data`.
 
+## Ambiente completo via Docker Compose
+
+Com o Docker Desktop iniciado, suba PostgreSQL, backend e frontend:
+
+```bash
+docker compose --env-file .env -f infra/compose.yaml up --build -d
+```
+
+O frontend fica disponível em `http://127.0.0.1:5173`, o backend em `http://127.0.0.1:8080` e o PostgreSQL em `127.0.0.1:5432`. O Compose aguarda o PostgreSQL e o healthcheck do backend antes de iniciar o frontend. Para acompanhar os logs, use `docker compose --env-file .env -f infra/compose.yaml logs -f`; para parar os serviços, use `docker compose --env-file .env -f infra/compose.yaml down`.
+
 ## Checks
 
 Validar o arquivo Compose:
@@ -77,7 +87,7 @@ cd apps/backend
 ./mvnw verify
 ```
 
-O `verify` executa testes unitarios, testes de contexto HTTP, arquitetura, migrations e integracao das APIs de pacientes, consultas, registros clinicos, analises e worker de IA com PostgreSQL 18.6 via Testcontainers. Docker Desktop deve estar iniciado. O CI tem jobs separados para backend, frontend e E2E integrado; Playwright ainda nao esta implementado.
+O `verify` executa testes unitarios, testes de contexto HTTP, arquitetura, migrations e integracao das APIs de pacientes, consultas, registros clinicos, analises e worker de IA com PostgreSQL 18.6 via Testcontainers. Docker Desktop deve estar iniciado. O CI tem jobs separados para backend, frontend e E2E integrado.
 
 ## Frontend local
 
@@ -100,7 +110,13 @@ npm test -- --run
 npm run build
 ```
 
-Os testes usam Vitest e Testing Library, sem endpoints reais. `npm test` abre o modo watch; `npm run build` valida os tipos e gera `dist`. `npm run preview` permite conferir esse build localmente em 127.0.0.1:5173; para o desenvolvimento com proxy da API, use `npm run dev`.
+Validar a suite E2E integrada, com o backend em `127.0.0.1:8080` e o provider fake:
+
+```bash
+npm run e2e
+```
+
+Os testes de unidade usam Vitest e Testing Library, sem endpoints reais. A suite E2E usa Playwright contra o frontend e a API locais, com dados ficticios. `npm test` abre o modo watch; `npm run build` valida os tipos e gera `dist`. `npm run preview` permite conferir esse build localmente em 127.0.0.1:5173; para o desenvolvimento com proxy da API, use `npm run dev`.
 
 ## Documentacao
 
