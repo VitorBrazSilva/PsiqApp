@@ -2,7 +2,7 @@
 
 PsiqApp MVP e uma aplicacao local para desenvolver e validar uma ferramenta de apoio ao prontuario psiquiatrico usando somente dados ficticios.
 
-O repositorio contem os documentos SDD aprovados, Rules, PostgreSQL local, backend Spring Boot com APIs de pacientes, consultas, registros clinicos, nucleo persistente de analises e worker assincrono de IA configuravel, e uma SPA navegavel com aviso persistente de dados ficticios. No frontend, Pacientes, Agenda e Prontuario ainda sao paginas placeholder. Telas funcionais ainda nao estao implementadas.
+O repositorio contem os documentos SDD aprovados, Rules, PostgreSQL local, backend Spring Boot com APIs de pacientes, consultas, registros clinicos, nucleo persistente de analises e worker assincrono de IA configuravel, e uma SPA navegavel com aviso persistente de dados ficticios. No frontend, Pacientes, Agenda e Prontuario ja permitem cadastrar, buscar e abrir pacientes, visualizar dados basicos, criar consultas e atualizar status consumindo a API real.
 
 ## Aviso de seguranca
 
@@ -89,7 +89,7 @@ npm ci
 npm run dev
 ```
 
-Abra `http://127.0.0.1:5173`. As rotas `/pacientes`, `/agenda` e `/prontuario` mostram areas em preparacao e o aviso de dados ficticios. A raiz redireciona para pacientes. O servidor exige a porta 5173 livre e encaminha `/api` para `http://127.0.0.1:8080`, sem remover o prefixo. Os placeholders ainda nao fazem chamadas ao backend.
+Abra `http://127.0.0.1:5173`. As rotas `/pacientes`, `/agenda` e `/prontuario` mostram os fluxos de pacientes e consultas, mantendo o aviso de dados ficticios. A raiz redireciona para pacientes. O servidor exige a porta 5173 livre e encaminha `/api` para `http://127.0.0.1:8080`, sem remover o prefixo. Para usar os fluxos funcionais, mantenha o backend em execucao.
 
 Checks, a partir de `apps/frontend`:
 

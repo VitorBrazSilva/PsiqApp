@@ -1,8 +1,17 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Aplicacao } from './Aplicacao'
+
+const fetchMock = vi.fn<typeof fetch>()
+
+beforeEach(() => {
+  vi.stubGlobal('fetch', fetchMock)
+  fetchMock.mockResolvedValue(Response.json({ items: [], page: 0, size: 25, total: 0 }))
+})
+
+afterEach(() => vi.unstubAllGlobals())
 
 describe('Layout inicial', () => {
   it.each([
@@ -11,17 +20,16 @@ describe('Layout inicial', () => {
     ['/agenda', 'Agenda'],
     ['/prontuario', 'Prontuário'],
     ['/inexistente', 'Página não encontrada'],
-  ])('mostra aviso persistente ao abrir %s diretamente', (rota, titulo) => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch')
+  ])('mostra aviso persistente ao abrir %s diretamente', async (rota, titulo) => {
     render(<MemoryRouter initialEntries={[rota]}><Aplicacao /></MemoryRouter>)
     expect(screen.getByRole('heading', { level: 1, name: titulo })).toBeVisible()
     expect(screen.getByRole('complementary', { name: 'Aviso de dados fictícios' }))
       .toHaveTextContent('Não insira dados reais de pacientes neste MVP.')
     expect(screen.getByRole('main')).toBeVisible()
-    expect(fetchSpy).not.toHaveBeenCalled()
+    await waitFor(() => expect(screen.queryByText(/Carregando|Buscando/)).not.toBeInTheDocument())
   })
 
-  it('navega entre placeholders sem remover o aviso e indica a rota ativa', async () => {
+  it('navega entre fluxos sem remover o aviso e indica a rota ativa', async () => {
     const usuario = userEvent.setup()
     render(<MemoryRouter><Aplicacao /></MemoryRouter>)
     const aviso = screen.getByRole('complementary')
@@ -32,7 +40,6 @@ describe('Layout inicial', () => {
       expect(screen.getByRole('heading', { level: 1, name: titulo })).toBeVisible()
       expect(screen.getByRole('complementary')).toBe(aviso)
       expect(aviso).toBeVisible()
-      expect(screen.getByText('Área em preparação')).toBeVisible()
     }
   })
 
