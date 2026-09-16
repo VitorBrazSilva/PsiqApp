@@ -4,7 +4,7 @@
 
 O repositório está na implementação incremental do MVP. Existem PRD, spec-review aprovado, TechSpec aprovada, Rules do projeto, infraestrutura local de PostgreSQL via Docker Compose, backend com APIs de pacientes, consultas e registros clínicos, frontend bootstrap com placeholders, configuração e CI por área.
 
-O backend possui a fundação da aplicação e os fluxos de pacientes/consultas da Task 04, registros clínicos da Task 05 e núcleo persistente de análises da Task 06: domínio, casos de uso, adapters JPA/JDBC, migrations, idempotência, endpoints REST, persistência append-only de pareceres/complementos, criação transacional de `analysis_generation` em estado `QUEUED`, consulta de estado/histórico/análise e regeneração manual. O frontend possui SPA navegável, placeholders de pacientes/agenda/prontuário, aviso persistente e cliente HTTP testado. Worker de IA, adapter OpenAI e telas funcionais ainda não estão implementados.
+O backend possui a fundação da aplicação e os fluxos de pacientes/consultas da Task 04, registros clínicos da Task 05, núcleo persistente de análises da Task 06 e worker assíncrono da Task 07: domínio, casos de uso, adapters JPA/JDBC, migrations, idempotência, endpoints REST, persistência append-only de pareceres/complementos, criação transacional de `analysis_generation` em estado `QUEUED`, consulta de estado/histórico/análise, regeneração manual, lease/retry e finalização transacional de análises. O frontend possui SPA navegável, placeholders de pacientes/agenda/prontuário, aviso persistente e cliente HTTP testado. Telas funcionais ainda não estão implementadas.
 
 Esta documentação descreve a arquitetura técnica aprovada para implementação do MVP e registra explicitamente os limites do estado atual. Quando as tasks forem implementadas, este documento deve ser atualizado para refletir o código real, removendo ou ajustando qualquer detalhe que deixe de ser verdadeiro.
 
@@ -30,7 +30,7 @@ Fontes técnicas principais:
 | Banco | PostgreSQL 18.6 local. |
 | Migrations | Flyway 11.20.3; migrations de pacientes/consultas/idempotência, registros clínicos/gerações iniciais e núcleo persistente de análises/evidências/tentativas. |
 | Persistência backend | Spring Data JPA/Hibernate no adapter de persistência. |
-| IA | OpenAI atrás de port, SDK oficial Java, Responses API e Structured Outputs. |
+| IA | OpenAI atrás de port, SDK oficial Java 4.63.3, Responses API, Structured Outputs e provider fake determinístico para testes/local. |
 | Modelo inicial | `OPENAI_MODEL=gpt-5.6-terra`, configurado por ambiente. |
 | Execução local | PostgreSQL via Docker Compose; backend e frontend executados diretamente na máquina. |
 | Testes backend | JUnit 5, Spring Boot Test, Mockito, ArchUnit e Testcontainers PostgreSQL. |
@@ -40,7 +40,7 @@ Fontes técnicas principais:
 
 Infraestrutura local já definida: `infra/compose.yaml` usa `postgres:18.6`, volume Docker nomeado `psiqapp-postgres-data`, healthcheck com `pg_isready` e publicação apenas em `127.0.0.1:5432`.
 
-O frontend fixa dependências diretas no `package.json` e a árvore completa no `package-lock.json`; `.nvmrc` fixa o Node. TypeScript 6.0.3 está na faixa suportada pelo typescript-eslint 8.70.0 (`<6.1.0`); TypeScript 7 não integra esta combinação. O backend usa Maven Wrapper 3.9.16, Flyway 11.20.3 e o driver JDBC gerenciado pelo BOM do Spring Boot. A versão do SDK OpenAI permanece para a task de integração de IA.
+O frontend fixa dependências diretas no `package.json` e a árvore completa no `package-lock.json`; `.nvmrc` fixa o Node. TypeScript 6.0.3 está na faixa suportada pelo typescript-eslint 8.70.0 (`<6.1.0`); TypeScript 7 não integra esta combinação. O backend usa Maven Wrapper 3.9.16, Flyway 11.20.3, OpenAI Java SDK 4.63.3 e o driver JDBC gerenciado pelo BOM do Spring Boot.
 
 ## 3. Estrutura do monorepo
 
@@ -167,9 +167,9 @@ Todas as tabelas usam `id uuid primary key` gerado pela aplicação quando aplic
 | `appointment` | Agenda interna e status de consultas. |
 | `clinical_record` | Pareceres originais e complementos, fonte clínica de verdade. |
 | `analysis_generation` | Fila persistente e estado operacional de cada geração de IA. |
-| `analysis_attempt` | Auditoria de cada tentativa técnica de uma geração. A tabela e o modelo existem; gravação operacional pertence ao worker. |
-| `clinical_analysis` | Análise validada e preservada historicamente. Implementada no backend, sem worker real ainda. |
-| `analysis_evidence` | Evidências literais que ligam itens da análise aos registros clínicos. Implementada no backend. |
+| `analysis_attempt` | Auditoria de cada tentativa técnica de uma geração, gravada pelo worker. |
+| `clinical_analysis` | Análise validada e preservada historicamente, publicada pelo worker após validação determinística. |
+| `analysis_evidence` | Evidências literais que ligam itens da análise aos registros clínicos. |
 | `idempotency_record` | Controle de repetição segura de criações e regeneração manual. |
 | `worker_heartbeat` | Sinalização operacional do worker, sem conteúdo clínico. |
 
@@ -833,6 +833,18 @@ Backend lê por ambiente:
 - limites;
 - URLs locais.
 
+Variáveis do worker de análise:
+
+- `PSIQAPP_ANALYSIS_WORKER_ENABLED`, padrão `false`;
+- `PSIQAPP_ANALYSIS_PROVIDER`, padrão `fake`, aceita `fake` ou `openai`;
+- `PSIQAPP_ANALYSIS_WORKER_POLL_INTERVAL`, padrão `2s`;
+- `PSIQAPP_ANALYSIS_CALL_TIMEOUT`, padrão `120s`;
+- `PSIQAPP_ANALYSIS_ATTEMPT_BUDGET`, padrão `180s`;
+- `PSIQAPP_ANALYSIS_LEASE_TTL`, padrão `240s`;
+- `PSIQAPP_ANALYSIS_MAX_ATTEMPTS`, padrão `3`;
+- `PSIQAPP_ANALYSIS_BACKOFF_INITIAL`, padrão `5s`;
+- `PSIQAPP_ANALYSIS_BACKOFF_FINAL`, padrão `20s`.
+
 Frontend recebe apenas configuração pública. Nunca expor `OPENAI_API_KEY`, credenciais de banco ou secrets no bundle, logs, Problem Details, fixtures, testes ou documentação.
 
 Versionar somente `.env.example` com placeholders. Arquivos reais de ambiente ficam fora do Git. O Compose local deve ser executado com `--env-file .env` após criação local desse arquivo a partir do template.
@@ -963,10 +975,7 @@ Não implementar no MVP sem nova decisão:
 
 Ainda precisam ser definidos durante implementação:
 
-- versão do SDK OpenAI; versões de Maven, Node.js, TypeScript, Flyway e driver JDBC estão definidas nos bootstraps;
 - SQL final das migrations;
-- nomes finais de propriedades e variáveis de ambiente da aplicação além dos placeholders iniciais;
-- detalhes de cancelamento/timeout do SDK;
 - limites concretos de entrada/saída e contagem de tokens;
 - catálogo versionado de padrões textuais de segurança;
 - mensagens finais de UX;

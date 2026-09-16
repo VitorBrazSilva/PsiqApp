@@ -2,7 +2,7 @@
 
 PsiqApp MVP e uma aplicacao local para desenvolver e validar uma ferramenta de apoio ao prontuario psiquiatrico usando somente dados ficticios.
 
-O repositorio contem os documentos SDD aprovados, Rules, PostgreSQL local, backend Spring Boot com APIs de pacientes, consultas, registros clinicos e nucleo persistente de analises, e uma SPA navegavel com aviso persistente de dados ficticios. No frontend, Pacientes, Agenda e Prontuario ainda sao paginas placeholder. Worker de IA, adapter OpenAI e telas funcionais ainda nao estao implementados.
+O repositorio contem os documentos SDD aprovados, Rules, PostgreSQL local, backend Spring Boot com APIs de pacientes, consultas, registros clinicos, nucleo persistente de analises e worker assincrono de IA configuravel, e uma SPA navegavel com aviso persistente de dados ficticios. No frontend, Pacientes, Agenda e Prontuario ainda sao paginas placeholder. Telas funcionais ainda nao estao implementadas.
 
 ## Aviso de seguranca
 
@@ -37,6 +37,8 @@ cp .env.example .env
 ```
 
 Substitua os placeholders localmente. `.env` e outros arquivos locais de ambiente sao ignorados pelo Git; `.env.example` deve conter apenas placeholders.
+
+O worker de analise fica desabilitado por padrao. Para processar geracoes localmente, habilite `PSIQAPP_ANALYSIS_WORKER_ENABLED=true`. O provider padrao e `fake`, sem rede externa; para usar OpenAI, configure `PSIQAPP_ANALYSIS_PROVIDER=openai`, `OPENAI_API_KEY` e `OPENAI_MODEL`.
 
 ## PostgreSQL
 
@@ -75,7 +77,7 @@ cd apps/backend
 ./mvnw verify
 ```
 
-O `verify` executa testes unitarios, testes de contexto HTTP, arquitetura, migrations e integracao das APIs de pacientes, consultas, registros clinicos e analises com PostgreSQL 18.6 via Testcontainers. Docker Desktop deve estar iniciado. O CI tem jobs separados para backend, frontend e E2E integrado; Playwright ainda nao esta implementado.
+O `verify` executa testes unitarios, testes de contexto HTTP, arquitetura, migrations e integracao das APIs de pacientes, consultas, registros clinicos, analises e worker de IA com PostgreSQL 18.6 via Testcontainers. Docker Desktop deve estar iniciado. O CI tem jobs separados para backend, frontend e E2E integrado; Playwright ainda nao esta implementado.
 
 ## Frontend local
 
