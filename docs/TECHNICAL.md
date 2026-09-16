@@ -58,7 +58,7 @@ tasks/
   rules/
 ```
 
-`apps/backend` contém o Spring Boot com arquitetura hexagonal, health/readiness e APIs de pacientes/consultas/registros clínicos; `apps/frontend` contém o bootstrap React/Vite.
+`apps/backend` contém o Spring Boot com arquitetura hexagonal, health/readiness e APIs de pacientes/consultas/registros clínicos/análises, com contrato REST `/api/v1` validado por testes integrados e OpenAPI local; `apps/frontend` contém o bootstrap React/Vite.
 
 Backend previsto:
 
@@ -646,6 +646,7 @@ Contratos:
 - entidades JPA nunca expostas;
 - datas conforme a política temporal;
 - erros em Problem Details.
+- respostas de paciente expõem CPF mascarado, preservando o CPF completo apenas no armazenamento/validação internos.
 
 Rotas propostas:
 
@@ -670,6 +671,7 @@ Rotas propostas:
 DTOs citados na TechSpec:
 
 - `PatientCreateRequest`: `name`, `cpf`, `birthDate`, `phone`, `email`, `initialComplaint`;
+- `PacienteResposta`: dados cadastrais com `cpf` mascarado;
 - `CriarRegistroClinicoRequisicao`: `texto`, `humor`, `medicamentos`, `dataHoraClinica`, `consultaId`;
 - `CriarRegistroClinicoResposta`: `registro`, `generationId` e `geracao` em estado inicial `QUEUED`;
 - complemento recebe `originalId` na rota;
@@ -882,7 +884,7 @@ Backend:
 - Spring Boot Test;
 - Mockito;
 - Testcontainers PostgreSQL;
-- cobertura de migrations, constraints, triggers, locks, `SKIP LOCKED` e idempotência.
+- cobertura de migrations, constraints, triggers, locks, `SKIP LOCKED`, idempotência e contratos HTTP `/api/v1`, incluindo OpenAPI, Problem Details, paginação, datas UTC e privacidade.
 
 Frontend:
 
@@ -944,7 +946,7 @@ Dependências principais:
 - `backend-clinical-records` depende de backend, infra e patient/appointment;
 - `backend-analysis-core` depende de backend, infra e clinical records;
 - `backend-analysis-worker` depende de clinical records, analysis core e infra;
-- `backend-api-contract-validation` depende de patient/appointment, clinical records, analysis core e worker;
+- `backend-api-contract-validation` depende de patient/appointment, clinical records, analysis core e worker e já estabiliza o contrato backend consumido pelas próximas tasks de frontend;
 - `frontend-patient-appointment` depende de frontend bootstrap, backend patient/appointment e contract validation;
 - `frontend-clinical-analysis` depende de frontend bootstrap, clinical records, worker e contract validation;
 - `qa-integration` depende dos fluxos completos.
