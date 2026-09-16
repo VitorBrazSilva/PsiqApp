@@ -1,6 +1,7 @@
 package com.psiqapp.aplicacao.port;
 
 import com.psiqapp.dominio.modelo.RegistroClinico;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,4 +13,6 @@ public interface RepositorioRegistroClinicoPort {
     Optional<RegistroClinico> buscarOriginalNoPaciente(UUID pacienteId, UUID registroId);
     Pagina<RegistroClinico> listarLinhaDoTempo(UUID pacienteId, int pagina, int tamanho);
     EstatisticasSnapshot estatisticasDoPaciente(UUID pacienteId);
+    EstatisticasSnapshot estatisticasDoPacienteAteRevisao(UUID pacienteId, long revisao);
+    List<RegistroClinico> listarSnapshot(UUID pacienteId, long revisaoSnapshot);
 }

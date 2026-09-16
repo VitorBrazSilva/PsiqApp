@@ -4,7 +4,7 @@
 
 O repositório está na implementação incremental do MVP. Existem PRD, spec-review aprovado, TechSpec aprovada, Rules do projeto, infraestrutura local de PostgreSQL via Docker Compose, backend com APIs de pacientes, consultas e registros clínicos, frontend bootstrap com placeholders, configuração e CI por área.
 
-O backend possui a fundação da aplicação e os fluxos de pacientes/consultas da Task 04 e registros clínicos da Task 05: domínio, casos de uso, adapters JPA, migrations, idempotência, endpoints REST, persistência append-only de pareceres/complementos e criação transacional de `analysis_generation` em estado `QUEUED`. O frontend possui SPA navegável, placeholders de pacientes/agenda/prontuário, aviso persistente e cliente HTTP testado. Análises concluídas de IA, worker de IA, regeneração manual e telas funcionais ainda não estão implementados.
+O backend possui a fundação da aplicação e os fluxos de pacientes/consultas da Task 04, registros clínicos da Task 05 e núcleo persistente de análises da Task 06: domínio, casos de uso, adapters JPA/JDBC, migrations, idempotência, endpoints REST, persistência append-only de pareceres/complementos, criação transacional de `analysis_generation` em estado `QUEUED`, consulta de estado/histórico/análise e regeneração manual. O frontend possui SPA navegável, placeholders de pacientes/agenda/prontuário, aviso persistente e cliente HTTP testado. Worker de IA, adapter OpenAI e telas funcionais ainda não estão implementados.
 
 Esta documentação descreve a arquitetura técnica aprovada para implementação do MVP e registra explicitamente os limites do estado atual. Quando as tasks forem implementadas, este documento deve ser atualizado para refletir o código real, removendo ou ajustando qualquer detalhe que deixe de ser verdadeiro.
 
@@ -28,7 +28,7 @@ Fontes técnicas principais:
 | Roteamento frontend | React Router 8.3.1 declarativo. |
 | Comunicação frontend | `fetch` nativo por cliente HTTP centralizado. |
 | Banco | PostgreSQL 18.6 local. |
-| Migrations | Flyway 11.20.3; migrations de pacientes/consultas/idempotência e registros clínicos/gerações iniciais. |
+| Migrations | Flyway 11.20.3; migrations de pacientes/consultas/idempotência, registros clínicos/gerações iniciais e núcleo persistente de análises/evidências/tentativas. |
 | Persistência backend | Spring Data JPA/Hibernate no adapter de persistência. |
 | IA | OpenAI atrás de port, SDK oficial Java, Responses API e Structured Outputs. |
 | Modelo inicial | `OPENAI_MODEL=gpt-5.6-terra`, configurado por ambiente. |
@@ -167,9 +167,9 @@ Todas as tabelas usam `id uuid primary key` gerado pela aplicação quando aplic
 | `appointment` | Agenda interna e status de consultas. |
 | `clinical_record` | Pareceres originais e complementos, fonte clínica de verdade. |
 | `analysis_generation` | Fila persistente e estado operacional de cada geração de IA. |
-| `analysis_attempt` | Auditoria de cada tentativa técnica de uma geração. |
-| `clinical_analysis` | Análise validada e preservada historicamente. |
-| `analysis_evidence` | Evidências literais que ligam itens da análise aos registros clínicos. |
+| `analysis_attempt` | Auditoria de cada tentativa técnica de uma geração. A tabela e o modelo existem; gravação operacional pertence ao worker. |
+| `clinical_analysis` | Análise validada e preservada historicamente. Implementada no backend, sem worker real ainda. |
+| `analysis_evidence` | Evidências literais que ligam itens da análise aos registros clínicos. Implementada no backend. |
 | `idempotency_record` | Controle de repetição segura de criações e regeneração manual. |
 | `worker_heartbeat` | Sinalização operacional do worker, sem conteúdo clínico. |
 
@@ -661,10 +661,10 @@ Rotas propostas:
 | `POST /patients/{id}/clinical-records` | Cria parecer original. Retorna 201 e `generationId`. Exige `Idempotency-Key`. |
 | `POST /patients/{id}/clinical-records/{originalId}/complements` | Cria complemento. Retorna 201 e `generationId`. Exige `Idempotency-Key`. |
 | `GET /patients/{id}/clinical-records/{recordId}` | Retorna fonte/evidência. |
-| `POST /patients/{id}/analysis-generations` | Planejado para Task 06/08: solicita regeneração manual. Retorna 202. Exige `Idempotency-Key`. |
-| `GET /patients/{id}/analysis-state` | Planejado para Task 06/08: retorna análise atual, geração ativa e permissões. |
-| `GET /patients/{id}/analysis-generations?page&size` | Planejado para Task 06/08: histórico de gerações. |
-| `GET /patients/{id}/analyses/{analysisId}` | Planejado para Task 06/08: análise histórica. |
+| `POST /patients/{id}/analysis-generations` | Solicita regeneração manual. Retorna 202. Exige `Idempotency-Key`. |
+| `GET /patients/{id}/analysis-state` | Retorna análise atual, última geração, geração ativa e permissão/motivo de regeneração. |
+| `GET /patients/{id}/analysis-generations?page&size` | Retorna histórico paginado de gerações. |
+| `GET /patients/{id}/analyses/{analysisId}` | Retorna análise histórica validada do paciente. |
 | `GET /health/readiness` | Health local sem IA. |
 
 DTOs citados na TechSpec:

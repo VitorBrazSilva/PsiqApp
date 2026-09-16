@@ -18,6 +18,15 @@ class AdaptadorSequenciaPacienteJdbc implements RepositorioSequenciaPacientePort
 
     @Override
     public Optional<Sequencias> reservarParaNovoRegistroClinico(UUID pacienteId) {
+        return reservar(pacienteId, true);
+    }
+
+    @Override
+    public Optional<Sequencias> reservarParaRegeneracao(UUID pacienteId) {
+        return reservar(pacienteId, false);
+    }
+
+    private Optional<Sequencias> reservar(UUID pacienteId, boolean incrementarRevisao) {
         var atual = jdbc.query("""
                 select clinical_revision, request_sequence
                   from patient
@@ -27,6 +36,8 @@ class AdaptadorSequenciaPacienteJdbc implements RepositorioSequenciaPacientePort
                 rs.getLong("request_sequence") + 1), pacienteId);
         if (atual.isEmpty()) return Optional.empty();
         var sequencias = atual.get(0);
+        long revisao = incrementarRevisao ? sequencias.revisaoClinica() : sequencias.revisaoClinica() - 1;
+        sequencias = new Sequencias(revisao, sequencias.sequenciaRequisicao());
         jdbc.update("""
                 update patient
                    set clinical_revision = ?,

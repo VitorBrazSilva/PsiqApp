@@ -6,7 +6,7 @@ O PsiqApp MVP é um sistema de apoio ao atendimento psiquiátrico para um único
 
 O objetivo principal é reduzir o esforço de releitura manual do prontuário antes de uma consulta, mantendo os registros clínicos originais como fonte de verdade. A IA ajuda a organizar acontecimentos, recorrências, padrões e pontos de atenção, mas não decide, diagnostica, prescreve nem substitui o julgamento clínico.
 
-**Capacidade atual:** o backend já permite cadastrar, buscar e visualizar pacientes fictícios por API, criar consultas associadas a pacientes, listar agenda, atualizar consultas agendadas para estados finais, criar pareceres originais e complementos, consultar a linha do tempo clínica e criar a solicitação persistente de geração automática. No frontend, ainda é possível apenas navegar entre as áreas Pacientes, Agenda e Prontuário, que informam claramente estar em preparação. Um aviso permanece visível em todas as páginas: usar somente dados fictícios e não inserir dados reais de pacientes. Ainda não é possível usar esses fluxos pelo frontend, processar gerações de IA ou consultar análises concluídas.
+**Capacidade atual:** o backend já permite cadastrar, buscar e visualizar pacientes fictícios por API, criar consultas associadas a pacientes, listar agenda, atualizar consultas agendadas para estados finais, criar pareceres originais e complementos, consultar a linha do tempo clínica, criar a solicitação persistente de geração automática, consultar estado e histórico de gerações, consultar análises validadas persistidas e solicitar regeneração manual quando permitido. No frontend, ainda é possível apenas navegar entre as áreas Pacientes, Agenda e Prontuário, que informam claramente estar em preparação. Um aviso permanece visível em todas as páginas: usar somente dados fictícios e não inserir dados reais de pacientes. Ainda não é possível usar esses fluxos pelo frontend, processar gerações por worker ou chamar provedor externo de IA.
 
 As capacidades e regras de domínio descritas abaixo combinam o que já está disponível no backend com o restante do MVP aprovado para implementação futura. As fontes normativas permanecem o PRD e as Rules.
 
@@ -136,11 +136,13 @@ Ordenação funcional:
 
 Um registro retroativo aparece na posição correspondente à sua data/hora clínica, mas sua data/hora real de criação continua preservada para auditoria.
 
-## 6. Análise de IA especificada - ainda não disponível
+## 6. Análise de IA no backend
 
 ### Papel da IA
 
 A IA existe para apoiar a leitura longitudinal do prontuário. Ela deve organizar e destacar informações que já estejam registradas pelo médico, sempre com limites explícitos.
+
+O backend já possui o núcleo persistente para guardar gerações, análises validadas, evidências e tentativas técnicas, além de contratos para consulta de estado, histórico, análise e regeneração manual. O worker que chama a IA e conclui gerações automaticamente ainda não está implementado.
 
 A IA não pode:
 
@@ -204,6 +206,10 @@ Quando uma geração falha:
 - a última análise válida permanece como atual, quando existir;
 - o sistema deve apresentar a falha de forma compreensível;
 - o médico pode solicitar nova tentativa manual quando houver pelo menos um parecer original e nenhuma geração em andamento.
+
+### Regeneração manual
+
+O backend permite solicitar uma nova geração manual quando existe pelo menos um parecer original e não há outra geração ativa para o paciente. A solicitação é idempotente: repetir a mesma operação com a mesma chave não cria gerações duplicadas.
 
 ## 7. Fluxos principais
 

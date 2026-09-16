@@ -3,6 +3,7 @@ package com.psiqapp.adaptador.out.persistence;
 import com.psiqapp.aplicacao.port.RepositorioGeracaoAnalisePort;
 import com.psiqapp.dominio.modelo.GeracaoAnalise;
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
@@ -24,6 +25,25 @@ class AdaptadorGeracaoAnaliseJpa implements RepositorioGeracaoAnalisePort {
     @Override
     public Optional<GeracaoAnalise> buscarPorRegistroDisparador(UUID registroId) {
         return repositorio.findByRegistroDisparadorId(registroId).map(this::paraDominio);
+    }
+
+    @Override
+    public Optional<GeracaoAnalise> buscarPorIdNoPaciente(UUID pacienteId, UUID geracaoId) {
+        return repositorio.findByPacienteIdAndId(pacienteId, geracaoId).map(this::paraDominio);
+    }
+
+    @Override
+    public Optional<GeracaoAnalise> buscarAtiva(UUID pacienteId) {
+        return repositorio.findFirstByPacienteIdAndStateInOrderBySolicitadaEmDescIdDesc(pacienteId,
+                List.of(com.psiqapp.dominio.modelo.EstadoGeracaoAnalise.QUEUED,
+                        com.psiqapp.dominio.modelo.EstadoGeracaoAnalise.RUNNING,
+                        com.psiqapp.dominio.modelo.EstadoGeracaoAnalise.RETRY_WAIT)).map(this::paraDominio);
+    }
+
+    @Override
+    public Optional<GeracaoAnalise> buscarMaisRecente(UUID pacienteId) {
+        return repositorio.findFirstByPacienteIdOrderByRevisaoSnapshotDescSequenciaRequisicaoDesc(pacienteId)
+                .map(this::paraDominio);
     }
 
     private EntidadeGeracaoAnaliseJpa paraJpa(GeracaoAnalise geracao) {
