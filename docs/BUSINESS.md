@@ -54,6 +54,7 @@ O backend permite cadastrar pacientes com nome, CPF, data de nascimento, telefon
 Regras funcionais:
 
 - CPF deve ser válido e único.
+- Por privacidade operacional do MVP, respostas da API exibem o CPF mascarado; o CPF completo normalizado permanece usado internamente apenas para validação e unicidade.
 - E-mail deve ter formato válido.
 - Telefone deve ter formato válido.
 - Data de nascimento não pode estar no futuro.
@@ -267,6 +268,7 @@ As etapas de criação, listagem de agenda e atualização de status existem no 
 - Nome, CPF, data de nascimento, telefone e e-mail são obrigatórios.
 - Queixa inicial é opcional.
 - CPF deve ser válido e único.
+- Respostas da API não devem expor CPF completo.
 - E-mail e telefone devem ter formato válido.
 - Data de nascimento não pode estar no futuro.
 - Campos opcionais ausentes não devem gerar informação inventada.

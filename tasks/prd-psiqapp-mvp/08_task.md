@@ -1,5 +1,7 @@
 # Task 8.0 - backend-api-contract-validation
 
+**Status: CONCLUÍDA em 2026-09-15.** Testes aprovados, task-reviewer aprovado, code-reviewer sem blockers e manutenção documental concluída.
+
 ## Objetivo
 
 Validar e estabilizar os contratos REST do backend, OpenAPI, erros, paginação, idempotência, privacidade e consistência entre pacientes, consultas, prontuário e análise, sem reimplementar controllers ou casos de uso.
@@ -37,14 +39,14 @@ Validar e estabilizar os contratos REST do backend, OpenAPI, erros, paginação,
 
 ## Subtarefas
 
-- [ ] 8.1 Validar rotas de pacientes, consultas, registros clínicos, análise e health contra a TechSpec.
-- [ ] 8.2 Validar DTOs como `PacienteResposta`, `ConsultaResposta`, `RegistroClinicoResposta`, `EstadoAnaliseResposta` e `RespostaPaginada`.
-- [ ] 8.3 Validar serialização de datas: entrada ISO 8601 com offset, saída UTC e nascimento como data local.
-- [ ] 8.4 Consolidar erros 400, 404, 409 e 503 com `codigo`, `errosDeCampo` e `requestId`.
-- [ ] 8.5 Publicar OpenAPI e validar exemplos com dados fictícios.
-- [ ] 8.6 Criar testes HTTP integrados dos fluxos principais.
-- [ ] 8.7 Verificar que respostas e erros não contêm CPF completo, prontuário completo em erro, secrets ou payload rejeitado da IA.
-- [ ] 8.8 Documentar qualquer exceção de contrato ainda existente em `tasks/prd-psiqapp-mvp/bugs.md` ou equivalente.
+- [x] 8.1 Validar rotas de pacientes, consultas, registros clínicos, análise e health contra a TechSpec.
+- [x] 8.2 Validar DTOs como `PacienteResposta`, `ConsultaResposta`, `RegistroClinicoResposta`, `EstadoAnaliseResposta` e `RespostaPaginada`.
+- [x] 8.3 Validar serialização de datas: entrada ISO 8601 com offset, saída UTC e nascimento como data local.
+- [x] 8.4 Consolidar erros 400, 404, 409 e 503 com `codigo`, `errosDeCampo` e `requestId`.
+- [x] 8.5 Publicar OpenAPI e validar exemplos com dados fictícios.
+- [x] 8.6 Criar testes HTTP integrados dos fluxos principais.
+- [x] 8.7 Verificar que respostas e erros não contêm CPF completo, prontuário completo em erro, secrets ou payload rejeitado da IA.
+- [x] 8.8 Documentar qualquer exceção de contrato ainda existente em `tasks/prd-psiqapp-mvp/bugs.md` ou equivalente.
 
 ## Critérios de sucesso
 
@@ -56,12 +58,12 @@ Validar e estabilizar os contratos REST do backend, OpenAPI, erros, paginação,
 
 ## Testes obrigatórios
 
-- [ ] Testes de contrato HTTP para todas as rotas previstas na TechSpec.
-- [ ] Testes de paginação padrão, máximo e desempate estável.
-- [ ] Testes de idempotência por operação/paciente, mesmo payload e payload conflitante.
-- [ ] Testes de Problem Details sem dados sensíveis.
-- [ ] Testes de datas com offsets diferentes e saída UTC.
-- [ ] Validação automatizada do OpenAPI quando houver ferramenta disponível.
+- [x] Testes de contrato HTTP para todas as rotas previstas na TechSpec.
+- [x] Testes de paginação padrão, máximo e desempate estável.
+- [x] Testes de idempotência por operação/paciente, mesmo payload e payload conflitante.
+- [x] Testes de Problem Details sem dados sensíveis.
+- [x] Testes de datas com offsets diferentes e saída UTC.
+- [x] Validação automatizada do OpenAPI quando houver ferramenta disponível.
 
 ## Skills aplicáveis
 

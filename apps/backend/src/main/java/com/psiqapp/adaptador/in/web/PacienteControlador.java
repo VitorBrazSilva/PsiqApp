@@ -25,7 +25,7 @@ public class PacienteControlador {
     }
 
     @PostMapping
-    ResponseEntity<PacienteResposta> criar(@RequestHeader("Idempotency-Key") String chave,
+    ResponseEntity<PacienteResposta> criar(@RequestHeader(value = "Idempotency-Key", required = false) String chave,
             @RequestBody CriarPacienteRequisicao requisicao) {
         var paciente = criarPaciente.executar(new CriarPacienteCasoDeUso.Comando(requisicao.nome(), requisicao.cpf(),
                 requisicao.dataNascimento(), requisicao.telefone(), requisicao.email(), requisicao.queixaInicial(),

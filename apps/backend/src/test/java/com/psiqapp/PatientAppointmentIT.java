@@ -51,7 +51,7 @@ class PatientAppointmentIT {
         var paciente = criarPaciente(chave, "Ana Ávila", "529.982.247-25");
         assertThat(paciente.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         String id = paciente.getBody().path("id").asText();
-        assertThat(paciente.getBody().path("cpf").asText()).isEqualTo("52998224725");
+        assertThat(paciente.getBody().path("cpf").asText()).isEqualTo("***.***.***-25");
         assertThat(paciente.getBody().path("telefone").asText()).isEqualTo("+5511987654321");
         assertThat(paciente.getBody().path("queixaInicial").isNull()).isTrue();
 

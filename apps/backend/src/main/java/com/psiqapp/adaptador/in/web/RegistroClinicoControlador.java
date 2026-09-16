@@ -29,7 +29,8 @@ public class RegistroClinicoControlador {
 
     @PostMapping
     ResponseEntity<CriarRegistroClinicoResposta> criarParecer(@PathVariable UUID pacienteId,
-            @RequestHeader("Idempotency-Key") String chave, @RequestBody CriarRegistroClinicoRequisicao requisicao) {
+            @RequestHeader(value = "Idempotency-Key", required = false) String chave,
+            @RequestBody CriarRegistroClinicoRequisicao requisicao) {
         var resultado = criarParecer.executar(new CriarParecerCasoDeUso.Comando(pacienteId, requisicao.texto(),
                 requisicao.humor(), requisicao.medicamentos(), requisicao.dataHoraClinica(), requisicao.consultaId(),
                 ChaveIdempotencia.obrigatoria(chave)));
@@ -39,7 +40,7 @@ public class RegistroClinicoControlador {
 
     @PostMapping("/{originalId}/complements")
     ResponseEntity<CriarRegistroClinicoResposta> criarComplemento(@PathVariable UUID pacienteId,
-            @PathVariable UUID originalId, @RequestHeader("Idempotency-Key") String chave,
+            @PathVariable UUID originalId, @RequestHeader(value = "Idempotency-Key", required = false) String chave,
             @RequestBody CriarRegistroClinicoRequisicao requisicao) {
         var resultado = criarComplemento.executar(new CriarComplementoCasoDeUso.Comando(pacienteId, originalId,
                 requisicao.texto(), requisicao.humor(), requisicao.medicamentos(), requisicao.dataHoraClinica(),
