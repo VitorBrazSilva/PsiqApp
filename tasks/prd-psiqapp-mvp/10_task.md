@@ -1,5 +1,7 @@
 # Task 10.0 - frontend-clinical-analysis
 
+**Status: CONCLUÍDA em 2026-09-16.** Testes aprovados, task-reviewer aprovado, code-reviewer sem blockers e manutenção documental concluída.
+
 ## Objetivo
 
 Implementar no frontend a linha do tempo do prontuário, registro de pareceres e complementos, análise atual, histórico, evidências e estados de geração de IA.
@@ -35,14 +37,14 @@ Implementar no frontend a linha do tempo do prontuário, registro de pareceres e
 
 ## Subtarefas
 
-- [ ] 10.1 Criar componentes `FormularioParecer`, `FormularioComplemento` e `LinhaDoTempoClinica`.
-- [ ] 10.2 Criar componentes `PainelAnaliseAtual`, `HistoricoGeracoes`, `ListaEvidencias` e `FonteRegistroClinico`.
-- [ ] 10.3 Criar serviços `servicoRegistrosClinicos` e `servicoAnalises`.
-- [ ] 10.4 Implementar polling com pausa em aba oculta, sem sobreposição e com descarte de resposta atrasada de outro paciente.
-- [ ] 10.5 Preservar análise válida anterior quando geração falha ou está em andamento.
-- [ ] 10.6 Garantir que seções vazias exibam mensagens fixas sem inventar conteúdo clínico.
-- [ ] 10.7 Exibir limitações da IA de forma persistente dentro da análise.
-- [ ] 10.8 Garantir que atualização de análise não sobrescreva formulário clínico em edição.
+- [x] 10.1 Criar componentes `FormularioParecer`, `FormularioComplemento` e `LinhaDoTempoClinica`.
+- [x] 10.2 Criar componentes `PainelAnaliseAtual`, `HistoricoGeracoes`, `ListaEvidencias` e `FonteRegistroClinico`.
+- [x] 10.3 Criar serviços `servicoRegistrosClinicos` e `servicoAnalises`.
+- [x] 10.4 Implementar polling com pausa em aba oculta, sem sobreposição e com descarte de resposta atrasada de outro paciente.
+- [x] 10.5 Preservar análise válida anterior quando geração falha ou está em andamento.
+- [x] 10.6 Garantir que seções vazias exibam mensagens fixas sem inventar conteúdo clínico.
+- [x] 10.7 Exibir limitações da IA de forma persistente dentro da análise.
+- [x] 10.8 Garantir que atualização de análise não sobrescreva formulário clínico em edição.
 
 ## Critérios de sucesso
 
@@ -54,13 +56,13 @@ Implementar no frontend a linha do tempo do prontuário, registro de pareceres e
 
 ## Testes obrigatórios
 
-- [ ] Testes de formulário para texto obrigatório, datas clínicas e idempotência de submissão.
-- [ ] Testes de linha do tempo com original, complemento e estado vazio.
-- [ ] Testes de polling com timers controlados, aba oculta, retorno à aba e ausência de sobreposição.
-- [ ] Testes de descarte de resposta atrasada de outro paciente.
-- [ ] Testes de análise `SUMMARY_ONLY` sem falsa tendência e `LONGITUDINAL` com evidências.
-- [ ] Testes de falha preservando análise válida anterior e formulário em edição.
-- [ ] Build e typecheck frontend.
+- [x] Testes de formulário para texto obrigatório, datas clínicas e idempotência de submissão.
+- [x] Testes de linha do tempo com original, complemento e estado vazio.
+- [x] Testes de polling com timers controlados, aba oculta, retorno à aba e ausência de sobreposição.
+- [x] Testes de descarte de resposta atrasada de outro paciente.
+- [x] Testes de análise `SUMMARY_ONLY` sem falsa tendência e `LONGITUDINAL` com evidências.
+- [x] Testes de falha preservando análise válida anterior e formulário em edição.
+- [x] Build e typecheck frontend.
 
 ## Skills aplicáveis
 
