@@ -39,10 +39,11 @@ class BackendBootstrapIT {
     void contextoCarregaJpaFlywayPostgresEClockComMigrationsDeProduto() {
         assertThat(jpa.isOpen()).isTrue();
         assertThat(flyway.validateWithResult().validationSuccessful).isTrue();
-        assertThat(flyway.info().applied()).hasSize(2);
+        assertThat(flyway.info().applied()).hasSize(3);
         assertThat(jdbc.queryForObject("select current_setting('server_version')", String.class)).startsWith("18.6");
         assertThat(jdbc.queryForList("select tablename from pg_tables where schemaname='public'", String.class))
                 .contains("patient", "appointment", "clinical_record", "analysis_generation",
+                        "clinical_analysis", "analysis_evidence", "analysis_attempt",
                         "idempotency_record", "flyway_schema_history");
         assertThat(relogio.getZone()).isEqualTo(ZoneOffset.UTC);
         assertThat(ambiente.getProperty("server.address")).isEqualTo("127.0.0.1");
@@ -80,5 +81,6 @@ class BackendBootstrapIT {
         assertThat(resposta.getBody().path("paths").has("/api/v1/patients")).isTrue();
         assertThat(resposta.getBody().path("paths").has("/api/v1/appointments")).isTrue();
         assertThat(resposta.getBody().path("paths").has("/api/v1/patients/{pacienteId}/clinical-records")).isTrue();
+        assertThat(resposta.getBody().path("paths").has("/api/v1/patients/{pacienteId}/analysis-state")).isTrue();
     }
 }

@@ -36,15 +36,15 @@ Implementar o núcleo persistente de análise clínica: modelo de geração/aná
 
 ## Subtarefas
 
-- [ ] 6.1 Criar domínio `GeracaoAnalise`, `AnaliseClinica`, `EvidenciaAnalise`, `TentativaGeracao`, estados e motivos de falha.
-- [ ] 6.2 Criar migrations para análise, evidência, tentativa, auditoria e triggers append-only aplicáveis.
-- [ ] 6.3 Implementar regra de análise atual por maior `snapshotRevision` e, em empate, maior `requestSequence`.
-- [ ] 6.4 Criar `MontadorSnapshotAnalise` com aliases temporários, minimização de dados e isolamento por paciente.
-- [ ] 6.5 Criar `ValidadorRespostaAnalise`, `CatalogoSegurancaClinica` e validação de evidências.
-- [ ] 6.6 Criar casos de uso de consulta: estado da geração, análise atual, histórico de gerações e evidências.
-- [ ] 6.7 Criar `SolicitarRegeneracaoAnaliseCasoDeUso` com idempotência, bloqueio de regeneração quando houver geração ativa e incremento de `requestSequence`.
-- [ ] 6.8 Implementar endpoints backend de consulta de análise, histórico, evidências e regeneração manual.
-- [ ] 6.9 Implementar auditoria de metadados permitidos por geração/tentativa.
+- [x] 6.1 Criar domínio `GeracaoAnalise`, `AnaliseClinica`, `EvidenciaAnalise`, `TentativaGeracao`, estados e motivos de falha.
+- [x] 6.2 Criar migrations para análise, evidência, tentativa, auditoria e triggers append-only aplicáveis.
+- [x] 6.3 Implementar regra de análise atual por maior `snapshotRevision` e, em empate, maior `requestSequence`.
+- [x] 6.4 Criar `MontadorSnapshotAnalise` com aliases temporários, minimização de dados e isolamento por paciente.
+- [x] 6.5 Criar `ValidadorRespostaAnalise`, `CatalogoSegurancaClinica` e validação de evidências.
+- [x] 6.6 Criar casos de uso de consulta: estado da geração, análise atual, histórico de gerações e evidências.
+- [x] 6.7 Criar `SolicitarRegeneracaoAnaliseCasoDeUso` com idempotência, bloqueio de regeneração quando houver geração ativa e incremento de `requestSequence`.
+- [x] 6.8 Implementar endpoints backend de consulta de análise, histórico, evidências e regeneração manual.
+- [x] 6.9 Implementar auditoria de metadados permitidos por geração/tentativa.
 
 ## Critérios de sucesso
 
@@ -57,14 +57,14 @@ Implementar o núcleo persistente de análise clínica: modelo de geração/aná
 
 ## Testes obrigatórios
 
-- [ ] Unitários de modos zero, um e dois ou mais pareceres originais.
-- [ ] Unitários de validação de schema, evidências, citações e catálogo de segurança clínica.
-- [ ] Integração com Testcontainers para migrations, triggers append-only, análise atual e desempate por snapshot/requestSequence.
-- [ ] Testes de concorrência para regeneração manual e requestSequence.
-- [ ] Testes de idempotência da regeneração manual.
-- [ ] Testes de que análises anteriores não são usadas como fonte clínica.
-- [ ] Testes de isolamento por paciente em snapshot, evidências e análise atual.
-- [ ] Testes HTTP de consulta de estado, histórico, evidências e regeneração manual.
+- [x] Unitários de modos zero, um e dois ou mais pareceres originais.
+- [x] Unitários de validação de schema, evidências, citações e catálogo de segurança clínica.
+- [x] Integração com Testcontainers para migrations, triggers append-only, análise atual e desempate por snapshot/requestSequence.
+- [x] Testes de concorrência para regeneração manual e requestSequence.
+- [x] Testes de idempotência da regeneração manual.
+- [x] Testes de que análises anteriores não são usadas como fonte clínica.
+- [x] Testes de isolamento por paciente em snapshot, evidências e análise atual.
+- [x] Testes HTTP de consulta de estado, histórico, evidências e regeneração manual.
 
 ## Skills aplicáveis
 

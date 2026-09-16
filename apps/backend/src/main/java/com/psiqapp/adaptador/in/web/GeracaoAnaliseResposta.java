@@ -17,6 +17,7 @@ public record GeracaoAnaliseResposta(
         UUID ultimoRegistroClinicoId,
         String modo) {
     static GeracaoAnaliseResposta de(GeracaoAnalise geracao) {
+        if (geracao == null) return null;
         return new GeracaoAnaliseResposta(geracao.id(), geracao.pacienteId(), geracao.estado().name(),
                 geracao.revisaoSnapshot(), geracao.sequenciaRequisicao(), geracao.solicitadaEm(),
                 geracao.totalRegistros(), geracao.totalOriginais(), geracao.totalComplementos(),

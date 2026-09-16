@@ -39,7 +39,10 @@ class PatientAppointmentIT {
     @BeforeEach
     void limparBanco() {
         flyway.migrate();
-        jdbc.execute("truncate table idempotency_record, appointment, patient restart identity cascade");
+        jdbc.execute("""
+                truncate table analysis_evidence, clinical_analysis, analysis_attempt, analysis_generation,
+                clinical_record, idempotency_record, appointment, patient restart identity cascade
+                """);
     }
 
     @Test

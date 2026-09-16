@@ -2,6 +2,7 @@ package com.psiqapp.configuracao;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.psiqapp.aplicacao.port.RepositorioConsultaPort;
+import com.psiqapp.aplicacao.port.RepositorioAnaliseClinicaPort;
 import com.psiqapp.aplicacao.port.RepositorioGeracaoAnalisePort;
 import com.psiqapp.aplicacao.port.RepositorioIdempotenciaPort;
 import com.psiqapp.aplicacao.port.RepositorioPacientePort;
@@ -87,5 +88,31 @@ class CasosDeUsoConfiguracao {
     @Bean
     ObterRegistroClinicoCasoDeUso obterRegistroClinicoCasoDeUso(RepositorioRegistroClinicoPort registros) {
         return new ObterRegistroClinicoCasoDeUso(registros);
+    }
+
+    @Bean
+    ObterEstadoAnaliseCasoDeUso obterEstadoAnaliseCasoDeUso(RepositorioPacientePort pacientes,
+            RepositorioGeracaoAnalisePort geracoes, RepositorioAnaliseClinicaPort analises) {
+        return new ObterEstadoAnaliseCasoDeUso(pacientes, geracoes, analises);
+    }
+
+    @Bean
+    ListarGeracoesAnaliseCasoDeUso listarGeracoesAnaliseCasoDeUso(RepositorioPacientePort pacientes,
+            RepositorioAnaliseClinicaPort analises) {
+        return new ListarGeracoesAnaliseCasoDeUso(pacientes, analises);
+    }
+
+    @Bean
+    ObterAnaliseCasoDeUso obterAnaliseCasoDeUso(RepositorioAnaliseClinicaPort analises) {
+        return new ObterAnaliseCasoDeUso(analises);
+    }
+
+    @Bean
+    SolicitarRegeneracaoAnaliseCasoDeUso solicitarRegeneracaoAnaliseCasoDeUso(RepositorioPacientePort pacientes,
+            RepositorioRegistroClinicoPort registros, RepositorioGeracaoAnalisePort geracoes,
+            RepositorioSequenciaPacientePort sequencias, IdempotenciaServico idempotencia,
+            TransactionRunnerPort transacao, Clock relogio) {
+        return new SolicitarRegeneracaoAnaliseCasoDeUso(pacientes, registros, geracoes, sequencias,
+                idempotencia, transacao, relogio);
     }
 }

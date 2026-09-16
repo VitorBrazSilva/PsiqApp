@@ -7,4 +7,5 @@ public interface RepositorioSequenciaPacientePort {
     record Sequencias(long revisaoClinica, long sequenciaRequisicao) {}
 
     Optional<Sequencias> reservarParaNovoRegistroClinico(UUID pacienteId);
+    Optional<Sequencias> reservarParaRegeneracao(UUID pacienteId);
 }
