@@ -70,9 +70,26 @@ public class ProcessarGeracaoAnaliseCasoDeUso {
             return Resultado.RESULTADO_TARDIO;
         } catch (FalhaProviderException e) {
             return registrarFalha(reservada, inicio, e.codigo(), e.transitoria(), e.retryAfterMs());
-        } catch (ValidacaoException | IllegalArgumentException e) {
-            return registrarFalha(reservada, inicio, "INVALID_RESPONSE", false, null);
+        } catch (ValidacaoException e) {
+            return registrarFalha(reservada, inicio, codigoFalhaValidacao(e), false, null);
+        } catch (IllegalArgumentException e) {
+            return registrarFalha(reservada, inicio, "INVALID_RESPONSE_ILLEGAL_ARGUMENT", false, null);
         }
+    }
+
+    /**
+     * Persiste somente a categoria técnica da validação. Nunca inclui a mensagem,
+     * o prompt, a resposta do provedor ou qualquer conteúdo clínico.
+     */
+    private String codigoFalhaValidacao(ValidacaoException e) {
+        var campo = e.erros().stream()
+                .map(erro -> erro.campo())
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse("unknown")
+                .toUpperCase()
+                .replaceAll("[^A-Z0-9]+", "_");
+        return "INVALID_RESPONSE_" + campo;
     }
 
     private Resultado registrarFalha(RepositorioGeracaoAnalisePort.GeracaoReservada reservada, Instant inicio,

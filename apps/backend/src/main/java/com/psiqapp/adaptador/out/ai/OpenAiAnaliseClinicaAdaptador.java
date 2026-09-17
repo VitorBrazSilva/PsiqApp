@@ -90,7 +90,9 @@ class OpenAiAnaliseClinicaAdaptador implements ProvedorAnaliseClinicaPort {
                 Use somente os registros enviados, sem diagnosticar, prescrever, recomendar conduta,
                 inventar informacoes ou usar conhecimento externo para criar fatos clinicos.
                 Cada item de timeline, patterns e attentionPoints deve ter evidence com recordAlias,
-                field e quote literal copiado do snapshot. Em SUMMARY_ONLY, patterns deve ser vazio
+                field e quote literal copiado do snapshot. O campo evidence.field deve ser exatamente
+                uma destas strings minúsculas: "text", "mood" ou "medications"; nunca use maiúsculas.
+                Em SUMMARY_ONLY, patterns deve ser vazio
                 e limitations deve declarar insuficiencia para evolucao ou tendencia longitudinal.
                 """;
     }
