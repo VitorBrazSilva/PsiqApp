@@ -15,6 +15,12 @@ test('mantem limites seguros quando a geracao e concluida com historico insufici
   const paciente = await criarPaciente(request)
   await criarParecer(request, paciente.id, 'Registro ficticio preservado durante IA.')
   await aguardarGeracaoConcluida(request, paciente.id)
+  await expect.poll(async () => {
+    const response = await request.get(`/api/v1/patients/${paciente.id}/analysis-state`)
+    expect(response.ok()).toBeTruthy()
+    const estado = await response.json() as { currentAnalysis?: { limitations?: string[] } | null }
+    return estado.currentAnalysis?.limitations?.join(' ') ?? ''
+  }, { timeout: 15_000 }).toMatch(/insuficiente/i)
   await abrirProntuario(page, paciente.id)
   await expect(page.getByText('Registro ficticio preservado durante IA.', { exact: true })).toBeVisible()
   await page.reload({ waitUntil: 'networkidle' })
