@@ -92,6 +92,10 @@ class OpenAiAnaliseClinicaAdaptador implements ProvedorAnaliseClinicaPort {
                 Cada item de timeline, patterns e attentionPoints deve ter evidence com recordAlias,
                 field e quote literal copiado do snapshot. O campo evidence.field deve ser exatamente
                 uma destas strings minúsculas: "text", "mood" ou "medications"; nunca use maiúsculas.
+                REGRA CRITICA SOBRE evidence.quote: quote nao e resumo, traducao, correcao ou reescrita.
+                Para cada evidencia, copie exatamente um trecho continuo do valor do campo fonte do registro
+                escolhido, preservando palavras, acentos, pontuacao e ordem. Nao invente trechos e nao use
+                reticencias. Antes de responder, confirme que cada quote aparece literalmente no campo fonte.
                 Em SUMMARY_ONLY, patterns deve ser vazio
                 e limitations deve declarar insuficiencia para evolucao ou tendencia longitudinal.
                 """;

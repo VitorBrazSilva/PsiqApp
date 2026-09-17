@@ -71,7 +71,11 @@ public class ProcessarGeracaoAnaliseCasoDeUso {
         } catch (FalhaProviderException e) {
             return registrarFalha(reservada, inicio, e.codigo(), e.transitoria(), e.retryAfterMs());
         } catch (ValidacaoException e) {
-            return registrarFalha(reservada, inicio, codigoFalhaValidacao(e), false, null);
+            String codigo = codigoFalhaValidacao(e);
+            // A resposta estruturada do provedor pode falhar apenas por uma citação
+            // não literal. Nesse caso, uma nova chamada pode produzir uma resposta válida.
+            boolean transitoria = "INVALID_RESPONSE_QUOTE".equals(codigo);
+            return registrarFalha(reservada, inicio, codigo, transitoria, null);
         } catch (IllegalArgumentException e) {
             return registrarFalha(reservada, inicio, "INVALID_RESPONSE_ILLEGAL_ARGUMENT", false, null);
         }
