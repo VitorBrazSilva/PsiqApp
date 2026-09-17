@@ -21,7 +21,7 @@ export function PaginaAgenda() {
 
   useEffect(() => {
     const controle = new AbortController()
-    servicoPacientes.buscar('', controle.signal)
+    servicoPacientes.buscar('', controle.signal, 100)
       .then(pagina => setPacientes(Array.isArray(pagina.items) ? pagina.items : []))
       .catch(() => setPacientes([]))
     return () => controle.abort()

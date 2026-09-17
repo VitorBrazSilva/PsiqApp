@@ -33,7 +33,7 @@ describe('PaginaAgenda', () => {
   it('cria consulta retroativa ou futura consumindo API real de agenda', async () => {
     fetchMock.mockImplementation(async (url, opcoes) => {
       if (url === '/api/v1/appointments?page=0&size=50') return Response.json(paginaVazia)
-      if (url === '/api/v1/patients?page=0&size=25') return Response.json({ ...paginaVazia, items: [paciente] })
+      if (url === '/api/v1/patients?page=0&size=100') return Response.json({ ...paginaVazia, items: [paciente] })
       if (opcoes?.method === 'POST' && url === `/api/v1/patients/${paciente.id}/appointments`) {
         return Response.json(consulta, { status: 201 })
       }
@@ -57,7 +57,7 @@ describe('PaginaAgenda', () => {
   it('atualiza status final e bloqueia novas transicoes na interface', async () => {
     fetchMock.mockImplementation(async (url, opcoes) => {
       if (url === '/api/v1/appointments?page=0&size=50') return Response.json({ ...paginaVazia, items: [consulta] })
-      if (url === '/api/v1/patients?page=0&size=25') return Response.json({ ...paginaVazia, items: [paciente] })
+      if (url === '/api/v1/patients?page=0&size=100') return Response.json({ ...paginaVazia, items: [paciente] })
       if (opcoes?.method === 'POST' && url === `/api/v1/appointments/${consulta.id}/status`) {
         return Response.json({ ...consulta, status: 'REALIZADA', statusAlteradoEm: '2026-05-01T16:00:00Z' })
       }
@@ -76,7 +76,7 @@ describe('PaginaAgenda', () => {
   it('mantem identificador do paciente quando o nome nao veio na pagina carregada', async () => {
     fetchMock.mockImplementation(async (url) => {
       if (url === '/api/v1/appointments?page=0&size=50') return Response.json({ ...paginaVazia, items: [consulta] })
-      if (url === '/api/v1/patients?page=0&size=25') return Response.json(paginaVazia)
+      if (url === '/api/v1/patients?page=0&size=100') return Response.json(paginaVazia)
       return Response.json(paginaVazia)
     })
     render(<MemoryRouter><PaginaAgenda /></MemoryRouter>)

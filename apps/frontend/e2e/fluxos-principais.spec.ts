@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { abrirProntuario, criarPaciente, criarParecer, ficticio } from './fixtures'
+import { aguardarGeracaoConcluida, abrirProntuario, criarPaciente, criarParecer, ficticio } from './fixtures'
 
 test('cadastra, busca, abre paciente e preserva aviso de dados ficticios', async ({ page }) => {
   await page.goto('/pacientes')
@@ -15,15 +15,29 @@ test('cadastra, busca, abre paciente e preserva aviso de dados ficticios', async
   await expect(page.getByText(ficticio.nome)).toBeVisible()
 })
 
+test('cria consulta na agenda e exibe paciente associado', async ({ page, request }) => {
+  const paciente = await criarPaciente(request)
+  await page.goto('/agenda')
+  const seletorPaciente = page.getByLabel('Paciente')
+  await expect(seletorPaciente.locator('option', { hasText: paciente.nome })).toBeAttached()
+  await seletorPaciente.selectOption(paciente.id)
+  await page.getByLabel('Data e hora').fill('2026-09-20T10:00')
+  await page.getByRole('button', { name: 'Criar consulta' }).click()
+  await expect(page.getByText(`Paciente: ${paciente.nome}`)).toBeVisible()
+  await expect(page.getByText('Status: Agendada').first()).toBeVisible()
+})
+
 test('exibe parecer, complemento e evidencia do mesmo prontuario', async ({ page, request }) => {
   const paciente = await criarPaciente(request)
   const parecer = await criarParecer(request, paciente.id)
+  await aguardarGeracaoConcluida(request, paciente.id)
   await abrirProntuario(page, paciente.id)
-  await expect(page.getByText(ficticio.texto)).toBeVisible()
+  await expect(page.getByText(ficticio.texto, { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Complementar' }).click()
   await page.getByLabel('Texto do complemento').fill(ficticio.complemento)
   await page.getByRole('button', { name: 'Salvar complemento' }).click()
   await expect(page.getByText(ficticio.complemento)).toBeVisible()
+  await aguardarGeracaoConcluida(request, paciente.id)
   await page.getByRole('button', { name: /Abrir fonte/ }).first().click()
   await expect(page.getByLabel('Fonte da evidência')).toContainText(ficticio.texto)
   expect(parecer.registro.pacienteId).toBe(paciente.id)

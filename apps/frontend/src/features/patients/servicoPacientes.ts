@@ -31,8 +31,8 @@ export interface CriarPaciente {
 }
 
 export const servicoPacientes = {
-  buscar(q: string, signal?: AbortSignal) {
-    const params = new URLSearchParams({ page: '0', size: '25' })
+  buscar(q: string, signal?: AbortSignal, size = 25) {
+    const params = new URLSearchParams({ page: '0', size: String(size) })
     if (q.trim()) params.set('q', q.trim())
     return api.requisitar<Pagina<Paciente>>(`/patients?${params}`, { signal })
   },

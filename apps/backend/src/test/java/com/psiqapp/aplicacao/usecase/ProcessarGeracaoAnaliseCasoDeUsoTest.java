@@ -56,7 +56,7 @@ class ProcessarGeracaoAnaliseCasoDeUsoTest {
 
         assertThat(resultado).isEqualTo(ProcessarGeracaoAnaliseCasoDeUso.Resultado.FALHA_TERMINAL);
         assertThat(fixture.geracoes.estado).isEqualTo(EstadoGeracaoAnalise.FAILED);
-        assertThat(fixture.geracoes.failureCode).isEqualTo("INVALID_RESPONSE");
+        assertThat(fixture.geracoes.failureCode).isEqualTo("INVALID_RESPONSE_ANALISE");
         assertThat(fixture.analises.salvas).isEmpty();
     }
 

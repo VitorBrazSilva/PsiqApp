@@ -7,8 +7,8 @@ NOT READY
 
 | Requirement | TechSpec | Task | Code/Test Evidence | Status |
 |---|---|---|---|---|
-| RF-001 a RF-020 | TS-002, TS-032, TS-036, TS-038 | 01-11 | Tasks 01-10 revisadas; QA integrado bloqueado | PENDENTE |
-| RNF-001 a RNF-008 | TS-002, TS-032, TS-036, TS-038 | 01-11 | Checks frontend/Compose aprovados; backend/E2E pendentes | PENDENTE |
+| RF-001 a RF-020 | TS-002, TS-032, TS-036, TS-038 | 01-11 | Backend, frontend e 5 cenarios E2E aprovados; falhas/retry e volume ainda pendentes | PENDENTE |
+| RNF-001 a RNF-008 | TS-002, TS-032, TS-036, TS-038 | 01-11 | Checks backend/frontend/Compose aprovados; logs operacionais e volume ainda pendentes | PENDENTE |
 
 ## Divergencias spec x implementacao
 
@@ -24,9 +24,9 @@ Nenhuma divergencia nova foi introduzida pela suite. A documentacao anterior foi
 
 ## Pendencias
 
-- Disponibilizar JDK 21.
-- Executar backend com PostgreSQL/Testcontainers e provider fake.
-- Reexecutar Maven, E2E, falhas de IA, isolamento, logs e volume.
+- Executar cenarios E2E de falha/timeout/retry de IA.
+- Completar isolamento integrado de consultas, contexto de IA, evidencias e analises.
+- Validar volume representativo de dados ficticios e fazer varredura operacional de logs.
 - Atualizar este gate somente apos evidencia aprovada.
 
 ## Veredito final

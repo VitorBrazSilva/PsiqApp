@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 public class ValidadorRespostaAnalise {
     public static final String LIMITACAO_SUMMARY_ONLY =
-            "Historico insuficiente para avaliar evolucao ou tendencia longitudinal.";
+            "Histórico insuficiente para avaliar evolução ou tendência longitudinal.";
     private final CatalogoSegurancaClinica catalogo;
 
     public ValidadorRespostaAnalise(CatalogoSegurancaClinica catalogo) {
