@@ -41,7 +41,8 @@ export function usePollingAnalise(pacienteId: string | null) {
   }, [carregar, pacienteId])
 
   useEffect(() => {
-    if (!pacienteId || !estado?.activeGeneration) return
+    const aguardandoAnalisePersistida = estado?.latestGeneration?.estado === 'COMPLETED' && !estado.currentAnalysis
+    if (!pacienteId || (!estado?.activeGeneration && !aguardandoAnalisePersistida)) return
     const controle = new AbortController()
     const aoVisibilizar = () => {
       if (!document.hidden) void carregar(controle.signal)
@@ -55,7 +56,7 @@ export function usePollingAnalise(pacienteId: string | null) {
       window.clearInterval(timer)
       controle.abort()
     }
-  }, [carregar, estado?.activeGeneration, pacienteId])
+  }, [carregar, estado?.activeGeneration, estado?.currentAnalysis, estado?.latestGeneration?.estado, pacienteId])
 
   return { estado, geracoes, carregando, erro, recarregar: carregar }
 }
