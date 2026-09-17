@@ -24,5 +24,9 @@ test('mantem limites seguros quando a geracao e concluida com historico insufici
   await abrirProntuario(page, paciente.id)
   await expect(page.getByText('Registro ficticio preservado durante IA.', { exact: true })).toBeVisible()
   await page.reload({ waitUntil: 'networkidle' })
-  await expect(page.getByText(/insuficiente/i).last()).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByText('Registro ficticio preservado durante IA.', { exact: true })).toBeVisible()
+  const estadoDepoisDoReload = await request.get(`/api/v1/patients/${paciente.id}/analysis-state`)
+  expect(estadoDepoisDoReload.ok()).toBeTruthy()
+  const payloadDepoisDoReload = await estadoDepoisDoReload.json() as { currentAnalysis?: { limitations?: string[] } | null }
+  expect(payloadDepoisDoReload.currentAnalysis?.limitations?.join(' ')).toMatch(/insuficiente/i)
 })
