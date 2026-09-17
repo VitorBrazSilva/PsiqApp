@@ -94,7 +94,7 @@ jobs:
         shell: bash
         run: |
           PSIQAPP_ANALYSIS_WORKER_ENABLED=true PSIQAPP_ANALYSIS_PROVIDER=fake \
-            docker compose --env-file .env.example -f infra/compose.yaml up -d --build postgres backend
+            docker compose --env-file .env.example -f infra/compose.yaml up -d --build --wait --wait-timeout 120 postgres backend
 
       - name: Run E2E checks
         shell: bash
