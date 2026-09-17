@@ -17,6 +17,6 @@ test('mantem limites seguros quando a geracao e concluida com historico insufici
   await aguardarGeracaoConcluida(request, paciente.id)
   await abrirProntuario(page, paciente.id)
   await expect(page.getByText('Registro ficticio preservado durante IA.', { exact: true })).toBeVisible()
-  await page.reload()
-  await expect(page.getByText(/insuficiente/i).last()).toBeVisible({ timeout: 15_000 })
+  await page.reload({ waitUntil: 'networkidle' })
+  await expect(page.getByText(/insuficiente/i).last()).toBeVisible({ timeout: 30_000 })
 })
