@@ -2,13 +2,13 @@
 
 ## Objetivo
 
-Atualizar rotas, parâmetros, DTOs, campos JSON, Problem Details e OpenAPI para o contrato público canônico em português.
+Atualizar rotas, parâmetros, DTOs, campos JSON, respostas de erro e OpenAPI para o contrato público canônico em português, sem alterar a semântica das operações.
 
 ## Rastreabilidade
 
-- PRD: RF-003, RF-006, RF-007, RNF-001, RNF-004, RNF-006
+- PRD: RF-003, RF-006, RF-007, RF-008, RNF-001, RNF-004, RNF-006
 - TechSpec: TS-005, TS-010, TS-011
-- Critérios de aceite: AC-RF003-01 a AC-RF003-04, AC-RF006-01, AC-RF007-03
+- Critérios de aceite: AC-RF003-01 a AC-RF003-04, AC-RF006-01, AC-RF006-04, AC-RF006-05, AC-RF007-01, AC-RF007-03, AC-RF008-02
 
 ## Dependências
 
@@ -16,36 +16,50 @@ Tasks 2.0, 3.0 e 4.0.
 
 ## Escopo
 
-- Renomear endpoints e query parameters conforme TS-005.
-- Atualizar request/response DTOs, paginação, datas, headers e erros próprios.
-- Garantir que rotas antigas não sejam expostas.
-- Atualizar OpenAPI e contratos de integração internos.
+- Renomear endpoints e query params conforme TS-005, incluindo pacientes, consultas, registros clínicos, gerações e análises.
+- Manter `/health/readiness` como exceção técnica operacional documentada.
+- Atualizar classes de Controller, Request/Response DTOs, mappers e nomes de campos para o contrato final.
+- Atualizar paginação (`itens`, `pagina`, `tamanho`, `total`), datas UTC, CPF mascarado, status HTTP e headers técnicos.
+- Atualizar `Problem Details`, preservando campos reservados do RFC 9457 e traduzindo campos próprios como `codigo`, `errosDeCampo` e `idRequisicao`.
+- Atualizar OpenAPI e testes de contrato para o estado final.
+- Remover aliases, redirects e compatibilidade dupla; rotas antigas devem deixar de ser expostas.
 
 ## Fora do escopo da task
 
-Manter aliases, redirects ou compatibilidade retroativa com endpoints antigos.
+- Alterar regras de negócio, validações, transações, idempotência ou comportamento clínico.
+- Alterar o cliente HTTP ou componentes frontend; isso pertence à Task 6.0.
+- Traduzir headers técnicos `Idempotency-Key`, `X-Request-Id` e `Accept`.
+- Expor mensagens brutas do provider, SQL, dados clínicos ou valores rejeitados.
 
 ## Subtarefas
 
-- [ ] 5.1 Atualizar controllers, DTOs e mappers HTTP.
-- [ ] 5.2 Atualizar Problem Details e OpenAPI.
-- [ ] 5.3 Atualizar testes de contrato e rotas inexistentes.
+- [ ] 5.1 Atualizar Controllers, rotas e query params.
+- [ ] 5.2 Atualizar Request/Response DTOs e mappers HTTP.
+- [ ] 5.3 Atualizar Problem Details e tratamento seguro de erros.
+- [ ] 5.4 Atualizar OpenAPI e contratos internos consumidos pelo frontend.
+- [ ] 5.5 Confirmar ausência de rotas e campos antigos nos consumidores ativos.
 
 ## Critérios de sucesso
 
-Os fluxos mantêm semântica, status, validações e idempotência usando exclusivamente o contrato final.
+- Todas as rotas e campos afetados usam a nomenclatura final portuguesa.
+- As operações mantêm status, validações, paginação, datas, idempotência e semântica anteriores.
+- Rotas antigas retornam 404 e não aparecem no OpenAPI ativo.
+- Contratos de erro permanecem interoperáveis, seguros e sem exposição de dados sensíveis.
+- O contrato final está pronto para consumo direto pelo frontend, sem adaptador de compatibilidade.
 
 ## Testes obrigatórios
 
-- [ ] Testes de contrato HTTP.
-- [ ] Testes de erro, paginação, datas, headers e Problem Details.
-- [ ] Verificação de 404 para rotas antigas.
-- [ ] Testes de isolamento e idempotência.
+- [ ] Testes de contrato HTTP para rotas, métodos, status 201/202/200 e campos finais.
+- [ ] Testes de paginação, datas UTC, CPF mascarado e headers de correlação/idempotência.
+- [ ] Testes de Problem Details, validação, recurso ausente, conflito e erro interno.
+- [ ] Testes confirmando 404 para rotas antigas e ausência delas no OpenAPI.
+- [ ] Testes de isolamento entre pacientes e idempotência das criações protegidas.
+- [ ] `./mvnw --batch-mode --no-transfer-progress verify`.
 
 ## Skills aplicáveis
 
-Nenhuma skill especializada.
+Nenhuma skill especializada. Aplicar as Rules de privacidade, segurança clínica, invariantes e qualidade.
 
 ## Arquivos/módulos prováveis
 
-Controllers, DTOs, mappers, handlers de erro, OpenAPI e testes de API backend.
+`apps/backend/src/main/java/com/psiqapp/adapter/in/web/`, mappers HTTP, handler de erros, OpenAPI e testes de contrato/API.
