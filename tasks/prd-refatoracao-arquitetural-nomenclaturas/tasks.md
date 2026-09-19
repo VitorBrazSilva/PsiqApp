@@ -1,0 +1,10 @@
+# Tasks — Refatoração arquitetural e padronização de nomenclaturas
+
+- [ ] 1.0 Inventário e matriz de nomenclatura — RF-001, RF-002, RF-003, RF-004, RF-007; TS-001, TS-011
+- [ ] 2.0 Fronteiras e nomenclatura do backend — RF-001, RF-002, RF-005, RF-007; TS-002, TS-003, TS-008
+- [ ] 3.0 Persistência e migration Flyway V004 — RF-004, RF-006; RNF-002, RNF-004; TS-006, TS-009
+- [ ] 4.0 Domínio, enums e worker de análise — RF-001, RF-003, RF-006; TS-007, TS-009, TS-010
+- [ ] 5.0 API HTTP e contratos de erro — RF-003, RF-006, RF-007; TS-005, TS-010, TS-011
+- [ ] 6.0 Frontend e consumidores internos — RF-001, RF-003, RF-005, RF-007; TS-004, TS-005, TS-011
+- [ ] 7.0 Documentação, configuração e CI — RF-007, RF-008; RNF-004, RNF-005; TS-012
+- [ ] 8.0 Validação integrada e rastreabilidade final — RF-006, RF-007, RF-008; RNF-001 a RNF-006; TS-009 a TS-012
