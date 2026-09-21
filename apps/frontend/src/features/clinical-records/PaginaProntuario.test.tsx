@@ -11,13 +11,13 @@ const paginaVazia = { items: [], page: 0, size: 25, total: 0 }
 const registroOriginal = { id: '33333333-3333-4333-8333-333333333333', pacienteId: pacienteA.id, tipo: 'ORIGINAL', parecerOriginalId: null, consultaId: null, dataHoraClinica: '2026-06-01T15:00:00Z', criadoEm: '2026-06-01T15:01:00Z', texto: 'Paciente fictício relata melhora do sono.', humor: 'estável', medicamentos: 'medicação fictícia mantida', revisao: 1 }
 const novoParecer = { ...registroOriginal, id: '34343434-3434-4434-8434-343434343434', texto: 'Novo parecer fictício.', revisao: 3 }
 const complemento = { ...registroOriginal, id: '44444444-4444-4444-8444-444444444444', tipo: 'COMPLEMENTO', parecerOriginalId: registroOriginal.id, dataHoraClinica: '2026-06-02T15:00:00Z', criadoEm: '2026-06-02T15:01:00Z', texto: 'Complemento fictício informa contexto adicional.', revisao: 2 }
-const geracao = { id: '55555555-5555-4555-8555-555555555555', pacienteId: pacienteA.id, estado: 'QUEUED', revisaoSnapshot: 1, sequenciaRequisicao: 1, solicitadaEm: '2026-06-01T15:02:00Z', totalRegistros: 1, totalOriginais: 1, totalComplementos: 0, ultimoRegistroClinicoId: registroOriginal.id, modo: 'SUMMARY_ONLY' }
+const geracao = { id: '55555555-5555-4555-8555-555555555555', pacienteId: pacienteA.id, estado: 'ENFILEIRADA', revisaoSnapshot: 1, sequenciaRequisicao: 1, solicitadaEm: '2026-06-01T15:02:00Z', totalRegistros: 1, totalOriginais: 1, totalComplementos: 0, ultimoRegistroClinicoId: registroOriginal.id, modo: 'RESUMO' }
 const analiseSummary = {
-  id: '66666666-6666-4666-8666-666666666666', geracaoId: geracao.id, pacienteId: pacienteA.id, geradaEm: '2026-06-01T15:03:00Z', modo: 'SUMMARY_ONLY',
-  timeline: [{ text: 'Resumo validado sem tendência.', nature: 'REPORTED', evidence: [{ recordAlias: 'R1', registroId: registroOriginal.id, field: 'text', quote: 'melhora do sono' }] }],
-  patterns: [], attentionPoints: [], limitations: ['Histórico insuficiente para tendência longitudinal.'],
+  id: '66666666-6666-4666-8666-666666666666', geracaoId: geracao.id, pacienteId: pacienteA.id, geradaEm: '2026-06-01T15:03:00Z', modo: 'RESUMO',
+  linhaDoTempo: [{ texto: 'Resumo validado sem tendência.', natureza: 'RELATO', evidencias: [{ apelidoRegistro: 'R1', registroId: registroOriginal.id, campo: 'TEXTO', citacao: 'melhora do sono' }] }],
+  padroes: [], pontosDeAtencao: [], limitacoes: ['Histórico insuficiente para tendência longitudinal.'],
 }
-const analiseLongitudinal = { ...analiseSummary, modo: 'LONGITUDINAL', patterns: [{ text: 'Padrão observado com evidência fictícia.', nature: 'INTERPRETATION', evidence: [{ recordAlias: 'R1', registroId: registroOriginal.id, field: 'mood', quote: 'estável' }] }] }
+const analiseLongitudinal = { ...analiseSummary, modo: 'LONGITUDINAL', padroes: [{ texto: 'Padrão observado com evidência fictícia.', natureza: 'INTERPRETACAO', evidencias: [{ apelidoRegistro: 'R1', registroId: registroOriginal.id, campo: 'HUMOR', citacao: 'estável' }] }] }
 
 function json(body: unknown, init?: ResponseInit) {
   return Response.json(body, init)
@@ -40,9 +40,9 @@ beforeEach(() => {
     if (url === `/api/v1/appointments?page=0&size=50&patientId=${pacienteB.id}`) return json(paginaVazia)
     if (url === `/api/v1/patients/${pacienteA.id}/clinical-records?page=0&size=100`) return json({ ...paginaVazia, items: [registroOriginal], total: 1 })
     if (url === `/api/v1/patients/${pacienteB.id}/clinical-records?page=0&size=100`) return json(paginaVazia)
-    if (url === `/api/v1/patients/${pacienteA.id}/analysis-state`) return json({ currentAnalysis: analiseSummary, latestGeneration: { ...geracao, estado: 'COMPLETED' }, activeGeneration: null, canRegenerate: true, reason: null })
+    if (url === `/api/v1/patients/${pacienteA.id}/analysis-state`) return json({ currentAnalysis: analiseSummary, latestGeneration: { ...geracao, estado: 'CONCLUIDA' }, activeGeneration: null, canRegenerate: true, reason: null })
     if (url === `/api/v1/patients/${pacienteB.id}/analysis-state`) return json({ currentAnalysis: null, latestGeneration: null, activeGeneration: null, canRegenerate: false, reason: 'Sem parecer original.' })
-    if (url === `/api/v1/patients/${pacienteA.id}/analysis-generations?page=0&size=25`) return json({ ...paginaVazia, items: [{ ...geracao, estado: 'COMPLETED' }], total: 1 })
+    if (url === `/api/v1/patients/${pacienteA.id}/analysis-generations?page=0&size=25`) return json({ ...paginaVazia, items: [{ ...geracao, estado: 'CONCLUIDA' }], total: 1 })
     if (url === `/api/v1/patients/${pacienteB.id}/analysis-generations?page=0&size=25`) return json(paginaVazia)
     if (url === `/api/v1/patients/${pacienteA.id}/clinical-records/${registroOriginal.id}`) return json(registroOriginal)
     if (opcoes?.method === 'POST' && url === `/api/v1/patients/${pacienteB.id}/appointments`) return json({ id: '77777777-7777-4777-8777-777777777777', pacienteId: pacienteB.id, agendadaPara: '2026-06-01T15:00:00Z', status: 'AGENDADA', observacoes: null, criadaEm: '2026-01-01T12:00:00Z', statusAlteradoEm: null }, { status: 201 })
@@ -103,8 +103,8 @@ describe('PaginaProntuario', () => {
       if (url === `/api/v1/patients/${pacienteA.id}`) return json(pacienteA)
       if (url === `/api/v1/appointments?page=0&size=50&patientId=${pacienteA.id}`) return json(paginaVazia)
       if (url === `/api/v1/patients/${pacienteA.id}/clinical-records?page=0&size=100`) return json({ ...paginaVazia, items: [registroOriginal, complemento], total: 2 })
-      if (url === `/api/v1/patients/${pacienteA.id}/analysis-state`) return json({ currentAnalysis: analiseLongitudinal, latestGeneration: { ...geracao, estado: 'COMPLETED', modo: 'LONGITUDINAL', totalOriginais: 2 }, activeGeneration: null, canRegenerate: true, reason: null })
-      if (url === `/api/v1/patients/${pacienteA.id}/analysis-generations?page=0&size=25`) return json({ ...paginaVazia, items: [{ ...geracao, estado: 'COMPLETED' }], total: 1 })
+      if (url === `/api/v1/patients/${pacienteA.id}/analysis-state`) return json({ currentAnalysis: analiseLongitudinal, latestGeneration: { ...geracao, estado: 'CONCLUIDA', modo: 'LONGITUDINAL', totalOriginais: 2 }, activeGeneration: null, canRegenerate: true, reason: null })
+      if (url === `/api/v1/patients/${pacienteA.id}/analysis-generations?page=0&size=25`) return json({ ...paginaVazia, items: [{ ...geracao, estado: 'CONCLUIDA' }], total: 1 })
       return json(paginaVazia)
     })
     renderProntuario()
@@ -118,8 +118,8 @@ describe('PaginaProntuario', () => {
       if (url === `/api/v1/patients/${pacienteA.id}`) return json(pacienteA)
       if (url === `/api/v1/appointments?page=0&size=50&patientId=${pacienteA.id}`) return json(paginaVazia)
       if (url === `/api/v1/patients/${pacienteA.id}/clinical-records?page=0&size=100`) return json({ ...paginaVazia, items: [registroOriginal], total: 1 })
-      if (url === `/api/v1/patients/${pacienteA.id}/analysis-state`) return json({ currentAnalysis: analiseSummary, latestGeneration: { ...geracao, estado: 'FAILED' }, activeGeneration: null, canRegenerate: true, reason: null })
-      if (url === `/api/v1/patients/${pacienteA.id}/analysis-generations?page=0&size=25`) return json({ ...paginaVazia, items: [{ ...geracao, estado: 'FAILED' }], total: 1 })
+      if (url === `/api/v1/patients/${pacienteA.id}/analysis-state`) return json({ currentAnalysis: analiseSummary, latestGeneration: { ...geracao, estado: 'FALHA' }, activeGeneration: null, canRegenerate: true, reason: null })
+      if (url === `/api/v1/patients/${pacienteA.id}/analysis-generations?page=0&size=25`) return json({ ...paginaVazia, items: [{ ...geracao, estado: 'FALHA' }], total: 1 })
       return json(paginaVazia)
     })
     renderProntuario()
