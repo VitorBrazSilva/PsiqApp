@@ -122,14 +122,25 @@ class AdapterAnaliseClinicaJdbc implements RepositoryAnaliseClinicaPort {
     private String jsonb(AnaliseClinica analise) {
         try {
             var payload = Map.of(
-                    "linhaDoTempo", analise.timeline(),
-                    "padroes", analise.patterns(),
-                    "pontosDeAtencao", analise.attentionPoints(),
+                    "linhaDoTempo", itens(analise.timeline()),
+                    "padroes", itens(analise.patterns()),
+                    "pontosDeAtencao", itens(analise.attentionPoints()),
                     "limitacoes", analise.limitations());
             return json.writeValueAsString(payload);
         } catch (Exception e) {
             throw new IllegalStateException("Falha ao serializar analise validada.", e);
         }
+    }
+
+    private List<Map<String, Object>> itens(List<ItemAnaliseClinica> itens) {
+        return itens.stream().map(item -> Map.of(
+                "texto", item.text(),
+                "natureza", item.nature().name(),
+                "evidencias", item.evidence().stream().map(e -> Map.of(
+                        "apelidoRegistro", e.recordAlias(),
+                        "registroId", e.registroId().toString(),
+                        "campo", e.field().name(),
+                        "citacao", e.quote())).toList())).toList();
     }
 
     private AnaliseClinica lerAnalise(UUID id, UUID geracaoId, UUID pacienteId, Instant geradaEm, ModoAnalise modo,

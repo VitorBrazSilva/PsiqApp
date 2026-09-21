@@ -19,7 +19,7 @@ class FakeAnaliseClinicaAdapter implements ProvedorAnaliseClinicaPort {
                 "Resumo baseado em registro clinico ficticio do snapshot.",
                 NaturezaObservacao.REPORTED,
                 List.of(new ValidadorResponseAnalise.EvidenciaResponse(primeiro.alias(), "text", primeiro.texto())));
-        var limitations = solicitacao.modo().name().equals("SUMMARY_ONLY")
+        var limitations = solicitacao.modo().name().equals("RESUMO")
                 ? List.of(ValidadorResponseAnalise.LIMITACAO_SUMMARY_ONLY)
                 : List.of("Analise limitada aos registros clinicos ficticios informados.");
         return new ResponseProvider(new ValidadorResponseAnalise.Response(
