@@ -3,7 +3,7 @@ package com.psiqapp;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.psiqapp.aplicacao.usecase.ProcessarGeracaoAnaliseCasoDeUso;
+import com.psiqapp.application.usecase.ProcessarGeracaoAnaliseUseCase;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Map;
@@ -34,7 +34,7 @@ class AnalysisWorkerIT {
     @Autowired TestRestTemplate http;
     @Autowired Flyway flyway;
     @Autowired JdbcTemplate jdbc;
-    @Autowired ProcessarGeracaoAnaliseCasoDeUso processador;
+    @Autowired ProcessarGeracaoAnaliseUseCase processador;
 
     @BeforeEach
     void limparBanco() {
@@ -50,7 +50,7 @@ class AnalysisWorkerIT {
         UUID pacienteId = criarPaciente("Alice Worker", "529.982.247-25");
         UUID geracaoId = criarParecer(pacienteId, "Registro clinico ficticio para worker.");
 
-        assertThat(processador.executarUma()).isEqualTo(ProcessarGeracaoAnaliseCasoDeUso.Resultado.PROCESSADA);
+        assertThat(processador.executarUma()).isEqualTo(ProcessarGeracaoAnaliseUseCase.Resultado.PROCESSADA);
 
         assertThat(jdbc.queryForObject("select state from analysis_generation where id = ?", String.class, geracaoId))
                 .isEqualTo("COMPLETED");
@@ -72,7 +72,7 @@ class AnalysisWorkerIT {
                  where id = ?
                 """, UUID.randomUUID(), java.sql.Timestamp.from(Instant.now().plusSeconds(60)), geracaoId);
 
-        assertThat(processador.executarUma()).isEqualTo(ProcessarGeracaoAnaliseCasoDeUso.Resultado.NENHUMA_GERACAO);
+        assertThat(processador.executarUma()).isEqualTo(ProcessarGeracaoAnaliseUseCase.Resultado.NENHUMA_GERACAO);
         assertThat(jdbc.queryForObject("select count(*) from clinical_analysis", Long.class)).isZero();
     }
 
@@ -86,7 +86,7 @@ class AnalysisWorkerIT {
                  where id = ?
                 """, UUID.randomUUID(), java.sql.Timestamp.from(Instant.now().minusSeconds(60)), geracaoId);
 
-        assertThat(processador.executarUma()).isEqualTo(ProcessarGeracaoAnaliseCasoDeUso.Resultado.PROCESSADA);
+        assertThat(processador.executarUma()).isEqualTo(ProcessarGeracaoAnaliseUseCase.Resultado.PROCESSADA);
         assertThat(jdbc.queryForObject("select attempt_count from analysis_generation where id = ?",
                 Integer.class, geracaoId)).isEqualTo(2);
         assertThat(jdbc.queryForObject("select state from analysis_generation where id = ?", String.class, geracaoId))

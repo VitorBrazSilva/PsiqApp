@@ -133,8 +133,8 @@ class BackendApiContractIT {
         assertThat(paths.has("/api/v1/patients/{pacienteId}/analysis-state")).isTrue();
         assertThat(paths.has("/api/v1/patients/{pacienteId}/analyses/{analiseId}")).isTrue();
         String openapi = resposta.getBody().toString();
-        assertThat(openapi).contains("Idempotency-Key", "PacienteResposta", "ConsultaResposta",
-                "RegistroClinicoResposta", "EstadoAnaliseResposta", "PaginaResposta");
+        assertThat(openapi).contains("Idempotency-Key", "PacienteResponse", "ConsultaResponse",
+                "RegistroClinicoResponse", "EstadoAnaliseResponse", "PaginaResponse");
         assertThat(openapi).doesNotContain("EntidadePacienteJpa")
                 .doesNotContain("EntidadeConsultaJpa")
                 .doesNotContain("EntidadeRegistroClinicoJpa")
