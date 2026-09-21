@@ -32,11 +32,11 @@ Nenhuma. Esta é a primeira task da feature.
 
 ## Subtarefas
 
-- [ ] 1.1 Levantar referências ativas e históricas em backend, frontend, infraestrutura, documentação, testes e migrations.
-- [ ] 1.2 Consolidar a matriz completa de nomenclatura e responsabilidades.
-- [ ] 1.3 Fechar o mapeamento JSONB e os valores de enums para a migration e o código.
-- [ ] 1.4 Definir o escopo, a allowlist e os falsos positivos esperados do scan.
-- [ ] 1.5 Validar a cobertura da matriz contra a TechSpec e o PRD.
+- [x] 1.1 Levantar referências ativas e históricas em backend, frontend, infraestrutura, documentação, testes e migrations.
+- [x] 1.2 Consolidar a matriz completa de nomenclatura e responsabilidades.
+- [x] 1.3 Fechar o mapeamento JSONB e os valores de enums para a migration e o código.
+- [x] 1.4 Definir o escopo, a allowlist e os falsos positivos esperados do scan.
+- [x] 1.5 Validar a cobertura da matriz contra a TechSpec e o PRD.
 
 ## Critérios de sucesso
 
