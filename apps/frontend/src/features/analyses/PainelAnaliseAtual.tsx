@@ -19,7 +19,7 @@ function SecaoAnalise({ titulo, vazio, itens, aoAbrirFonte }: { titulo: string, 
           {itens.map((item, indice) => (
             <li key={`${titulo}-${indice}`}>
               <p>{item.texto}</p>
-              <span className="etiqueta">{item.nature === 'REPORTED' ? 'Relato registrado' : 'Interpretação apoiada em evidência'}</span>
+              <span className="etiqueta">{item.natureza === 'RELATO' ? 'Relato registrado' : 'Interpretação apoiada em evidência'}</span>
               <ListaEvidencias evidencias={item.evidencias} aoAbrirFonte={aoAbrirFonte} />
             </li>
           ))}

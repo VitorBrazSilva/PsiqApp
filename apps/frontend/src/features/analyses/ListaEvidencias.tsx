@@ -1,6 +1,9 @@
 import type { EvidenciaAnalise } from './servicoAnalises'
 
 const campos = {
+  TEXTO: 'Texto',
+  HUMOR: 'Estado/humor',
+  MEDICAMENTOS: 'MedicaÃ§Ãµes',
   text: 'Texto',
   mood: 'Estado/humor',
   medications: 'Medicações',
