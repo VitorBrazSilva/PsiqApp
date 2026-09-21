@@ -42,7 +42,6 @@ export async function aguardarGeracaoConcluida(api: APIRequestContext, pacienteI
   await expect.poll(async () => {
     const response = await api.get(`/api/v1/patients/${pacienteId}/analysis-state`)
     const corpo = await response.text()
-    if (!response.ok()) console.log(`analysis-state ${response.status()}: ${corpo}`)
     expect(response.ok()).toBeTruthy()
     const estado = JSON.parse(corpo) as { latestGeneration?: { estado?: string } | null }
     return estado.latestGeneration?.estado ?? null
