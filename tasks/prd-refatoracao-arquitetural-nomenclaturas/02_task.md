@@ -33,11 +33,11 @@ Task 1.0.
 
 ## Subtarefas
 
-- [ ] 2.1 Renomear a estrutura de pacotes e os papéis arquiteturais do backend.
-- [ ] 2.2 Reorganizar portas de entrada/saída e validação/exceção conforme a matriz.
-- [ ] 2.3 Atualizar imports, configurações de composição e testes afetados.
-- [ ] 2.4 Atualizar e executar as regras ArchUnit das fronteiras finais.
-- [ ] 2.5 Reexecutar o scan da Task 1 e registrar referências antigas restantes.
+- [x] 2.1 Renomear a estrutura de pacotes e os papéis arquiteturais do backend.
+- [x] 2.2 Reorganizar portas de entrada/saída e validação/exceção conforme a matriz.
+- [x] 2.3 Atualizar imports, configurações de composição e testes afetados.
+- [x] 2.4 Atualizar e executar as regras ArchUnit das fronteiras finais.
+- [x] 2.5 Reexecutar o scan da Task 1 e registrar referências antigas restantes.
 
 ## Critérios de sucesso
 
@@ -49,11 +49,11 @@ Task 1.0.
 
 ## Testes obrigatórios
 
-- [ ] Testes unitários dos componentes renomeados.
-- [ ] ArchUnit para pacotes e dependências finais.
-- [ ] Compilação e `./mvnw --batch-mode --no-transfer-progress verify`.
-- [ ] Casos de erro e invariantes de append-only, isolamento e independência da IA preservados nos testes afetados.
-- [ ] Scan de referências antigas com a allowlist da Task 1.
+- [x] Testes unitários dos componentes renomeados.
+- [x] ArchUnit para pacotes e dependências finais.
+- [x] Compilação e `./mvnw --batch-mode --no-transfer-progress verify`.
+- [x] Casos de erro e invariantes de append-only, isolamento e independência da IA preservados nos testes afetados.
+- [x] Scan de referências antigas com a allowlist da Task 1.
 
 ## Skills aplicáveis
 

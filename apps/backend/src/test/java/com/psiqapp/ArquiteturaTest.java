@@ -9,22 +9,25 @@ import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 
 class ArquiteturaTest {
-    private static final ArchRule DOMINIO = noClasses().that().resideInAPackage("..dominio..")
+    private static final ArchRule DOMINIO = noClasses().that().resideInAPackage("..domain..")
             .should().dependOnClassesThat().resideInAnyPackage(
-                    "..adaptador..", "..aplicacao..", "..configuracao..", "org.springframework..",
+                    "..adapter..", "..application..", "..config..", "org.springframework..",
                     "jakarta.persistence..", "org.hibernate..", "org.postgresql..", "com.openai..")
             .allowEmptyShould(true);
 
     @Test
-    void camadasInternasNaoDependemDeFrameworksOuAdaptadores() {
+    void camadasInternasNaoDependemDeFrameworksOuAdapters() {
         var classes = new ClassFileImporter().withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
                 .importPackages("com.psiqapp");
         // O bootstrap ainda nao possui modelos ou casos de uso; a regra permanece ativa para as proximas tasks.
         DOMINIO.check(classes);
-        noClasses().that().resideInAPackage("..aplicacao..")
+        noClasses().that().resideInAPackage("..application..")
                 .should().dependOnClassesThat().resideInAnyPackage(
-                        "..adaptador..", "..configuracao..", "org.springframework..",
+                        "..adapter..", "..config..", "org.springframework..",
                         "jakarta.persistence..", "org.hibernate..", "org.postgresql..", "com.openai..")
+                .allowEmptyShould(true).check(classes);
+        noClasses().that().resideInAPackage("..domain..")
+                .should().dependOnClassesThat().resideInAnyPackage("..application..", "..adapter..", "..config..")
                 .allowEmptyShould(true).check(classes);
     }
 

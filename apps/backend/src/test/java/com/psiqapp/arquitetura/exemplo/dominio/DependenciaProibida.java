@@ -1,8 +1,8 @@
-package com.psiqapp.arquitetura.exemplo.dominio;
+package com.psiqapp.arquitetura.exemplo.domain;
 
-import com.psiqapp.arquitetura.exemplo.adaptador.AdaptadorDeExemplo;
+import com.psiqapp.arquitetura.exemplo.adapter.AdapterDeExemplo;
 
 /** Fixture negativa: comprova que o gate arquitetural detecta uma dependencia invertida. */
 public class DependenciaProibida {
-    private AdaptadorDeExemplo adaptador;
+    private AdapterDeExemplo adapter;
 }

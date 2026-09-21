@@ -67,7 +67,7 @@ class ClinicalRecordsIT {
         assertThat(body.path("registro").path("criadoEm").asText()).isNotBlank();
         assertThat(body.path("geracao").path("estado").asText()).isEqualTo("QUEUED");
         assertThat(body.path("geracao").path("revisaoSnapshot").asLong()).isEqualTo(1);
-        assertThat(body.path("geracao").path("sequenciaRequisicao").asLong()).isEqualTo(1);
+        assertThat(body.path("geracao").path("sequenciaRequest").asLong()).isEqualTo(1);
         assertThat(body.path("geracao").path("totalRegistros").asInt()).isEqualTo(1);
         assertThat(body.path("geracao").path("totalOriginais").asInt()).isEqualTo(1);
         assertThat(body.path("geracao").path("modo").asText()).isEqualTo("SUMMARY_ONLY");
