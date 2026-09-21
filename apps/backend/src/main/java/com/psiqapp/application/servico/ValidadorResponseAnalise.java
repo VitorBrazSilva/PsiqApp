@@ -60,9 +60,9 @@ public class ValidadorResponseAnalise {
                 }
                 CampoEvidencia campo = parseCampo(evidencia.field());
                 String fonte = switch (campo) {
-                    case TEXT -> registro.texto();
-                    case MOOD -> registro.humor();
-                    case MEDICATIONS -> registro.medicamentos();
+                    case TEXTO -> registro.texto();
+                    case HUMOR -> registro.humor();
+                    case MEDICAMENTOS -> registro.medicamentos();
                 };
                 if (fonte == null || evidencia.quote() == null
                         || !normalizarWhitespace(fonte).contains(normalizarWhitespace(evidencia.quote()))) {
@@ -77,9 +77,9 @@ public class ValidadorResponseAnalise {
 
     private CampoEvidencia parseCampo(String campo) {
         return switch (campo == null ? "" : campo) {
-            case "text" -> CampoEvidencia.TEXT;
-            case "mood" -> CampoEvidencia.MOOD;
-            case "medications" -> CampoEvidencia.MEDICATIONS;
+            case "text" -> CampoEvidencia.TEXTO;
+            case "mood" -> CampoEvidencia.HUMOR;
+            case "medications" -> CampoEvidencia.MEDICAMENTOS;
             default -> throw new ValidacaoException(List.of(new ErroDeValidacao("field", "Campo de evidencia invalido.")));
         };
     }

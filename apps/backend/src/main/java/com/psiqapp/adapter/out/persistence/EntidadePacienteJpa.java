@@ -9,17 +9,17 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
-@Table(name = "patient")
+@Table(name = "paciente")
 class EntidadePacienteJpa {
     @Id UUID id;
-    @Column(name = "name", nullable = false) String nome;
-    @Column(name = "search_name", nullable = false) String nomeBusca;
+    @Column(name = "nome", nullable = false) String nome;
+    @Column(name = "nome_busca", nullable = false) String nomeBusca;
     @Column(nullable = false) String cpf;
-    @Column(name = "birth_date", nullable = false) LocalDate dataNascimento;
-    @Column(nullable = false) String phone;
+    @Column(name = "data_nascimento", nullable = false) LocalDate dataNascimento;
+    @Column(name = "telefone", nullable = false) String telefone;
     @Column(nullable = false) String email;
-    @Column(name = "initial_complaint") String queixaInicial;
-    @Column(name = "clinical_revision", nullable = false) long revisaoClinica;
-    @Column(name = "request_sequence", nullable = false) long sequenciaRequest;
-    @Column(name = "created_at", nullable = false) Instant criadoEm;
+    @Column(name = "queixa_inicial") String queixaInicial;
+    @Column(name = "revisao_clinica", nullable = false) long revisaoClinica;
+    @Column(name = "sequencia_requisicao", nullable = false) long sequenciaRequest;
+    @Column(name = "criado_em", nullable = false) Instant criadoEm;
 }

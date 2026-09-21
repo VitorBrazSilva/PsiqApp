@@ -23,9 +23,9 @@ public record AnaliseResponse(UUID id, UUID geracaoId, UUID pacienteId, Instant 
 
     private static String campo(CampoEvidencia campo) {
         return switch (campo) {
-            case TEXT -> "text";
-            case MOOD -> "mood";
-            case MEDICATIONS -> "medications";
+            case TEXTO -> "text";
+            case HUMOR -> "mood";
+            case MEDICAMENTOS -> "medications";
         };
     }
 

@@ -36,8 +36,8 @@ class BackendApiContractIT {
     void limparBanco() {
         flyway.migrate();
         jdbc.execute("""
-                truncate table analysis_evidence, clinical_analysis, analysis_attempt, analysis_generation,
-                clinical_record, idempotency_record, appointment, patient restart identity cascade
+                truncate table evidencia_analise, analise_clinica, tentativa_geracao_analise, geracao_analise,
+                registro_clinico, idempotencia, consulta, paciente restart identity cascade
                 """);
     }
 
@@ -60,7 +60,7 @@ class BackendApiContractIT {
                 .isEqualTo("2026-09-10T12:30:00Z");
         assertThat(parecer.getBody().path("registro").path("criadoEm").asText()).endsWith("Z");
         assertThat(parecer.getBody().path("registro").path("pacienteId").asText()).isEqualTo(pacienteId.toString());
-        assertThat(parecer.getBody().path("geracao").path("estado").asText()).isEqualTo("QUEUED");
+        assertThat(parecer.getBody().path("geracao").path("estado").asText()).isEqualTo("ENFILEIRADA");
 
         var paciente = http.getForEntity("/api/v1/patients/" + pacienteId, JsonNode.class);
         assertThat(paciente.getBody().path("dataNascimento").asText()).isEqualTo("1990-01-01");

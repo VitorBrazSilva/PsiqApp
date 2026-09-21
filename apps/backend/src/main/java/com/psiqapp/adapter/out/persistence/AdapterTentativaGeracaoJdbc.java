@@ -19,9 +19,9 @@ class AdapterTentativaGeracaoJdbc implements RepositoryTentativaGeracaoPort {
     @Override
     public TentativaGeracao salvar(TentativaGeracao tentativa) {
         jdbc.update("""
-                insert into analysis_attempt
-                (id, generation_id, attempt_number, started_at, finished_at, outcome, error_code,
-                 duration_ms, provider_request_id, input_tokens, output_tokens)
+                insert into tentativa_geracao_analise
+                (id, geracao_id, numero_tentativa, iniciada_em, finalizada_em, resultado, codigo_erro,
+                 duracao_ms, requisicao_provedor_id, tokens_entrada, tokens_saida)
                 values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, tentativa.id(), tentativa.geracaoId(), tentativa.numero(),
                 Timestamp.from(tentativa.iniciadaEm()),

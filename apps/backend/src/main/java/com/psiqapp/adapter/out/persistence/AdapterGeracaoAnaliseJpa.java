@@ -41,9 +41,9 @@ class AdapterGeracaoAnaliseJpa implements RepositoryGeracaoAnalisePort {
     @Override
     public Optional<GeracaoAnalise> buscarAtiva(UUID pacienteId) {
         return repositorio.findFirstByPacienteIdAndStateInOrderBySolicitadaEmDescIdDesc(pacienteId,
-                List.of(com.psiqapp.domain.modelo.EstadoGeracaoAnalise.QUEUED,
-                        com.psiqapp.domain.modelo.EstadoGeracaoAnalise.RUNNING,
-                        com.psiqapp.domain.modelo.EstadoGeracaoAnalise.RETRY_WAIT)).map(this::paraDominio);
+                List.of(com.psiqapp.domain.modelo.EstadoGeracaoAnalise.ENFILEIRADA,
+                        com.psiqapp.domain.modelo.EstadoGeracaoAnalise.EM_EXECUCAO,
+                        com.psiqapp.domain.modelo.EstadoGeracaoAnalise.AGUARDANDO_RETENTATIVA)).map(this::paraDominio);
     }
 
     @Override
@@ -58,23 +58,23 @@ class AdapterGeracaoAnaliseJpa implements RepositoryGeracaoAnalisePort {
         var linhas = jdbc.query("""
                 with candidata as (
                     select id
-                      from analysis_generation
-                     where state in ('QUEUED', 'RETRY_WAIT')
-                       and attempt_count < ?
-                       and (state = 'QUEUED' or next_attempt_at <= ?)
-                     order by requested_at asc, id asc
+                      from geracao_analise
+                     where estado in ('ENFILEIRADA', 'AGUARDANDO_RETENTATIVA')
+                       and contagem_tentativas < ?
+                       and (estado = 'ENFILEIRADA' or proxima_tentativa_em <= ?)
+                     order by solicitada_em asc, id asc
                      for update skip locked
                      limit 1
                 ), atualizada as (
-                    update analysis_generation ag
-                       set state = 'RUNNING',
-                           attempt_count = attempt_count + 1,
-                           lease_token = ?,
-                           lease_expires_at = ?,
-                           next_attempt_at = null
+                    update geracao_analise ag
+                       set estado = 'EM_EXECUCAO',
+                           contagem_tentativas = contagem_tentativas + 1,
+                           token_reserva = ?,
+                           reserva_expira_em = ?,
+                           proxima_tentativa_em = null
                       from candidata
                      where ag.id = candidata.id
-                     returning ag.*, ag.attempt_count as attempt_number
+                     returning ag.*, ag.contagem_tentativas as attempt_number
                 )
                 select * from atualizada
                 """, (rs, rowNum) -> new GeracaoReservada(lerGeracao(rs), leaseToken, leaseExpiraEm,
@@ -91,21 +91,21 @@ class AdapterGeracaoAnaliseJpa implements RepositoryGeracaoAnalisePort {
         var linhas = jdbc.query("""
                 with candidata as (
                     select id
-                      from analysis_generation
-                     where state = 'RUNNING'
-                       and lease_expires_at <= ?
-                       and attempt_count < ?
-                     order by requested_at asc, id asc
+                      from geracao_analise
+                     where estado = 'EM_EXECUCAO'
+                       and reserva_expira_em <= ?
+                       and contagem_tentativas < ?
+                     order by solicitada_em asc, id asc
                      for update skip locked
                      limit 1
                 ), atualizada as (
-                    update analysis_generation ag
-                       set attempt_count = attempt_count + 1,
-                           lease_token = ?,
-                           lease_expires_at = ?
+                    update geracao_analise ag
+                       set contagem_tentativas = contagem_tentativas + 1,
+                           token_reserva = ?,
+                           reserva_expira_em = ?
                       from candidata
                      where ag.id = candidata.id
-                     returning ag.*, ag.attempt_count as attempt_number
+                     returning ag.*, ag.contagem_tentativas as attempt_number
                 )
                 select * from atualizada
                 """, (rs, rowNum) -> new GeracaoReservada(lerGeracao(rs), leaseToken, leaseExpiraEm,
@@ -117,14 +117,14 @@ class AdapterGeracaoAnaliseJpa implements RepositoryGeracaoAnalisePort {
     @Override
     public boolean concluirComSucesso(UUID geracaoId, UUID leaseToken, Instant agora) {
         return jdbc.update("""
-                update analysis_generation
-                   set state = 'COMPLETED',
-                       completed_at = ?,
-                       failure_code = null
+                update geracao_analise
+                   set estado = 'CONCLUIDA',
+                       concluida_em = ?,
+                       codigo_falha = null
                  where id = ?
-                   and state = 'RUNNING'
-                   and lease_token = ?
-                   and lease_expires_at > ?
+                   and estado = 'EM_EXECUCAO'
+                   and token_reserva = ?
+                   and reserva_expira_em > ?
                 """, Timestamp.from(agora), geracaoId, leaseToken, Timestamp.from(agora)) == 1;
     }
 
@@ -132,26 +132,26 @@ class AdapterGeracaoAnaliseJpa implements RepositoryGeracaoAnalisePort {
     public boolean concluirComFalha(UUID geracaoId, UUID leaseToken, ResultadoFalha falha, Instant agora) {
         if (falha.terminal()) {
             return jdbc.update("""
-                    update analysis_generation
-                       set state = 'FAILED',
-                           completed_at = ?,
-                           failure_code = ?
+                    update geracao_analise
+                       set estado = 'FALHA',
+                           concluida_em = ?,
+                           codigo_falha = ?
                      where id = ?
-                       and state = 'RUNNING'
-                       and lease_token = ?
-                       and lease_expires_at > ?
+                       and estado = 'EM_EXECUCAO'
+                       and token_reserva = ?
+                       and reserva_expira_em > ?
                     """, Timestamp.from(agora), falha.codigoFalha(), geracaoId, leaseToken,
                     Timestamp.from(agora)) == 1;
         }
         return jdbc.update("""
-                update analysis_generation
-                   set state = 'RETRY_WAIT',
-                       next_attempt_at = ?,
-                       failure_code = ?
+                update geracao_analise
+                   set estado = 'AGUARDANDO_RETENTATIVA',
+                       proxima_tentativa_em = ?,
+                       codigo_falha = ?
                  where id = ?
-                   and state = 'RUNNING'
-                   and lease_token = ?
-                   and lease_expires_at > ?
+                   and estado = 'EM_EXECUCAO'
+                   and token_reserva = ?
+                   and reserva_expira_em > ?
                 """, Timestamp.from(falha.proximaTentativaEm()), falha.codigoFalha(), geracaoId, leaseToken,
                 Timestamp.from(agora)) == 1;
     }
@@ -183,12 +183,12 @@ class AdapterGeracaoAnaliseJpa implements RepositoryGeracaoAnalisePort {
     }
 
     private GeracaoAnalise lerGeracao(java.sql.ResultSet rs) throws java.sql.SQLException {
-        return new GeracaoAnalise(rs.getObject("id", UUID.class), rs.getObject("patient_id", UUID.class),
-                GatilhoGeracaoAnalise.valueOf(rs.getString("trigger")),
-                rs.getObject("trigger_record_id", UUID.class), rs.getLong("snapshot_revision"),
-                rs.getLong("request_sequence"), rs.getTimestamp("requested_at").toInstant(),
-                EstadoGeracaoAnalise.valueOf(rs.getString("state")), rs.getInt("total_records"),
-                rs.getInt("original_records"), rs.getInt("complement_records"),
-                rs.getObject("last_clinical_record_id", UUID.class), ModoAnalise.valueOf(rs.getString("mode")));
+        return new GeracaoAnalise(rs.getObject("id", UUID.class), rs.getObject("paciente_id", UUID.class),
+                GatilhoGeracaoAnalise.valueOf(rs.getString("gatilho")),
+                rs.getObject("registro_disparador_id", UUID.class), rs.getLong("revisao_snapshot"),
+                rs.getLong("sequencia_requisicao"), rs.getTimestamp("solicitada_em").toInstant(),
+                EstadoGeracaoAnalise.valueOf(rs.getString("estado")), rs.getInt("total_registros"),
+                rs.getInt("total_pareceres"), rs.getInt("total_complementos"),
+                rs.getObject("ultimo_registro_clinico_id", UUID.class), ModoAnalise.valueOf(rs.getString("modo")));
     }
 }

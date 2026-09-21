@@ -1,3 +1,3 @@
-package com.psiqapp.arquitetura.exemplo.adapter;
+package com.psiqapp.adapter.exemplo;
 
 public class AdapterDeExemplo {}

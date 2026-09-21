@@ -38,8 +38,8 @@ class ClinicalRecordsIT {
     void limparBanco() {
         flyway.migrate();
         jdbc.execute("""
-                truncate table analysis_evidence, clinical_analysis, analysis_attempt, analysis_generation,
-                clinical_record, idempotency_record, appointment, patient restart identity cascade
+                truncate table evidencia_analise, analise_clinica, tentativa_geracao_analise, geracao_analise,
+                registro_clinico, idempotencia, consulta, paciente restart identity cascade
                 """);
     }
 
@@ -61,16 +61,16 @@ class ClinicalRecordsIT {
         UUID registroId = UUID.fromString(body.path("registro").path("id").asText());
         UUID geracaoId = UUID.fromString(body.path("geracao").path("id").asText());
         assertThat(body.path("generationId").asText()).isEqualTo(geracaoId.toString());
-        assertThat(body.path("registro").path("tipo").asText()).isEqualTo("ORIGINAL");
+        assertThat(body.path("registro").path("tipo").asText()).isEqualTo("PARECER");
         assertThat(body.path("registro").path("consultaId").asText()).isEqualTo(consultaId.toString());
         assertThat(body.path("registro").path("dataHoraClinica").asText()).isEqualTo("2026-09-14T12:30:00Z");
         assertThat(body.path("registro").path("criadoEm").asText()).isNotBlank();
-        assertThat(body.path("geracao").path("estado").asText()).isEqualTo("QUEUED");
+        assertThat(body.path("geracao").path("estado").asText()).isEqualTo("ENFILEIRADA");
         assertThat(body.path("geracao").path("revisaoSnapshot").asLong()).isEqualTo(1);
         assertThat(body.path("geracao").path("sequenciaRequest").asLong()).isEqualTo(1);
         assertThat(body.path("geracao").path("totalRegistros").asInt()).isEqualTo(1);
         assertThat(body.path("geracao").path("totalOriginais").asInt()).isEqualTo(1);
-        assertThat(body.path("geracao").path("modo").asText()).isEqualTo("SUMMARY_ONLY");
+        assertThat(body.path("geracao").path("modo").asText()).isEqualTo("RESUMO");
 
         var repetido = criarParecer(pacienteId, chave, Map.of(
                 "texto", "Registro clinico ficticio inicial.",
@@ -81,8 +81,8 @@ class ClinicalRecordsIT {
         assertThat(repetido.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(repetido.getBody().path("registro").path("id").asText()).isEqualTo(registroId.toString());
         assertThat(repetido.getBody().path("geracao").path("id").asText()).isEqualTo(geracaoId.toString());
-        assertThat(jdbc.queryForObject("select count(*) from clinical_record", Long.class)).isEqualTo(1);
-        assertThat(jdbc.queryForObject("select count(*) from analysis_generation", Long.class)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from registro_clinico", Long.class)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from geracao_analise", Long.class)).isEqualTo(1);
     }
 
     @Test
@@ -100,7 +100,7 @@ class ClinicalRecordsIT {
                 "humor", "Humor complementar ficticio.",
                 "dataHoraClinica", "2026-09-09T08:00:00-03:00"));
         assertThat(complemento.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(complemento.getBody().path("registro").path("tipo").asText()).isEqualTo("COMPLEMENT");
+        assertThat(complemento.getBody().path("registro").path("tipo").asText()).isEqualTo("COMPLEMENTO");
         assertThat(complemento.getBody().path("registro").path("parecerOriginalId").asText()).isEqualTo(originalId.toString());
         assertThat(complemento.getBody().path("geracao").path("totalRegistros").asInt()).isEqualTo(3);
         assertThat(complemento.getBody().path("geracao").path("totalComplementos").asInt()).isEqualTo(1);
@@ -150,9 +150,9 @@ class ClinicalRecordsIT {
         UUID complementoA = UUID.fromString(criarComplemento(pacienteA, originalA, UUID.randomUUID(), Map.of(
                 "texto", "Complemento ficticio A.")).getBody().path("registro").path("id").asText());
 
-        assertThatThrownBy(() -> jdbc.update("update clinical_record set text = ? where id = ?",
+        assertThatThrownBy(() -> jdbc.update("update registro_clinico set texto = ? where id = ?",
                 "Alteracao proibida.", originalA)).isInstanceOf(DataAccessException.class);
-        assertThatThrownBy(() -> jdbc.update("delete from clinical_record where id = ?", originalA))
+        assertThatThrownBy(() -> jdbc.update("delete from registro_clinico where id = ?", originalA))
                 .isInstanceOf(DataAccessException.class);
 
         assertThatThrownBy(() -> inserirRegistroDireto(pacienteA, complementoA, null, "COMPLEMENT", 99))
@@ -171,13 +171,13 @@ class ClinicalRecordsIT {
                 "texto", "Registro ficticio retroativo.",
                 "dataHoraClinica", "2026-08-01T10:00:00-03:00")).getBody().path("geracao").path("id").asText());
 
-        assertThat(jdbc.queryForObject("select snapshot_revision from analysis_generation where id = ?",
+        assertThat(jdbc.queryForObject("select revisao_snapshot from geracao_analise where id = ?",
                 Long.class, primeiraGeracao)).isEqualTo(1L);
-        assertThat(jdbc.queryForObject("select total_records from analysis_generation where id = ?",
+        assertThat(jdbc.queryForObject("select total_registros from geracao_analise where id = ?",
                 Integer.class, primeiraGeracao)).isEqualTo(1);
-        assertThat(jdbc.queryForObject("select snapshot_revision from analysis_generation where id = ?",
+        assertThat(jdbc.queryForObject("select revisao_snapshot from geracao_analise where id = ?",
                 Long.class, segundaGeracao)).isEqualTo(2L);
-        assertThat(jdbc.queryForObject("select total_records from analysis_generation where id = ?",
+        assertThat(jdbc.queryForObject("select total_registros from geracao_analise where id = ?",
                 Integer.class, segundaGeracao)).isEqualTo(2);
     }
 
@@ -210,9 +210,9 @@ class ClinicalRecordsIT {
 
     private void inserirRegistroDireto(UUID pacienteId, UUID originalId, UUID consultaId, String tipo, long revisao) {
         jdbc.update("""
-                insert into clinical_record
-                (id, patient_id, type, original_id, appointment_id, clinical_datetime, created_at,
-                 text, mood, medications, revision)
+                insert into registro_clinico
+                (id, paciente_id, tipo, parecer_original_id, consulta_id, data_hora_clinica, criado_em,
+                 texto, humor, medicamentos, revision)
                 values (?, ?, ?, ?, ?, now(), now(), ?, null, null, ?)
                 """, UUID.randomUUID(), pacienteId, tipo, originalId, consultaId,
                 "Registro clinico ficticio direto.", revisao);

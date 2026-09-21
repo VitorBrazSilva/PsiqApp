@@ -8,23 +8,23 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "analysis_generation")
+@Table(name = "geracao_analise")
 class EntidadeGeracaoAnaliseJpa {
     @Id UUID id;
-    @Column(name = "patient_id", nullable = false) UUID pacienteId;
+    @Column(name = "paciente_id", nullable = false) UUID pacienteId;
     @Enumerated(EnumType.STRING)
-    @Column(name = "trigger", nullable = false) GatilhoGeracaoAnalise gatilho;
-    @Column(name = "trigger_record_id") UUID registroDisparadorId;
-    @Column(name = "snapshot_revision", nullable = false) long revisaoSnapshot;
-    @Column(name = "request_sequence", nullable = false) long sequenciaRequest;
-    @Column(name = "requested_at", nullable = false) Instant solicitadaEm;
+    @Column(name = "gatilho", nullable = false) GatilhoGeracaoAnalise gatilho;
+    @Column(name = "registro_disparador_id") UUID registroDisparadorId;
+    @Column(name = "revisao_snapshot", nullable = false) long revisaoSnapshot;
+    @Column(name = "sequencia_requisicao", nullable = false) long sequenciaRequest;
+    @Column(name = "solicitada_em", nullable = false) Instant solicitadaEm;
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false) EstadoGeracaoAnalise state;
-    @Column(name = "total_records", nullable = false) int totalRegistros;
-    @Column(name = "original_records", nullable = false) int totalOriginais;
-    @Column(name = "complement_records", nullable = false) int totalComplementos;
-    @Column(name = "last_clinical_record_id") UUID ultimoRegistroClinicoId;
-    @Column(name = "attempt_count", nullable = false) int tentativas;
+    @Column(name = "estado", nullable = false) EstadoGeracaoAnalise state;
+    @Column(name = "total_registros", nullable = false) int totalRegistros;
+    @Column(name = "total_pareceres", nullable = false) int totalOriginais;
+    @Column(name = "total_complementos", nullable = false) int totalComplementos;
+    @Column(name = "ultimo_registro_clinico_id") UUID ultimoRegistroClinicoId;
+    @Column(name = "contagem_tentativas", nullable = false) int tentativas;
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false) ModoAnalise mode;
+    @Column(name = "modo", nullable = false) ModoAnalise mode;
 }

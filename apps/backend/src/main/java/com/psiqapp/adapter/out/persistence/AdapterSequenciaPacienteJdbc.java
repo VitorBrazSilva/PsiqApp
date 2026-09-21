@@ -28,20 +28,20 @@ class AdapterSequenciaPacienteJdbc implements RepositorySequenciaPacientePort {
 
     private Optional<Sequencias> reservar(UUID pacienteId, boolean incrementarRevisao) {
         var atual = jdbc.query("""
-                select clinical_revision, request_sequence
-                  from patient
+                select revisao_clinica, sequencia_requisicao
+                  from paciente
                  where id = ?
                  for update
-                """, (rs, rowNum) -> new Sequencias(rs.getLong("clinical_revision") + 1,
-                rs.getLong("request_sequence") + 1), pacienteId);
+                """, (rs, rowNum) -> new Sequencias(rs.getLong("revisao_clinica") + 1,
+                rs.getLong("sequencia_requisicao") + 1), pacienteId);
         if (atual.isEmpty()) return Optional.empty();
         var sequencias = atual.get(0);
         long revisao = incrementarRevisao ? sequencias.revisaoClinica() : sequencias.revisaoClinica() - 1;
         sequencias = new Sequencias(revisao, sequencias.sequenciaRequest());
         jdbc.update("""
-                update patient
-                   set clinical_revision = ?,
-                       request_sequence = ?
+                update paciente
+                   set revisao_clinica = ?,
+                       sequencia_requisicao = ?
                  where id = ?
                 """, sequencias.revisaoClinica(), sequencias.sequenciaRequest(), pacienteId);
         return Optional.of(sequencias);

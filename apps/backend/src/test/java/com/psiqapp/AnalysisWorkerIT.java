@@ -40,8 +40,8 @@ class AnalysisWorkerIT {
     void limparBanco() {
         flyway.migrate();
         jdbc.execute("""
-                truncate table analysis_evidence, clinical_analysis, analysis_attempt, analysis_generation,
-                clinical_record, idempotency_record, appointment, patient restart identity cascade
+                truncate table evidencia_analise, analise_clinica, tentativa_geracao_analise, geracao_analise,
+                registro_clinico, idempotencia, consulta, paciente restart identity cascade
                 """);
     }
 
@@ -52,13 +52,13 @@ class AnalysisWorkerIT {
 
         assertThat(processador.executarUma()).isEqualTo(ProcessarGeracaoAnaliseUseCase.Resultado.PROCESSADA);
 
-        assertThat(jdbc.queryForObject("select state from analysis_generation where id = ?", String.class, geracaoId))
-                .isEqualTo("COMPLETED");
-        assertThat(jdbc.queryForObject("select count(*) from clinical_analysis where generation_id = ?",
+        assertThat(jdbc.queryForObject("select estado from geracao_analise where id = ?", String.class, geracaoId))
+                .isEqualTo("CONCLUIDA");
+        assertThat(jdbc.queryForObject("select count(*) from analise_clinica where geracao_id = ?",
                 Long.class, geracaoId)).isEqualTo(1);
-        assertThat(jdbc.queryForObject("select count(*) from analysis_evidence where patient_id = ?",
+        assertThat(jdbc.queryForObject("select count(*) from evidencia_analise where paciente_id = ?",
                 Long.class, pacienteId)).isEqualTo(1);
-        assertThat(jdbc.queryForObject("select outcome from analysis_attempt where generation_id = ?",
+        assertThat(jdbc.queryForObject("select resultado from tentativa_geracao_analise where geracao_id = ?",
                 String.class, geracaoId)).isEqualTo("SUCCESS");
     }
 
@@ -67,13 +67,13 @@ class AnalysisWorkerIT {
         UUID pacienteId = criarPaciente("Beto Worker", "390.533.447-05");
         UUID geracaoId = criarParecer(pacienteId, "Registro clinico ficticio para lease.");
         jdbc.update("""
-                update analysis_generation
-                   set state = 'RUNNING', lease_token = ?, lease_expires_at = ?
+                update geracao_analise
+                   set estado = 'EM_EXECUCAO', token_reserva = ?, reserva_expira_em = ?
                  where id = ?
                 """, UUID.randomUUID(), java.sql.Timestamp.from(Instant.now().plusSeconds(60)), geracaoId);
 
         assertThat(processador.executarUma()).isEqualTo(ProcessarGeracaoAnaliseUseCase.Resultado.NENHUMA_GERACAO);
-        assertThat(jdbc.queryForObject("select count(*) from clinical_analysis", Long.class)).isZero();
+        assertThat(jdbc.queryForObject("select count(*) from analise_clinica", Long.class)).isZero();
     }
 
     @Test
@@ -81,16 +81,16 @@ class AnalysisWorkerIT {
         UUID pacienteId = criarPaciente("Clara Worker", "111.444.777-35");
         UUID geracaoId = criarParecer(pacienteId, "Registro clinico ficticio com lease expirado.");
         jdbc.update("""
-                update analysis_generation
-                   set state = 'RUNNING', lease_token = ?, lease_expires_at = ?, attempt_count = 1
+                update geracao_analise
+                   set estado = 'EM_EXECUCAO', token_reserva = ?, reserva_expira_em = ?, contagem_tentativas = 1
                  where id = ?
                 """, UUID.randomUUID(), java.sql.Timestamp.from(Instant.now().minusSeconds(60)), geracaoId);
 
         assertThat(processador.executarUma()).isEqualTo(ProcessarGeracaoAnaliseUseCase.Resultado.PROCESSADA);
-        assertThat(jdbc.queryForObject("select attempt_count from analysis_generation where id = ?",
+        assertThat(jdbc.queryForObject("select contagem_tentativas from geracao_analise where id = ?",
                 Integer.class, geracaoId)).isEqualTo(2);
-        assertThat(jdbc.queryForObject("select state from analysis_generation where id = ?", String.class, geracaoId))
-                .isEqualTo("COMPLETED");
+        assertThat(jdbc.queryForObject("select estado from geracao_analise where id = ?", String.class, geracaoId))
+                .isEqualTo("CONCLUIDA");
     }
 
     @Test
@@ -98,23 +98,23 @@ class AnalysisWorkerIT {
         UUID pacienteId = criarPaciente("Dora Worker", "529.982.247-25");
         UUID geracaoId = criarParecer(pacienteId, "Registro clinico ficticio para token invalido.");
         jdbc.update("""
-                update analysis_generation
-                   set state = 'RUNNING', lease_token = ?, lease_expires_at = ?, attempt_count = 1
+                update geracao_analise
+                   set estado = 'EM_EXECUCAO', token_reserva = ?, reserva_expira_em = ?, contagem_tentativas = 1
                  where id = ?
                 """, UUID.randomUUID(), java.sql.Timestamp.from(Instant.now().plusSeconds(60)), geracaoId);
 
         int atualizadas = jdbc.update("""
-                update analysis_generation
-                   set state = 'COMPLETED'
+                update geracao_analise
+                   set estado = 'CONCLUIDA'
                  where id = ?
-                   and state = 'RUNNING'
-                   and lease_token = ?
-                   and lease_expires_at > now()
+                   and estado = 'EM_EXECUCAO'
+                   and token_reserva = ?
+                   and reserva_expira_em > now()
                 """, geracaoId, UUID.randomUUID());
 
         assertThat(atualizadas).isZero();
-        assertThat(jdbc.queryForObject("select state from analysis_generation where id = ?", String.class, geracaoId))
-                .isEqualTo("RUNNING");
+        assertThat(jdbc.queryForObject("select estado from geracao_analise where id = ?", String.class, geracaoId))
+                .isEqualTo("EM_EXECUCAO");
     }
 
     private UUID criarPaciente(String nome, String cpf) {

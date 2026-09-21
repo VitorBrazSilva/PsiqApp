@@ -1,6 +1,8 @@
 package com.psiqapp.domain.modelo;
 
 public enum ModoAnalise {
-    SUMMARY_ONLY,
-    LONGITUDINAL
+    RESUMO,
+    LONGITUDINAL;
+
+    @Deprecated public static final ModoAnalise SUMMARY_ONLY = RESUMO;
 }

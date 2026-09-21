@@ -40,8 +40,8 @@ class AnalysisCoreIT {
     void limparBanco() {
         flyway.migrate();
         jdbc.execute("""
-                truncate table analysis_evidence, clinical_analysis, analysis_attempt, analysis_generation,
-                clinical_record, idempotency_record, appointment, patient restart identity cascade
+                truncate table evidencia_analise, analise_clinica, tentativa_geracao_analise, geracao_analise,
+                registro_clinico, idempotencia, consulta, paciente restart identity cascade
                 """);
     }
 
@@ -53,14 +53,14 @@ class AnalysisCoreIT {
         var bloqueada = regenerar(pacienteId, UUID.randomUUID());
         assertThat(bloqueada.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
 
-        jdbc.update("update analysis_generation set state = 'FAILED', completed_at = now(), failure_code = 'MANUAL_TEST' where id = ?",
+        jdbc.update("update geracao_analise set estado = 'FALHA', concluida_em = now(), codigo_falha = 'MANUAL_TEST' where id = ?",
                 primeiraGeracao);
         UUID chave = UUID.randomUUID();
         var regeneracao = regenerar(pacienteId, chave);
         assertThat(regeneracao.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
         UUID geracaoManual = UUID.fromString(regeneracao.getBody().path("id").asText());
-        assertThat(regeneracao.getBody().path("estado").asText()).isEqualTo("QUEUED");
-        assertThat(regeneracao.getBody().path("modo").asText()).isEqualTo("SUMMARY_ONLY");
+        assertThat(regeneracao.getBody().path("estado").asText()).isEqualTo("ENFILEIRADA");
+        assertThat(regeneracao.getBody().path("modo").asText()).isEqualTo("RESUMO");
 
         var repetida = regenerar(pacienteId, chave);
         assertThat(repetida.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
@@ -82,7 +82,7 @@ class AnalysisCoreIT {
     void concorrenciaDeRegeneracaoManualCriaApenasUmaGeracaoAtiva() throws Exception {
         UUID pacienteId = criarPaciente("Caio Concorrencia", "111.444.777-35");
         UUID primeiraGeracao = criarParecer(pacienteId, "Registro clinico ficticio para concorrencia.");
-        jdbc.update("update analysis_generation set state = 'FAILED', completed_at = now() where id = ?",
+        jdbc.update("update geracao_analise set estado = 'FALHA', concluida_em = now() where id = ?",
                 primeiraGeracao);
 
         try (var executor = Executors.newFixedThreadPool(2)) {
@@ -98,8 +98,8 @@ class AnalysisCoreIT {
             }).toList()).containsExactlyInAnyOrder(HttpStatus.ACCEPTED, HttpStatus.CONFLICT);
         }
         assertThat(jdbc.queryForObject("""
-                select count(*) from analysis_generation
-                 where patient_id = ? and trigger = 'MANUAL'
+                select count(*) from geracao_analise
+                 where paciente_id = ? and gatilho = 'MANUAL'
                 """, Long.class, pacienteId)).isEqualTo(1);
     }
 
@@ -107,11 +107,11 @@ class AnalysisCoreIT {
     void analiseAtualUsaMaiorSnapshotETriggersAppendOnly() {
         UUID pacienteId = criarPaciente("Bia Atual", "390.533.447-05");
         UUID geracao1 = criarParecer(pacienteId, "Primeiro registro clinico ficticio.");
-        jdbc.update("update analysis_generation set state = 'FAILED', completed_at = now() where id = ?", geracao1);
+        jdbc.update("update geracao_analise set estado = 'FALHA', concluida_em = now() where id = ?", geracao1);
         UUID geracao2 = criarParecer(pacienteId, "Segundo registro clinico ficticio.");
-        jdbc.update("update analysis_generation set state = 'FAILED', completed_at = now() where id = ?", geracao2);
+        jdbc.update("update geracao_analise set estado = 'FALHA', concluida_em = now() where id = ?", geracao2);
 
-        UUID analise1 = inserirAnalise(geracao1, pacienteId, "SUMMARY_ONLY");
+        UUID analise1 = inserirAnalise(geracao1, pacienteId, "RESUMO");
         UUID analise2 = inserirAnalise(geracao2, pacienteId, "LONGITUDINAL");
 
         var estado = http.getForEntity("/api/v1/patients/" + pacienteId + "/analysis-state", JsonNode.class);
@@ -122,19 +122,19 @@ class AnalysisCoreIT {
         assertThat(historica.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(historica.getBody().path("id").asText()).isEqualTo(analise1.toString());
 
-        assertThatThrownBy(() -> jdbc.update("update clinical_analysis set mode = 'SUMMARY_ONLY' where id = ?",
+        assertThatThrownBy(() -> jdbc.update("update analise_clinica set modo = 'RESUMO' where id = ?",
                 analise2)).isInstanceOf(DataAccessException.class);
     }
 
     private UUID inserirAnalise(UUID geracaoId, UUID pacienteId, String modo) {
         UUID analiseId = UUID.randomUUID();
         jdbc.update("""
-                insert into clinical_analysis
-                (id, generation_id, patient_id, generated_at, mode, validated_payload, safety_rules_version, created_at)
+                insert into analise_clinica
+                (id, geracao_id, paciente_id, gerada_em, modo, conteudo_validado, versao_regras_seguranca, criada_em)
                 values (?, ?, ?, now(), ?, ?::jsonb, 'test', now())
                 """, analiseId, geracaoId, pacienteId, modo,
-                "{\"timeline\":[],\"patterns\":[],\"attentionPoints\":[],\"limitations\":[\"Limite ficticio.\"]}");
-        jdbc.update("update analysis_generation set state = 'COMPLETED', completed_at = now() where id = ?", geracaoId);
+                "{\"linhaDoTempo\":[],\"padroes\":[],\"pontosDeAtencao\":[],\"limitacoes\":[\"Limite ficticio.\"]}");
+        jdbc.update("update geracao_analise set estado = 'CONCLUIDA', concluida_em = now() where id = ?", geracaoId);
         return analiseId;
     }
 

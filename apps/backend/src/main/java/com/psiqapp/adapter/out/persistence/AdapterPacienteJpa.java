@@ -46,13 +46,13 @@ class AdapterPacienteJpa implements RepositoryPacientePort {
         String termoLiteral = termoBusca;
         String termo = termoLiteral.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
         var parametros = new ArrayList<>();
-        var filtro = new StringBuilder(" from patient");
+        var filtro = new StringBuilder(" from paciente");
         if (!termoLiteral.isBlank()) {
             if (termoLiteral.contains("%") || termoLiteral.contains("_") || termoLiteral.contains("\\")) {
-                filtro.append(" where position(? in search_name) > 0");
+                filtro.append(" where position(? in nome_busca) > 0");
                 parametros.add(termoLiteral);
             } else {
-                filtro.append(" where search_name like ? escape '\\'");
+                filtro.append(" where nome_busca like ? escape '\\'");
                 parametros.add("%" + termo + "%");
             }
         }
@@ -60,18 +60,18 @@ class AdapterPacienteJpa implements RepositoryPacientePort {
         parametros.add(tamanho);
         parametros.add((long) pagina * tamanho);
         var itens = jdbc.query("""
-                select id, name, search_name, cpf, birth_date, phone, email, initial_complaint, created_at
-                """ + filtro + " order by search_name asc, id asc limit ? offset ?",
+                select id, nome, nome_busca, cpf, data_nascimento, telefone, email, queixa_inicial, criado_em
+                """ + filtro + " order by nome_busca asc, id asc limit ? offset ?",
                 (rs, rowNum) -> new Paciente(
                         rs.getObject("id", UUID.class),
-                        rs.getString("name"),
+                        rs.getString("nome"),
                         rs.getString("cpf"),
-                        rs.getDate("birth_date").toLocalDate(),
-                        rs.getString("phone"),
+                        rs.getDate("data_nascimento").toLocalDate(),
+                        rs.getString("telefone"),
                         rs.getString("email"),
-                        rs.getString("initial_complaint"),
-                        rs.getString("search_name"),
-                        rs.getTimestamp("created_at").toInstant()),
+                        rs.getString("queixa_inicial"),
+                        rs.getString("nome_busca"),
+                        rs.getTimestamp("criado_em").toInstant()),
                 parametros.toArray());
         return new Pagina<>(itens, pagina, tamanho, total == null ? 0 : total);
     }
@@ -83,7 +83,7 @@ class AdapterPacienteJpa implements RepositoryPacientePort {
         entidade.nomeBusca = paciente.nomeBusca();
         entidade.cpf = paciente.cpf();
         entidade.dataNascimento = paciente.dataNascimento();
-        entidade.phone = paciente.telefone();
+        entidade.telefone = paciente.telefone();
         entidade.email = paciente.email();
         entidade.queixaInicial = paciente.queixaInicial();
         entidade.criadoEm = paciente.criadoEm();
@@ -92,6 +92,6 @@ class AdapterPacienteJpa implements RepositoryPacientePort {
 
     private Paciente paraDominio(EntidadePacienteJpa entidade) {
         return new Paciente(entidade.id, entidade.nome, entidade.cpf, entidade.dataNascimento,
-                entidade.phone, entidade.email, entidade.queixaInicial, entidade.nomeBusca, entidade.criadoEm);
+                entidade.telefone, entidade.email, entidade.queixaInicial, entidade.nomeBusca, entidade.criadoEm);
     }
 }

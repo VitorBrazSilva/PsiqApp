@@ -26,81 +26,81 @@ class AdapterAnaliseClinicaJdbc implements RepositoryAnaliseClinicaPort {
     @Override
     public AnaliseClinica salvar(AnaliseClinica analise) {
         jdbc.update("""
-                insert into clinical_analysis
-                (id, generation_id, patient_id, generated_at, mode, validated_payload, safety_rules_version, created_at)
+                insert into analise_clinica
+                (id, geracao_id, paciente_id, gerada_em, modo, conteudo_validado, versao_regras_seguranca, criada_em)
                 values (?, ?, ?, ?, ?, ?::jsonb, ?, ?)
                 """, analise.id(), analise.geracaoId(), analise.pacienteId(), Timestamp.from(analise.geradaEm()),
                 analise.modo().name(), jsonb(analise), analise.versaoRegrasSeguranca(), Timestamp.from(analise.geradaEm()));
-        inserirEvidencias(analise.id(), analise.pacienteId(), analise.geradaEm(), SecaoAnalise.TIMELINE, analise.timeline());
-        inserirEvidencias(analise.id(), analise.pacienteId(), analise.geradaEm(), SecaoAnalise.PATTERNS, analise.patterns());
-        inserirEvidencias(analise.id(), analise.pacienteId(), analise.geradaEm(), SecaoAnalise.ATTENTION_POINTS, analise.attentionPoints());
+        inserirEvidencias(analise.id(), analise.pacienteId(), analise.geradaEm(), SecaoAnalise.LINHA_DO_TEMPO, analise.timeline());
+        inserirEvidencias(analise.id(), analise.pacienteId(), analise.geradaEm(), SecaoAnalise.PADROES, analise.patterns());
+        inserirEvidencias(analise.id(), analise.pacienteId(), analise.geradaEm(), SecaoAnalise.PONTOS_DE_ATENCAO, analise.attentionPoints());
         return analise;
     }
 
     @Override
     public Optional<AnaliseClinica> buscarAtual(UUID pacienteId) {
         return jdbc.query("""
-                select ca.id, ca.generation_id, ca.patient_id, ca.generated_at, ca.mode,
-                       ca.validated_payload::text payload, ca.safety_rules_version
-                  from clinical_analysis ca
-                  join analysis_generation ag on ag.id = ca.generation_id
-                 where ca.patient_id = ?
-                 order by ag.snapshot_revision desc, ag.request_sequence desc
+                select ca.id, ca.geracao_id, ca.paciente_id, ca.gerada_em, ca.modo,
+                       ca.conteudo_validado::text payload, ca.versao_regras_seguranca
+                  from analise_clinica ca
+                  join geracao_analise ag on ag.id = ca.geracao_id
+                 where ca.paciente_id = ?
+                 order by ag.revisao_snapshot desc, ag.sequencia_requisicao desc
                  limit 1
                 """, (rs, rowNum) -> lerAnalise(
                         rs.getObject("id", UUID.class),
-                        rs.getObject("generation_id", UUID.class),
-                        rs.getObject("patient_id", UUID.class),
-                        rs.getTimestamp("generated_at").toInstant(),
-                        ModoAnalise.valueOf(rs.getString("mode")),
+                        rs.getObject("geracao_id", UUID.class),
+                        rs.getObject("paciente_id", UUID.class),
+                        rs.getTimestamp("gerada_em").toInstant(),
+                        ModoAnalise.valueOf(rs.getString("modo")),
                         rs.getString("payload"),
-                        rs.getString("safety_rules_version")), pacienteId).stream().findFirst();
+                        rs.getString("versao_regras_seguranca")), pacienteId).stream().findFirst();
     }
 
     @Override
     public Optional<AnaliseClinica> buscarNoPaciente(UUID pacienteId, UUID analiseId) {
         return jdbc.query("""
-                select id, generation_id, patient_id, generated_at, mode,
-                       validated_payload::text payload, safety_rules_version
-                  from clinical_analysis
-                 where patient_id = ?
+                select id, geracao_id, paciente_id, gerada_em, modo,
+                       conteudo_validado::text payload, versao_regras_seguranca
+                  from analise_clinica
+                 where paciente_id = ?
                    and id = ?
                 """, (rs, rowNum) -> lerAnalise(
                         rs.getObject("id", UUID.class),
-                        rs.getObject("generation_id", UUID.class),
-                        rs.getObject("patient_id", UUID.class),
-                        rs.getTimestamp("generated_at").toInstant(),
-                        ModoAnalise.valueOf(rs.getString("mode")),
+                        rs.getObject("geracao_id", UUID.class),
+                        rs.getObject("paciente_id", UUID.class),
+                        rs.getTimestamp("gerada_em").toInstant(),
+                        ModoAnalise.valueOf(rs.getString("modo")),
                         rs.getString("payload"),
-                        rs.getString("safety_rules_version")), pacienteId, analiseId).stream().findFirst();
+                        rs.getString("versao_regras_seguranca")), pacienteId, analiseId).stream().findFirst();
     }
 
     @Override
     public Pagina<GeracaoAnalise> listarGeracoes(UUID pacienteId, int pagina, int tamanho) {
-        Long total = jdbc.queryForObject("select count(*) from analysis_generation where patient_id = ?",
+        Long total = jdbc.queryForObject("select count(*) from geracao_analise where paciente_id = ?",
                 Long.class, pacienteId);
         var itens = jdbc.query("""
-                select id, patient_id, trigger, trigger_record_id, snapshot_revision, request_sequence,
-                       requested_at, state, total_records, original_records, complement_records,
-                       last_clinical_record_id, mode
-                  from analysis_generation
-                 where patient_id = ?
-                 order by snapshot_revision desc, request_sequence desc, id desc
+                select id, paciente_id, gatilho, registro_disparador_id, revisao_snapshot, sequencia_requisicao,
+                       solicitada_em, estado, total_registros, total_pareceres, total_complementos,
+                       ultimo_registro_clinico_id, modo
+                  from geracao_analise
+                 where paciente_id = ?
+                 order by revisao_snapshot desc, sequencia_requisicao desc, id desc
                  limit ? offset ?
                 """, (rs, rowNum) -> new GeracaoAnalise(
                         rs.getObject("id", UUID.class),
-                        rs.getObject("patient_id", UUID.class),
-                        GatilhoGeracaoAnalise.valueOf(rs.getString("trigger")),
-                        rs.getObject("trigger_record_id", UUID.class),
-                        rs.getLong("snapshot_revision"),
-                        rs.getLong("request_sequence"),
-                        rs.getTimestamp("requested_at").toInstant(),
-                        EstadoGeracaoAnalise.valueOf(rs.getString("state")),
-                        rs.getInt("total_records"),
-                        rs.getInt("original_records"),
-                        rs.getInt("complement_records"),
-                        rs.getObject("last_clinical_record_id", UUID.class),
-                        ModoAnalise.valueOf(rs.getString("mode"))),
+                        rs.getObject("paciente_id", UUID.class),
+                        GatilhoGeracaoAnalise.valueOf(rs.getString("gatilho")),
+                        rs.getObject("registro_disparador_id", UUID.class),
+                        rs.getLong("revisao_snapshot"),
+                        rs.getLong("sequencia_requisicao"),
+                        rs.getTimestamp("solicitada_em").toInstant(),
+                        EstadoGeracaoAnalise.valueOf(rs.getString("estado")),
+                        rs.getInt("total_registros"),
+                        rs.getInt("total_pareceres"),
+                        rs.getInt("total_complementos"),
+                        rs.getObject("ultimo_registro_clinico_id", UUID.class),
+                        ModoAnalise.valueOf(rs.getString("modo"))),
                 pacienteId, tamanho, (long) pagina * tamanho);
         return new Pagina<>(itens, pagina, tamanho, total == null ? 0 : total);
     }
@@ -110,8 +110,8 @@ class AdapterAnaliseClinicaJdbc implements RepositoryAnaliseClinicaPort {
         for (int i = 0; i < itens.size(); i++) {
             for (EvidenciaAnalise evidencia : itens.get(i).evidence()) {
                 jdbc.update("""
-                        insert into analysis_evidence
-                        (id, analysis_id, patient_id, section, item_index, record_id, field, quote, created_at)
+                        insert into evidencia_analise
+                        (id, analise_id, paciente_id, secao, indice_item, registro_id, campo, citacao, criada_em)
                         values (?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """, UUID.randomUUID(), analiseId, pacienteId, secao.name(), i, evidencia.registroId(),
                         evidencia.field().name(), evidencia.quote(), Timestamp.from(criadaEm));
@@ -122,10 +122,10 @@ class AdapterAnaliseClinicaJdbc implements RepositoryAnaliseClinicaPort {
     private String jsonb(AnaliseClinica analise) {
         try {
             var payload = Map.of(
-                    "timeline", analise.timeline(),
-                    "patterns", analise.patterns(),
-                    "attentionPoints", analise.attentionPoints(),
-                    "limitations", analise.limitations());
+                    "linhaDoTempo", analise.timeline(),
+                    "padroes", analise.patterns(),
+                    "pontosDeAtencao", analise.attentionPoints(),
+                    "limitacoes", analise.limitations());
             return json.writeValueAsString(payload);
         } catch (Exception e) {
             throw new IllegalStateException("Falha ao serializar analise validada.", e);
@@ -137,8 +137,8 @@ class AdapterAnaliseClinicaJdbc implements RepositoryAnaliseClinicaPort {
         try {
             var node = json.readTree(payload);
             return new AnaliseClinica(id, geracaoId, pacienteId, geradaEm, modo,
-                    lerItens(node.get("timeline")), lerItens(node.get("patterns")),
-                    lerItens(node.get("attentionPoints")), lerTextos(node.get("limitations")), versao);
+                    lerItens(node.get("linhaDoTempo")), lerItens(node.get("padroes")),
+                    lerItens(node.get("pontosDeAtencao")), lerTextos(node.get("limitacoes")), versao);
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Falha ao ler analise validada.", e);
         }
@@ -149,16 +149,16 @@ class AdapterAnaliseClinicaJdbc implements RepositoryAnaliseClinicaPort {
         var itens = new ArrayList<ItemAnaliseClinica>();
         for (var item : node) {
             var evidencias = new ArrayList<EvidenciaAnalise>();
-            var evidence = item.get("evidence");
+            var evidence = item.get("evidencias");
             if (evidence != null && evidence.isArray()) {
                 for (var ev : evidence) {
-                    evidencias.add(new EvidenciaAnalise(ev.path("recordAlias").asText(null),
+                    evidencias.add(new EvidenciaAnalise(ev.path("apelidoRegistro").asText(null),
                             UUID.fromString(ev.path("registroId").asText()),
-                            CampoEvidencia.valueOf(ev.path("field").asText()), ev.path("quote").asText()));
+                            CampoEvidencia.valueOf(ev.path("campo").asText()), ev.path("citacao").asText()));
                 }
             }
-            itens.add(new ItemAnaliseClinica(item.path("text").asText(),
-                    NaturezaObservacao.valueOf(item.path("nature").asText()), List.copyOf(evidencias)));
+            itens.add(new ItemAnaliseClinica(item.path("texto").asText(),
+                    NaturezaObservacao.valueOf(item.path("natureza").asText()), List.copyOf(evidencias)));
         }
         return List.copyOf(itens);
     }

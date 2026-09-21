@@ -36,32 +36,32 @@ class AdapterRegistroClinicoJpa implements RepositoryRegistroClinicoPort {
 
     @Override
     public Optional<RegistroClinico> buscarOriginalNoPaciente(UUID pacienteId, UUID registroId) {
-        return repositorio.findByPacienteIdAndIdAndTipo(pacienteId, registroId, TipoRegistroClinico.ORIGINAL)
+        return repositorio.findByPacienteIdAndIdAndTipo(pacienteId, registroId, TipoRegistroClinico.PARECER)
                 .map(this::paraDominio);
     }
 
     @Override
     public Pagina<RegistroClinico> listarLinhaDoTempo(UUID pacienteId, int pagina, int tamanho) {
-        Long total = jdbc.queryForObject("select count(*) from clinical_record where patient_id = ?",
+        Long total = jdbc.queryForObject("select count(*) from registro_clinico where paciente_id = ?",
                 Long.class, pacienteId);
         var itens = jdbc.query("""
-                select id, patient_id, type, original_id, appointment_id, clinical_datetime, created_at,
-                       text, mood, medications, revision
-                  from clinical_record
-                 where patient_id = ?
-                 order by clinical_datetime desc, created_at desc, id desc
+                select id, paciente_id, tipo, parecer_original_id, consulta_id, data_hora_clinica, criado_em,
+                       texto, humor, medicamentos, revision
+                  from registro_clinico
+                 where paciente_id = ?
+                 order by data_hora_clinica desc, criado_em desc, id desc
                  limit ? offset ?
                 """, (rs, rowNum) -> new RegistroClinico(
                         rs.getObject("id", UUID.class),
-                        rs.getObject("patient_id", UUID.class),
-                        TipoRegistroClinico.valueOf(rs.getString("type")),
-                        rs.getObject("original_id", UUID.class),
-                        rs.getObject("appointment_id", UUID.class),
-                        rs.getTimestamp("clinical_datetime").toInstant(),
-                        rs.getTimestamp("created_at").toInstant(),
-                        rs.getString("text"),
-                        rs.getString("mood"),
-                        rs.getString("medications"),
+                        rs.getObject("paciente_id", UUID.class),
+                        TipoRegistroClinico.valueOf(rs.getString("tipo")),
+                        rs.getObject("parecer_original_id", UUID.class),
+                        rs.getObject("consulta_id", UUID.class),
+                        rs.getTimestamp("data_hora_clinica").toInstant(),
+                        rs.getTimestamp("criado_em").toInstant(),
+                        rs.getString("texto"),
+                        rs.getString("humor"),
+                        rs.getString("medicamentos"),
                         rs.getLong("revision")),
                 pacienteId, tamanho, (long) pagina * tamanho);
         return new Pagina<>(itens, pagina, tamanho, total == null ? 0 : total);
@@ -80,23 +80,23 @@ class AdapterRegistroClinicoJpa implements RepositoryRegistroClinicoPort {
     @Override
     public List<RegistroClinico> listarSnapshot(UUID pacienteId, long revisaoSnapshot) {
         return jdbc.query("""
-                select id, patient_id, type, original_id, appointment_id, clinical_datetime, created_at,
-                       text, mood, medications, revision
-                  from clinical_record
-                 where patient_id = ?
+                select id, paciente_id, tipo, parecer_original_id, consulta_id, data_hora_clinica, criado_em,
+                       texto, humor, medicamentos, revision
+                  from registro_clinico
+                 where paciente_id = ?
                    and revision <= ?
-                 order by clinical_datetime asc, created_at asc, id asc
+                 order by data_hora_clinica asc, criado_em asc, id asc
                 """, (rs, rowNum) -> new RegistroClinico(
                         rs.getObject("id", UUID.class),
-                        rs.getObject("patient_id", UUID.class),
-                        TipoRegistroClinico.valueOf(rs.getString("type")),
-                        rs.getObject("original_id", UUID.class),
-                        rs.getObject("appointment_id", UUID.class),
-                        rs.getTimestamp("clinical_datetime").toInstant(),
-                        rs.getTimestamp("created_at").toInstant(),
-                        rs.getString("text"),
-                        rs.getString("mood"),
-                        rs.getString("medications"),
+                        rs.getObject("paciente_id", UUID.class),
+                        TipoRegistroClinico.valueOf(rs.getString("tipo")),
+                        rs.getObject("parecer_original_id", UUID.class),
+                        rs.getObject("consulta_id", UUID.class),
+                        rs.getTimestamp("data_hora_clinica").toInstant(),
+                        rs.getTimestamp("criado_em").toInstant(),
+                        rs.getString("texto"),
+                        rs.getString("humor"),
+                        rs.getString("medicamentos"),
                         rs.getLong("revision")),
                 pacienteId, revisaoSnapshot);
     }
@@ -106,18 +106,18 @@ class AdapterRegistroClinicoJpa implements RepositoryRegistroClinicoPort {
         Object[] parametros = revisao == null ? new Object[] { pacienteId } : new Object[] { pacienteId, revisao };
         var contagens = jdbc.queryForObject("""
                 select count(*) total,
-                       count(*) filter (where type = 'ORIGINAL') originals,
-                       count(*) filter (where type = 'COMPLEMENT') complements
-                  from clinical_record
-                 where patient_id = ?""" + filtroRevisao + """
+                       count(*) filter (where tipo = 'PARECER') originals,
+                       count(*) filter (where tipo = 'COMPLEMENTO') complements
+                  from registro_clinico
+                 where paciente_id = ?""" + filtroRevisao + """
                 """, (rs, rowNum) -> new int[] {
                         rs.getInt("total"), rs.getInt("originals"), rs.getInt("complements")
                 }, parametros);
         UUID ultimo = jdbc.query("""
                 select id
-                  from clinical_record
-                 where patient_id = ?""" + filtroRevisao + """
-                 order by clinical_datetime desc, created_at desc, id desc
+                  from registro_clinico
+                 where paciente_id = ?""" + filtroRevisao + """
+                 order by data_hora_clinica desc, criado_em desc, id desc
                  limit 1
                 """, (rs, rowNum) -> rs.getObject("id", UUID.class), parametros)
                 .stream().findFirst().orElse(null);
