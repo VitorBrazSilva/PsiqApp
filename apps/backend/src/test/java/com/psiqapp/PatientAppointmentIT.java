@@ -40,8 +40,8 @@ class PatientAppointmentIT {
     void limparBanco() {
         flyway.migrate();
         jdbc.execute("""
-                truncate table analysis_evidence, clinical_analysis, analysis_attempt, analysis_generation,
-                clinical_record, idempotency_record, appointment, patient restart identity cascade
+                truncate table evidencia_analise, analise_clinica, tentativa_geracao_analise, geracao_analise,
+                registro_clinico, idempotencia, consulta, paciente restart identity cascade
                 """);
     }
 
@@ -58,7 +58,7 @@ class PatientAppointmentIT {
         var repetido = criarPaciente(chave, "Ana Ávila", "529.982.247-25");
         assertThat(repetido.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(repetido.getBody().path("id").asText()).isEqualTo(id);
-        assertThat(jdbc.queryForObject("select count(*) from patient", Long.class)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from paciente", Long.class)).isEqualTo(1);
 
         var conflito = criarPaciente(chave, "Outra Pessoa", "390.533.447-05");
         assertThat(conflito.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
@@ -147,7 +147,7 @@ class PatientAppointmentIT {
             var segundo = executor.submit(() -> criarPaciente(UUID.randomUUID(), "Daniel Beta", "529.982.247-25").getStatusCode());
             assertThat(firstOrSecond(firstOrSecond(primeiro.get(), segundo.get()), HttpStatus.CREATED))
                     .isEqualTo(HttpStatus.CREATED);
-            assertThat(jdbc.queryForObject("select count(*) from patient where cpf='52998224725'", Long.class)).isEqualTo(1);
+            assertThat(jdbc.queryForObject("select count(*) from paciente where cpf='52998224725'", Long.class)).isEqualTo(1);
         }
     }
 
@@ -163,7 +163,7 @@ class PatientAppointmentIT {
             assertThat(resposta1.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             assertThat(resposta2.getStatusCode()).isEqualTo(HttpStatus.CREATED);
             assertThat(resposta1.getBody().path("id").asText()).isEqualTo(resposta2.getBody().path("id").asText());
-            assertThat(jdbc.queryForObject("select count(*) from patient where cpf='52998224725'", Long.class)).isEqualTo(1);
+            assertThat(jdbc.queryForObject("select count(*) from paciente where cpf='52998224725'", Long.class)).isEqualTo(1);
         }
     }
 

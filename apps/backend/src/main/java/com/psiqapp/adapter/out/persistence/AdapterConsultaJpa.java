@@ -40,34 +40,34 @@ class AdapterConsultaJpa implements RepositoryConsultaPort {
 
     @Override
     public Pagina<Consulta> listar(Instant de, Instant ate, UUID pacienteId, int pagina, int tamanho) {
-        var filtros = new StringBuilder(" from appointment where 1=1");
+        var filtros = new StringBuilder(" from consulta where 1=1");
         var parametros = new ArrayList<>();
         if (de != null) {
-            filtros.append(" and scheduled_at >= ?");
+            filtros.append(" and agendada_para >= ?");
             parametros.add(de);
         }
         if (ate != null) {
-            filtros.append(" and scheduled_at <= ?");
+            filtros.append(" and agendada_para <= ?");
             parametros.add(ate);
         }
         if (pacienteId != null) {
-            filtros.append(" and patient_id = ?");
+            filtros.append(" and paciente_id = ?");
             parametros.add(pacienteId);
         }
         Long total = jdbc.queryForObject("select count(*)" + filtros, Long.class, parametros.toArray());
         parametros.add(tamanho);
         parametros.add((long) pagina * tamanho);
         var itens = jdbc.query("""
-                select id, patient_id, scheduled_at, status, notes, created_at, status_changed_at
-                """ + filtros + " order by scheduled_at asc, id asc limit ? offset ?",
+                select id, paciente_id, agendada_para, status, observacoes, criada_em, status_alterado_em
+                """ + filtros + " order by agendada_para asc, id asc limit ? offset ?",
                 (rs, rowNum) -> new Consulta(
                         rs.getObject("id", UUID.class),
-                        rs.getObject("patient_id", UUID.class),
-                        rs.getTimestamp("scheduled_at").toInstant(),
+                        rs.getObject("paciente_id", UUID.class),
+                        rs.getTimestamp("agendada_para").toInstant(),
                         com.psiqapp.domain.modelo.StatusConsulta.valueOf(rs.getString("status")),
-                        rs.getString("notes"),
-                        rs.getTimestamp("created_at").toInstant(),
-                        rs.getTimestamp("status_changed_at") == null ? null : rs.getTimestamp("status_changed_at").toInstant()),
+                        rs.getString("observacoes"),
+                        rs.getTimestamp("criada_em").toInstant(),
+                        rs.getTimestamp("status_alterado_em") == null ? null : rs.getTimestamp("status_alterado_em").toInstant()),
                 parametros.toArray());
         return new Pagina<>(itens, pagina, tamanho, total == null ? 0 : total);
     }

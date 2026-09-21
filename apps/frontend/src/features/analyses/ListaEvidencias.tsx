@@ -1,6 +1,9 @@
 import type { EvidenciaAnalise } from './servicoAnalises'
 
 const campos = {
+  TEXTO: 'Texto',
+  HUMOR: 'Estado/humor',
+  MEDICAMENTOS: 'MedicaÃ§Ãµes',
   text: 'Texto',
   mood: 'Estado/humor',
   medications: 'Medicações',
@@ -20,7 +23,7 @@ export function ListaEvidencias({ evidencias, aoAbrirFonte }: Props) {
           <button type="button" className="link-botao" onClick={() => aoAbrirFonte(evidencia.registroId)}>
             Abrir fonte
           </button>
-          <span>{campos[evidencia.field]}: "{evidencia.quote}"</span>
+          <span>{campos[evidencia.campo]}: "{evidencia.citacao}"</span>
         </li>
       ))}
     </ul>

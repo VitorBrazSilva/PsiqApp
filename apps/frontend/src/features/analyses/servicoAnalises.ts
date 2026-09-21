@@ -4,20 +4,20 @@ import type { Pagina } from '../patients/servicoPacientes'
 
 const api = new ClienteApi()
 
-export type EstadoGeracao = 'QUEUED' | 'RUNNING' | 'RETRY_WAIT' | 'COMPLETED' | 'FAILED'
-export type ModoAnalise = 'SUMMARY_ONLY' | 'LONGITUDINAL'
+export type EstadoGeracao = 'ENFILEIRADA' | 'EM_EXECUCAO' | 'AGUARDANDO_RETENTATIVA' | 'CONCLUIDA' | 'FALHA'
+export type ModoAnalise = 'RESUMO' | 'LONGITUDINAL'
 
 export interface EvidenciaAnalise {
-  recordAlias: string
+  apelidoRegistro: string
   registroId: string
-  field: 'text' | 'mood' | 'medications'
-  quote: string
+  campo: 'TEXTO' | 'HUMOR' | 'MEDICAMENTOS'
+  citacao: string
 }
 
 export interface ItemAnalise {
-  text: string
-  nature: 'REPORTED' | 'INTERPRETATION'
-  evidence: EvidenciaAnalise[]
+  texto: string
+  natureza: 'RELATO' | 'INTERPRETACAO'
+  evidencias: EvidenciaAnalise[]
 }
 
 export interface AnaliseClinica {
@@ -26,10 +26,10 @@ export interface AnaliseClinica {
   pacienteId: string
   geradaEm: string
   modo: ModoAnalise
-  timeline: ItemAnalise[]
-  patterns: ItemAnalise[]
-  attentionPoints: ItemAnalise[]
-  limitations: string[]
+  linhaDoTempo: ItemAnalise[]
+  padroes: ItemAnalise[]
+  pontosDeAtencao: ItemAnalise[]
+  limitacoes: string[]
 }
 
 export interface GeracaoAnalise {

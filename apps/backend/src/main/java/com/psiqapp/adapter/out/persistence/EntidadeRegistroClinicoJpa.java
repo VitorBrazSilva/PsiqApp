@@ -6,18 +6,18 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "clinical_record")
+@Table(name = "registro_clinico")
 class EntidadeRegistroClinicoJpa {
     @Id UUID id;
-    @Column(name = "patient_id", nullable = false) UUID pacienteId;
+    @Column(name = "paciente_id", nullable = false) UUID pacienteId;
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false) TipoRegistroClinico tipo;
-    @Column(name = "original_id") UUID parecerOriginalId;
-    @Column(name = "appointment_id") UUID consultaId;
-    @Column(name = "clinical_datetime", nullable = false) Instant dataHoraClinica;
-    @Column(name = "created_at", nullable = false) Instant criadoEm;
-    @Column(nullable = false) String text;
-    @Column String mood;
-    @Column String medications;
+    @Column(name = "tipo", nullable = false) TipoRegistroClinico tipo;
+    @Column(name = "parecer_original_id") UUID parecerOriginalId;
+    @Column(name = "consulta_id") UUID consultaId;
+    @Column(name = "data_hora_clinica", nullable = false) Instant dataHoraClinica;
+    @Column(name = "criado_em", nullable = false) Instant criadoEm;
+    @Column(name = "texto", nullable = false) String text;
+    @Column(name = "humor") String mood;
+    @Column(name = "medicamentos") String medications;
     @Column(nullable = false) long revision;
 }

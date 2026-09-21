@@ -41,10 +41,11 @@ export async function criarParecer(api: APIRequestContext, pacienteId: string, t
 export async function aguardarGeracaoConcluida(api: APIRequestContext, pacienteId: string) {
   await expect.poll(async () => {
     const response = await api.get(`/api/v1/patients/${pacienteId}/analysis-state`)
+    const corpo = await response.text()
     expect(response.ok()).toBeTruthy()
-    const estado = await response.json() as { latestGeneration?: { estado?: string } | null }
+    const estado = JSON.parse(corpo) as { latestGeneration?: { estado?: string } | null }
     return estado.latestGeneration?.estado ?? null
-  }, { timeout: 30_000, intervals: [500, 1_000, 2_000] }).toBe('COMPLETED')
+  }, { timeout: 30_000, intervals: [500, 1_000, 2_000] }).toBe('CONCLUIDA')
 }
 
 export async function abrirProntuario(page: Page, pacienteId: string) {

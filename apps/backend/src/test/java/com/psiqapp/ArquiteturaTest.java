@@ -9,7 +9,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
 
 class ArquiteturaTest {
-    private static final ArchRule DOMINIO = noClasses().that().resideInAPackage("..domain..")
+    private static final ArchRule DOMINIO = noClasses().that().resideInAnyPackage("..domain..", "com.psiqapp.domain..")
             .should().dependOnClassesThat().resideInAnyPackage(
                     "..adapter..", "..application..", "..config..", "org.springframework..",
                     "jakarta.persistence..", "org.hibernate..", "org.postgresql..", "com.openai..")
@@ -33,7 +33,7 @@ class ArquiteturaTest {
 
     @Test
     void regraRejeitaDependenciaProibidaEmExemploDeTeste() {
-        var exemplo = new ClassFileImporter().importPackages("com.psiqapp.arquitetura.exemplo");
+        var exemplo = new ClassFileImporter().importPackages("com.psiqapp.domain.exemplo", "com.psiqapp.adapter.exemplo");
         assertThatThrownBy(() -> DOMINIO.check(exemplo)).isInstanceOf(AssertionError.class)
                 .hasMessageContaining("DependenciaProibida");
     }

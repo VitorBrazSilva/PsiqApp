@@ -11,14 +11,14 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "appointment")
+@Table(name = "consulta")
 class EntidadeConsultaJpa {
     @Id UUID id;
-    @Column(name = "patient_id", nullable = false) UUID pacienteId;
-    @Column(name = "scheduled_at", nullable = false) Instant agendadaPara;
+    @Column(name = "paciente_id", nullable = false) UUID pacienteId;
+    @Column(name = "agendada_para", nullable = false) Instant agendadaPara;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false) StatusConsulta status;
-    @Column(name = "notes") String observacoes;
-    @Column(name = "created_at", nullable = false) Instant criadaEm;
-    @Column(name = "status_changed_at") Instant statusAlteradoEm;
+    @Column(name = "observacoes") String observacoes;
+    @Column(name = "criada_em", nullable = false) Instant criadaEm;
+    @Column(name = "status_alterado_em") Instant statusAlteradoEm;
 }

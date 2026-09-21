@@ -33,11 +33,11 @@ Tasks 1.0 e 2.0.
 
 ## Subtarefas
 
-- [ ] 3.1 Implementar a migration V004 com renomes, valores canônicos e preservação de constraints.
-- [ ] 3.2 Implementar a conversão JSONB histórica conforme a matriz aprovada.
-- [ ] 3.3 Atualizar mapeamentos JPA/JDBC, queries e adapters de persistência.
-- [ ] 3.4 Atualizar modelos e enums persistidos mantendo a semântica das regras existentes.
-- [ ] 3.5 Executar validação antes/depois e registrar evidências de upgrade.
+- [x] 3.1 Implementar a migration V004 com renomes, valores canônicos e preservação de constraints.
+- [x] 3.2 Implementar a conversão JSONB histórica conforme a matriz aprovada.
+- [x] 3.3 Atualizar mapeamentos JPA/JDBC, queries e adapters de persistência.
+- [x] 3.4 Atualizar modelos e enums persistidos mantendo a semântica das regras existentes.
+- [x] 3.5 Executar validação antes/depois e registrar evidências de upgrade.
 
 ## Critérios de sucesso
 
@@ -49,12 +49,12 @@ Tasks 1.0 e 2.0.
 
 ## Testes obrigatórios
 
-- [ ] Teste de migration em banco vazio com V001–V004.
-- [ ] Teste de upgrade de V003 para V004 com dados fictícios representativos.
-- [ ] Comparação de linhas, IDs, FKs, unicidades, índices, constraints, estados, enums e JSONB antes/depois.
-- [ ] Teste semântico de todos os itens, evidências, citações e limitações convertidos.
-- [ ] Testes de append-only, idempotência, isolamento por paciente e resultado tardio do worker.
-- [ ] `./mvnw --batch-mode --no-transfer-progress verify`.
+- [x] Teste de migration em banco vazio com V001–V004.
+- [x] Teste de upgrade de V003 para V004 com dados fictícios representativos.
+- [x] Comparação de linhas, IDs, FKs, unicidades, índices, constraints, estados, enums e JSONB antes/depois.
+- [x] Teste semântico de todos os itens, evidências, citações e limitações convertidos.
+- [x] Testes de append-only, idempotência, isolamento por paciente e resultado tardio do worker.
+- [x] `./mvnw --batch-mode --no-transfer-progress verify`.
 
 ## Skills aplicáveis
 
