@@ -20,7 +20,7 @@ export function ListaEvidencias({ evidencias, aoAbrirFonte }: Props) {
           <button type="button" className="link-botao" onClick={() => aoAbrirFonte(evidencia.registroId)}>
             Abrir fonte
           </button>
-          <span>{campos[evidencia.field]}: "{evidencia.quote}"</span>
+          <span>{campos[evidencia.campo]}: "{evidencia.citacao}"</span>
         </li>
       ))}
     </ul>

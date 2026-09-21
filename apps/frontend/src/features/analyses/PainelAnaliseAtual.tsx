@@ -18,9 +18,9 @@ function SecaoAnalise({ titulo, vazio, itens, aoAbrirFonte }: { titulo: string, 
         <ul className="itens-analise">
           {itens.map((item, indice) => (
             <li key={`${titulo}-${indice}`}>
-              <p>{item.text}</p>
+              <p>{item.texto}</p>
               <span className="etiqueta">{item.nature === 'REPORTED' ? 'Relato registrado' : 'Interpretação apoiada em evidência'}</span>
-              <ListaEvidencias evidencias={item.evidence} aoAbrirFonte={aoAbrirFonte} />
+              <ListaEvidencias evidencias={item.evidencias} aoAbrirFonte={aoAbrirFonte} />
             </li>
           ))}
         </ul>
@@ -32,23 +32,23 @@ function SecaoAnalise({ titulo, vazio, itens, aoAbrirFonte }: { titulo: string, 
 function ConteudoAnalise({ analise, aoAbrirFonte }: { analise: AnaliseClinica, aoAbrirFonte: (registroId: string) => void }) {
   return (
     <>
-      <p className="etiqueta">Análise {analise.modo === 'SUMMARY_ONLY' ? 'resumida' : 'longitudinal'} gerada em {new Date(analise.geradaEm).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</p>
+      <p className="etiqueta">Análise {analise.modo === 'RESUMO' ? 'resumida' : 'longitudinal'} gerada em {new Date(analise.geradaEm).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</p>
       <section className="limitacoes">
         <h3>Limitações da IA</h3>
-        {analise.limitations.length === 0
+        {analise.limitacoes.length === 0
           ? <p>A análise é apoio à leitura do prontuário e não substitui a decisão clínica.</p>
-          : <ul>{analise.limitations.map((limite, indice) => <li key={indice}>{limite}</li>)}</ul>}
+          : <ul>{analise.limitacoes.map((limite, indice) => <li key={indice}>{limite}</li>)}</ul>}
       </section>
-      <SecaoAnalise titulo="Linha do tempo resumida" vazio="Sem itens validados para a linha do tempo resumida." itens={analise.timeline} aoAbrirFonte={aoAbrirFonte} />
-      <SecaoAnalise titulo="Padrões observados" vazio="Sem padrões validados para exibição." itens={analise.patterns} aoAbrirFonte={aoAbrirFonte} />
-      <SecaoAnalise titulo="Pontos de atenção" vazio="Sem pontos de atenção validados para exibição." itens={analise.attentionPoints} aoAbrirFonte={aoAbrirFonte} />
+      <SecaoAnalise titulo="Linha do tempo resumida" vazio="Sem itens validados para a linha do tempo resumida." itens={analise.linhaDoTempo} aoAbrirFonte={aoAbrirFonte} />
+      <SecaoAnalise titulo="Padrões observados" vazio="Sem padrões validados para exibição." itens={analise.padroes} aoAbrirFonte={aoAbrirFonte} />
+      <SecaoAnalise titulo="Pontos de atenção" vazio="Sem pontos de atenção validados para exibição." itens={analise.pontosDeAtencao} aoAbrirFonte={aoAbrirFonte} />
     </>
   )
 }
 
 export function PainelAnaliseAtual({ estado, carregando, erro, aoRegenerar, regenerando, aoAbrirFonte }: Props) {
   const ativa = estado?.activeGeneration
-  const falha = estado?.latestGeneration?.estado === 'FAILED'
+  const falha = estado?.latestGeneration?.estado === 'FALHA'
   return (
     <section className="painel analise">
       <div className="registro-cabecalho">

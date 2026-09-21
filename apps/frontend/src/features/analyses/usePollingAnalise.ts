@@ -41,7 +41,7 @@ export function usePollingAnalise(pacienteId: string | null) {
   }, [carregar, pacienteId])
 
   useEffect(() => {
-    const aguardandoAnalisePersistida = estado?.latestGeneration?.estado === 'COMPLETED' && !estado.currentAnalysis
+    const aguardandoAnalisePersistida = estado?.latestGeneration?.estado === 'CONCLUIDA' && !estado.currentAnalysis
     if (!pacienteId || (!estado?.activeGeneration && !aguardandoAnalisePersistida)) return
     const controle = new AbortController()
     const aoVisibilizar = () => {

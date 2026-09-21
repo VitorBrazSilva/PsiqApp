@@ -18,8 +18,8 @@ test('mantem limites seguros quando a geracao e concluida com historico insufici
   await expect.poll(async () => {
     const response = await request.get(`/api/v1/patients/${paciente.id}/analysis-state`)
     expect(response.ok()).toBeTruthy()
-    const estado = await response.json() as { currentAnalysis?: { limitations?: string[] } | null }
-    return estado.currentAnalysis?.limitations?.join(' ') ?? ''
+    const estado = await response.json() as { currentAnalysis?: { limitacoes?: string[] } | null }
+    return estado.currentAnalysis?.limitacoes?.join(' ') ?? ''
   }, { timeout: 15_000 }).toMatch(/insuficiente/i)
   await abrirProntuario(page, paciente.id)
   await expect(page.getByText('Registro ficticio preservado durante IA.', { exact: true })).toBeVisible()
@@ -27,6 +27,6 @@ test('mantem limites seguros quando a geracao e concluida com historico insufici
   await expect(page.getByText('Registro ficticio preservado durante IA.', { exact: true })).toBeVisible()
   const estadoDepoisDoReload = await request.get(`/api/v1/patients/${paciente.id}/analysis-state`)
   expect(estadoDepoisDoReload.ok()).toBeTruthy()
-  const payloadDepoisDoReload = await estadoDepoisDoReload.json() as { currentAnalysis?: { limitations?: string[] } | null }
-  expect(payloadDepoisDoReload.currentAnalysis?.limitations?.join(' ')).toMatch(/insuficiente/i)
+  const payloadDepoisDoReload = await estadoDepoisDoReload.json() as { currentAnalysis?: { limitacoes?: string[] } | null }
+  expect(payloadDepoisDoReload.currentAnalysis?.limitacoes?.join(' ')).toMatch(/insuficiente/i)
 })
