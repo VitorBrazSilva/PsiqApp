@@ -1,4 +1,4 @@
-import { formatarDataHora } from '../clinical-records/datasClinicas'
+import { formatarDataHora } from '../registros-clinicos/datasClinicas'
 import type { GeracaoAnalise } from './servicoAnalises'
 
 interface Props {

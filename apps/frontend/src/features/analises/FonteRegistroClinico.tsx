@@ -1,6 +1,6 @@
 import { ErroApi } from '../../shared/api/erroApi'
-import { formatarDataHora } from '../clinical-records/datasClinicas'
-import { servicoRegistrosClinicos, type RegistroClinico } from '../clinical-records/servicoRegistrosClinicos'
+import { formatarDataHora } from '../registros-clinicos/datasClinicas'
+import { servicoRegistrosClinicos, type RegistroClinico } from '../registros-clinicos/servicoRegistrosClinicos'
 import { useEffect, useState } from 'react'
 
 interface Props {

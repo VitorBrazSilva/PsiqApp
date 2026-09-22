@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { FormularioConsulta } from './FormularioConsulta'
 import { ListaConsultas } from './ListaConsultas'
 import { servicoConsultas, type Consulta } from './servicoConsultas'
-import { servicoPacientes, type Paciente } from '../patients/servicoPacientes'
+import { servicoPacientes, type Paciente } from '../pacientes/servicoPacientes'
 
 export function PaginaAgenda() {
   const [consultas, setConsultas] = useState<Consulta[]>([])

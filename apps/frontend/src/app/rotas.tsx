@@ -1,7 +1,7 @@
 import { Link, Navigate, Route, Routes } from 'react-router'
-import { PaginaPacientes } from '../features/patients/PaginaPacientes'
-import { PaginaAgenda } from '../features/appointments/PaginaAgenda'
-import { PaginaProntuario } from '../features/clinical-records/PaginaProntuario'
+import { PaginaPacientes } from '../features/pacientes/PaginaPacientes'
+import { PaginaAgenda } from '../features/consultas/PaginaAgenda'
+import { PaginaProntuario } from '../features/registros-clinicos/PaginaProntuario'
 
 export function Rotas() {
   return (

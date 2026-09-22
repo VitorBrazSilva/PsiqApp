@@ -82,16 +82,16 @@ apps/backend/src/main/java/com/psiqapp/
 └── config/
 ```
 
-Frontend implementado (`analyses` está apenas reservado, sem funcionalidade):
+Frontend implementado com módulos de negócio em nomenclatura canônica:
 
 ```text
 apps/frontend/src/
 ├── app/
 ├── features/
-│   ├── patients/
-│   ├── appointments/
-│   ├── clinical-records/
-│   └── analyses/
+│   ├── pacientes/
+│   ├── consultas/
+│   ├── registros-clinicos/
+│   └── analises/
 └── shared/
 ```
 
