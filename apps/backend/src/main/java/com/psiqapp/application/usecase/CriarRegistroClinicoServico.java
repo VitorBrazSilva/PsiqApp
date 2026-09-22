@@ -71,7 +71,7 @@ public class CriarRegistroClinicoServico {
     }
 
     private void validarAssociacoes(Entrada entrada) {
-        if (entrada.tipo() == TipoRegistroClinico.ORIGINAL) {
+        if (entrada.tipo() == TipoRegistroClinico.PARECER) {
             if (entrada.parecerOriginalId() != null) throw new ConflitoException();
             if (entrada.consultaId() != null) {
                 UUID pacienteDaConsulta = consultas.pacienteDaConsulta(entrada.consultaId())
@@ -97,7 +97,7 @@ public class CriarRegistroClinicoServico {
     }
 
     private ModoAnalise modo(int totalOriginais) {
-        return totalOriginais <= 1 ? ModoAnalise.SUMMARY_ONLY : ModoAnalise.LONGITUDINAL;
+        return totalOriginais <= 1 ? ModoAnalise.RESUMO : ModoAnalise.LONGITUDINAL;
     }
 
     private record DadosValidados(String texto, String humor, String medicamentos, Instant dataHoraClinica) {}

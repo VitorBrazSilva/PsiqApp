@@ -7,31 +7,31 @@ import com.psiqapp.domain.exception.ValidacaoException;
 import java.util.*;
 import java.util.regex.Pattern;
 
-public class ValidadorResponseAnalise {
-    public static final String LIMITACAO_SUMMARY_ONLY =
+public class AnaliseResponseValidator {
+    public static final String LIMITACAO_RESUMO =
             "HistÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â³rico insuficiente para avaliar evoluÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o ou tendÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªncia longitudinal.";
     private final CatalogoSegurancaClinica catalogo;
 
-    public ValidadorResponseAnalise(CatalogoSegurancaClinica catalogo) {
+    public AnaliseResponseValidator(CatalogoSegurancaClinica catalogo) {
         this.catalogo = catalogo;
     }
 
     public AnaliseClinica validar(UUID analiseId, UUID geracaoId, UUID pacienteId, ModoAnalise modo,
             java.time.Instant geradaEm, Response resposta, SnapshotAnalise snapshot) {
         Objects.requireNonNull(resposta, "resposta");
-        var timeline = validarItens(resposta.timeline(), SecaoAnalise.TIMELINE, snapshot);
-        var patterns = validarItens(resposta.patterns(), SecaoAnalise.PATTERNS, snapshot);
-        var attention = validarItens(resposta.attentionPoints(), SecaoAnalise.ATTENTION_POINTS, snapshot);
-        var limitations = resposta.limitations() == null ? List.<String>of() : resposta.limitations().stream()
+        var timeline = validarItens(resposta.linhaDoTempo(), SecaoAnalise.LINHA_DO_TEMPO, snapshot);
+        var patterns = validarItens(resposta.padroes(), SecaoAnalise.PADROES, snapshot);
+        var attention = validarItens(resposta.pontosDeAtencao(), SecaoAnalise.PONTOS_DE_ATENCAO, snapshot);
+        var limitations = resposta.limitacoes() == null ? List.<String>of() : resposta.limitacoes().stream()
                 .filter(Objects::nonNull).map(String::trim).filter(s -> !s.isBlank()).toList();
         validarSeguranca(timeline, patterns, attention, limitations);
-        if (modo == ModoAnalise.SUMMARY_ONLY) {
+        if (modo == ModoAnalise.RESUMO) {
             if (!patterns.isEmpty()) {
                 erro("analise", "SUMMARY_ONLY nao permite padroes longitudinais.");
             }
-            if (limitations.stream().noneMatch(l -> normalizar(l).contains(normalizar(LIMITACAO_SUMMARY_ONLY)))) {
+            if (limitations.stream().noneMatch(l -> normalizar(l).contains(normalizar(LIMITACAO_RESUMO)))) {
                 var ajustadas = new ArrayList<>(limitations);
-                ajustadas.add(LIMITACAO_SUMMARY_ONLY);
+                ajustadas.add(LIMITACAO_RESUMO);
                 limitations = List.copyOf(ajustadas);
             }
         }
@@ -48,38 +48,38 @@ public class ValidadorResponseAnalise {
         snapshot.registros().forEach(registro -> porAlias.put(registro.alias(), registro));
         var validados = new ArrayList<ItemAnaliseClinica>();
         for (ItemResponse item : itens) {
-            if (item == null || item.text() == null || item.text().isBlank()
-                    || item.nature() == null || item.evidence() == null || item.evidence().isEmpty()) {
+            if (item == null || item.texto() == null || item.texto().isBlank()
+                    || item.natureza() == null || item.evidencias() == null || item.evidencias().isEmpty()) {
                 erro("analise", "Item de analise invalido.");
             }
             var evidencias = new ArrayList<EvidenciaAnalise>();
-            for (EvidenciaResponse evidencia : item.evidence()) {
-                var registro = porAlias.get(evidencia.recordAlias());
+            for (EvidenciaResponse evidencia : item.evidencias()) {
+                var registro = porAlias.get(evidencia.apelidoRegistro());
                 if (registro == null) {
                     erro("evidence", "Evidencia fora do snapshot.");
                 }
-                CampoEvidencia campo = parseCampo(evidencia.field());
+                CampoEvidencia campo = parseCampo(evidencia.campo());
                 String fonte = switch (campo) {
                     case TEXTO -> registro.texto();
                     case HUMOR -> registro.humor();
                     case MEDICAMENTOS -> registro.medicamentos();
                 };
-                if (fonte == null || evidencia.quote() == null
-                        || !normalizarWhitespace(fonte).contains(normalizarWhitespace(evidencia.quote()))) {
+                if (fonte == null || evidencia.citacao() == null
+                        || !normalizarWhitespace(fonte).contains(normalizarWhitespace(evidencia.citacao()))) {
                     erro("quote", "Citacao literal ausente no registro clinico.");
                 }
-                evidencias.add(new EvidenciaAnalise(evidencia.recordAlias(), registro.id(), campo, evidencia.quote()));
+                evidencias.add(new EvidenciaAnalise(evidencia.apelidoRegistro(), registro.id(), campo, evidencia.citacao()));
             }
-            validados.add(new ItemAnaliseClinica(item.text().trim(), item.nature(), List.copyOf(evidencias)));
+            validados.add(new ItemAnaliseClinica(item.texto().trim(), item.natureza(), List.copyOf(evidencias)));
         }
         return List.copyOf(validados);
     }
 
     private CampoEvidencia parseCampo(String campo) {
-        return switch (campo == null ? "" : campo) {
-            case "text" -> CampoEvidencia.TEXTO;
-            case "mood" -> CampoEvidencia.HUMOR;
-            case "medications" -> CampoEvidencia.MEDICAMENTOS;
+        return switch (campo == null ? "" : campo.toUpperCase(Locale.ROOT)) {
+            case "TEXTO", "TEXT" -> CampoEvidencia.TEXTO;
+            case "HUMOR", "MOOD" -> CampoEvidencia.HUMOR;
+            case "MEDICAMENTOS", "MEDICATIONS" -> CampoEvidencia.MEDICAMENTOS;
             default -> throw new ValidacaoException(List.of(new ErroDeValidacao("field", "Campo de evidencia invalido.")));
         };
     }
@@ -108,8 +108,8 @@ public class ValidadorResponseAnalise {
         return normalizarWhitespace(texto).toLowerCase(Locale.ROOT);
     }
 
-    public record Response(List<ItemResponse> timeline, List<ItemResponse> patterns,
-            List<ItemResponse> attentionPoints, List<String> limitations) {}
-    public record ItemResponse(String text, NaturezaObservacao nature, List<EvidenciaResponse> evidence) {}
-    public record EvidenciaResponse(String recordAlias, String field, String quote) {}
+    public record Response(List<ItemResponse> linhaDoTempo, List<ItemResponse> padroes,
+            List<ItemResponse> pontosDeAtencao, List<String> limitacoes) {}
+    public record ItemResponse(String texto, NaturezaObservacao natureza, List<EvidenciaResponse> evidencias) {}
+    public record EvidenciaResponse(String apelidoRegistro, String campo, String citacao) {}
 }

@@ -46,9 +46,9 @@ class ProcessarGeracaoAnaliseUseCaseTest {
     @Test
     void respostaInvalidaNaoPublicaParcial() {
         var fixture = fixture(s -> new ProvedorAnaliseClinicaPort.ResponseProvider(
-                new ValidadorResponseAnalise.Response(List.of(
-                        new ValidadorResponseAnalise.ItemResponse("Item sem evidencia.",
-                                NaturezaObservacao.REPORTED, List.of())),
+                new AnaliseResponseValidator.Response(List.of(
+                        new AnaliseResponseValidator.ItemResponse("Item sem evidencia.",
+                                NaturezaObservacao.RELATO, List.of())),
                         List.of(), List.of(), List.of()),
                 "fake", null, null));
 
@@ -61,16 +61,16 @@ class ProcessarGeracaoAnaliseUseCaseTest {
     }
 
     private Fixture fixture(ProvedorAnaliseClinicaPort provedor) {
-        var registro = new RegistroClinico(registroId, pacienteId, TipoRegistroClinico.ORIGINAL, null, null,
+        var registro = new RegistroClinico(registroId, pacienteId, TipoRegistroClinico.PARECER, null, null,
                 agora.minusSeconds(60), agora.minusSeconds(30), "Registro clinico ficticio.", null, null, 1);
         var registros = new RegistrosFake(registro);
         var geracoes = new GeracoesFake(new GeracaoAnalise(geracaoId, pacienteId, GatilhoGeracaoAnalise.AUTO,
                 registroId, 1, 1, agora, EstadoGeracaoAnalise.QUEUED, 1, 1, 0, registroId,
-                ModoAnalise.SUMMARY_ONLY));
+                ModoAnalise.RESUMO));
         var analises = new AnalisesFake();
         var tentativas = new TentativasFake();
         var usecase = new ProcessarGeracaoAnaliseUseCase(geracoes, analises, tentativas,
-                new MontadorSnapshotAnalise(registros), new ValidadorResponseAnalise(new CatalogoSegurancaClinica()),
+                new SnapshotAnaliseAssembler(registros), new AnaliseResponseValidator(new CatalogoSegurancaClinica()),
                 provedor, Supplier::get, Clock.fixed(agora, ZoneOffset.UTC),
                 new ProcessarGeracaoAnaliseUseCase.Config(Duration.ofSeconds(120), Duration.ofSeconds(180),
                         Duration.ofSeconds(240), Duration.ofSeconds(5), Duration.ofSeconds(20), 3));

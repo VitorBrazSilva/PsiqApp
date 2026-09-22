@@ -33,11 +33,11 @@ Tasks 2.0 e 3.0.
 
 ## Subtarefas
 
-- [ ] 4.1 Atualizar o contrato interno de análise, mappers e validação para os nomes canônicos.
-- [ ] 4.2 Executar as separações de responsabilidades confirmadas e registrar as decisões mantidas.
-- [ ] 4.3 Atualizar portas, provider fake, adapter OpenAI e scheduler/worker.
-- [ ] 4.4 Validar transações, retry, lease, idempotência, isolamento e resultado tardio.
-- [ ] 4.5 Reexecutar o scan de referências antigas.
+- [x] 4.1 Atualizar o contrato interno de análise, mappers e validação para os nomes canônicos.
+- [x] 4.2 Executar as separações de responsabilidades confirmadas e registrar as decisões mantidas.
+- [x] 4.3 Atualizar portas, provider fake, adapter OpenAI e scheduler/worker.
+- [x] 4.4 Validar transações, retry, lease, idempotência, isolamento e resultado tardio.
+- [x] 4.5 Reexecutar o scan de referências antigas.
 
 ## Critérios de sucesso
 
@@ -49,9 +49,9 @@ Tasks 2.0 e 3.0.
 
 ## Testes obrigatórios
 
-- [ ] Unitários dos serviços separados, mappers, enums, payload e validador.
+- [x] Unitários dos serviços separados, mappers, enums, payload e validador.
 - [ ] Testes de fronteira arquitetural e dependências entre portas, aplicação, adapters e domínio.
-- [ ] Provider fake para timeout, erro, resposta inválida, schema inválido e retry controlado.
+- [x] Provider fake para timeout, erro, resposta inválida, schema inválido e retry controlado.
 - [ ] Cenários de zero, um e múltiplos pareceres originais, incluindo complementos.
 - [ ] Evidência inexistente, outro paciente, fora do snapshot, campo inválido e citação inexistente.
 - [ ] Ausência de diagnóstico fechado, prescrição, recomendação de dose e invenção de informação.

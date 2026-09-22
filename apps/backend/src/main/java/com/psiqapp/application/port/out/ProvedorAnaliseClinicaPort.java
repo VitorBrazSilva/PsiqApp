@@ -1,6 +1,6 @@
 package com.psiqapp.application.port.out;
 
-import com.psiqapp.application.servico.ValidadorResponseAnalise;
+import com.psiqapp.application.servico.AnaliseResponseValidator;
 import com.psiqapp.domain.modelo.ModoAnalise;
 import java.time.Duration;
 
@@ -9,6 +9,6 @@ public interface ProvedorAnaliseClinicaPort {
 
     record Solicitacao(SnapshotAnalise snapshot, ModoAnalise modo, Duration timeout, Duration orcamentoRestante) {}
 
-    record ResponseProvider(ValidadorResponseAnalise.Response resposta, String providerRequestId,
+    record ResponseProvider(AnaliseResponseValidator.Response resposta, String providerRequestId,
             Integer inputTokens, Integer outputTokens) {}
 }

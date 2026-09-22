@@ -17,8 +17,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @ConditionalOnProperty(prefix = "psiqapp.product", name = "enabled", havingValue = "true", matchIfMissing = true)
 class WorkerAnaliseConfiguration {
     @Bean
-    MontadorSnapshotAnalise montadorSnapshotAnalise(RepositoryRegistroClinicoPort registros) {
-        return new MontadorSnapshotAnalise(registros);
+    SnapshotAnaliseAssembler snapshotAnaliseAssembler(RepositoryRegistroClinicoPort registros) {
+        return new SnapshotAnaliseAssembler(registros);
     }
 
     @Bean
@@ -27,14 +27,14 @@ class WorkerAnaliseConfiguration {
     }
 
     @Bean
-    ValidadorResponseAnalise validadorResponseAnalise(CatalogoSegurancaClinica catalogo) {
-        return new ValidadorResponseAnalise(catalogo);
+    AnaliseResponseValidator analiseResponseValidator(CatalogoSegurancaClinica catalogo) {
+        return new AnaliseResponseValidator(catalogo);
     }
 
     @Bean
     ProcessarGeracaoAnaliseUseCase processarGeracaoAnaliseUseCase(RepositoryGeracaoAnalisePort geracoes,
             RepositoryAnaliseClinicaPort analises, RepositoryTentativaGeracaoPort tentativas,
-            MontadorSnapshotAnalise snapshots, ValidadorResponseAnalise validador,
+            SnapshotAnaliseAssembler snapshots, AnaliseResponseValidator validador,
             ProvedorAnaliseClinicaPort provedor, TransactionRunnerPort transacao, Clock relogio,
             AnaliseWorkerPropriedades props) {
         return new ProcessarGeracaoAnaliseUseCase(geracoes, analises, tentativas, snapshots, validador,

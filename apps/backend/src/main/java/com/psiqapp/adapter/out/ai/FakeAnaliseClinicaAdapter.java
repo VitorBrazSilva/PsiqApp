@@ -1,7 +1,7 @@
 package com.psiqapp.adapter.out.ai;
 
 import com.psiqapp.application.port.out.ProvedorAnaliseClinicaPort;
-import com.psiqapp.application.servico.ValidadorResponseAnalise;
+import com.psiqapp.application.servico.AnaliseResponseValidator;
 import com.psiqapp.domain.modelo.NaturezaObservacao;
 import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -15,14 +15,14 @@ class FakeAnaliseClinicaAdapter implements ProvedorAnaliseClinicaPort {
     public ResponseProvider gerar(Solicitacao solicitacao) {
         var primeiro = solicitacao.snapshot().registros().stream().findFirst()
                 .orElseThrow(() -> new IllegalStateException("Snapshot sem registros clinicos."));
-        var item = new ValidadorResponseAnalise.ItemResponse(
+        var item = new AnaliseResponseValidator.ItemResponse(
                 "Resumo baseado em registro clinico ficticio do snapshot.",
-                NaturezaObservacao.REPORTED,
-                List.of(new ValidadorResponseAnalise.EvidenciaResponse(primeiro.alias(), "text", primeiro.texto())));
+                NaturezaObservacao.RELATO,
+                List.of(new AnaliseResponseValidator.EvidenciaResponse(primeiro.alias(), "TEXTO", primeiro.texto())));
         var limitations = solicitacao.modo().name().equals("RESUMO")
-                ? List.of(ValidadorResponseAnalise.LIMITACAO_SUMMARY_ONLY)
+                ? List.of(AnaliseResponseValidator.LIMITACAO_RESUMO)
                 : List.of("Analise limitada aos registros clinicos ficticios informados.");
-        return new ResponseProvider(new ValidadorResponseAnalise.Response(
+        return new ResponseProvider(new AnaliseResponseValidator.Response(
                 List.of(item), List.of(), List.of(), limitations), "fake-provider", null, null);
     }
 }

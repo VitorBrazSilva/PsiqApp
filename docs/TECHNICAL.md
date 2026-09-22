@@ -451,6 +451,8 @@ Constraints e triggers:
 
 ## 8. Snapshot, revisão e análise atual
 
+Na camada interna de aplicação, a montagem do contexto clínico é responsabilidade de `SnapshotAnaliseAssembler` e a validação determinística da resposta é responsabilidade de `AnaliseResponseValidator`. O worker usa a porta `ProvedorAnaliseClinicaPort` e mantém a chamada ao provider, retry e publicação fora da transação clínica.
+
 Cada paciente possui uma revisão clínica monotônica. Ao criar parecer ou complemento:
 
 1. o caso de uso bloqueia a linha do paciente com `SELECT FOR UPDATE`;

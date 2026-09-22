@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.psiqapp.application.port.out.FalhaProviderException;
 import com.psiqapp.application.port.out.ProvedorAnaliseClinicaPort;
-import com.psiqapp.application.servico.ValidadorResponseAnalise;
+import com.psiqapp.application.servico.AnaliseResponseValidator;
 import com.psiqapp.config.OpenAiPropriedades;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
@@ -40,12 +40,12 @@ class OpenAiAnaliseClinicaAdapter implements ProvedorAnaliseClinicaPort {
         try {
             OpenAIClient client = OpenAIOkHttpClient.fromEnv()
                     .withOptions(options -> options.timeout(solicitacao.timeout()).maxRetries(0));
-            StructuredResponseCreateParams<ValidadorResponseAnalise.Response> params =
+            StructuredResponseCreateParams<AnaliseResponseValidator.Response> params =
                     com.openai.models.responses.ResponseCreateParams.builder()
                             .model(props.model())
                             .instructions(instrucoesSistema())
                             .input(montarPayload(solicitacao))
-                            .text(ValidadorResponseAnalise.Response.class, JsonSchemaLocalValidation.NO)
+                            .text(AnaliseResponseValidator.Response.class, JsonSchemaLocalValidation.NO)
                             .build();
             var resposta = client.responses().create(params);
             var payload = resposta.output().stream()
