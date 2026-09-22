@@ -93,7 +93,7 @@ jobs:
       - name: Start backend dependencies for E2E
         shell: bash
         run: |
-          PSIQAPP_ANALYSIS_WORKER_ENABLED=true PSIQAPP_ANALYSIS_PROVIDER=fake \
+          PSIQAPP_ANALISE_WORKER_ENABLED=true PSIQAPP_ANALISE_PROVIDER=fake \
             docker compose --env-file .env.example -f infra/compose.yaml up -d --build --wait --wait-timeout 120 postgres backend
 
       - name: Run E2E checks

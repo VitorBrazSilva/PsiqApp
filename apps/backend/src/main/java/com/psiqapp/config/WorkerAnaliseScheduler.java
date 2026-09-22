@@ -15,7 +15,7 @@ class WorkerAnaliseScheduler {
         this.processador = processador;
     }
 
-    @Scheduled(fixedDelayString = "${psiqapp.analysis.worker.poll-interval:2s}")
+    @Scheduled(fixedDelayString = "${psiqapp.analise.worker.poll-interval:2s}")
     void processar() {
         if (!executando.compareAndSet(false, true)) {
             return;

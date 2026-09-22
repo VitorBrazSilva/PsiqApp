@@ -38,7 +38,7 @@ cp .env.example .env
 
 Substitua os placeholders localmente. `.env` e outros arquivos locais de ambiente sao ignorados pelo Git; `.env.example` deve conter apenas placeholders.
 
-O worker de analise fica desabilitado por padrao. Para processar geracoes localmente, habilite `PSIQAPP_ANALYSIS_WORKER_ENABLED=true`. O provider padrao e `fake`, sem rede externa; para usar OpenAI, configure `PSIQAPP_ANALYSIS_PROVIDER=openai`, `OPENAI_API_KEY` e `OPENAI_MODEL`.
+O worker de analise fica desabilitado por padrao. Para processar geracoes localmente, habilite `PSIQAPP_ANALISE_WORKER_ENABLED=true`. O provider padrao e `fake`, sem rede externa; para usar OpenAI, configure `PSIQAPP_ANALISE_PROVIDER=openai`, `OPENAI_API_KEY` e `OPENAI_MODEL`.
 
 ## PostgreSQL
 

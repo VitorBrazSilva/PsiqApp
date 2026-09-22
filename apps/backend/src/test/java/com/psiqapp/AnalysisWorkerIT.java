@@ -23,7 +23,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = "psiqapp.analysis.worker.enabled=false")
+        properties = "psiqapp.analise.worker.enabled=false")
 @ActiveProfiles("local")
 @Testcontainers
 class AnalysisWorkerIT {
