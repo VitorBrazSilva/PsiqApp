@@ -43,7 +43,7 @@ class WorkerAnaliseConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(prefix = "psiqapp.analysis.worker", name = "enabled", havingValue = "true")
+    @ConditionalOnProperty(prefix = "psiqapp.analise.worker", name = "enabled", havingValue = "true")
     WorkerAnaliseScheduler workerAnaliseScheduler(ProcessarGeracaoAnaliseUseCase processador) {
         return new WorkerAnaliseScheduler(processador);
     }

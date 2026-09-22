@@ -32,11 +32,11 @@ Tasks 3.0, 4.0, 5.0 e 6.0.
 
 ## Subtarefas
 
-- [ ] 7.1 Atualizar documentação de negócio, técnica, onboarding e artefatos SDD.
-- [ ] 7.2 Atualizar propriedades, variáveis, `.env.example` e Compose.
-- [ ] 7.3 Atualizar workflows e validações sem alterar a matriz de jobs e comandos.
-- [ ] 7.4 Validar links, comandos, nomes finais, placeholders e ausência de secrets/dados reais.
-- [ ] 7.5 Reexecutar o scan em documentação e configuração usando a allowlist definida na Task 1.
+- [x] 7.1 Atualizar documentação de negócio, técnica, onboarding e artefatos SDD.
+- [x] 7.2 Atualizar propriedades, variáveis, `.env.example` e Compose.
+- [x] 7.3 Atualizar workflows e validações sem alterar a matriz de jobs e comandos.
+- [x] 7.4 Validar links, comandos, nomes finais, placeholders e ausência de secrets/dados reais.
+- [x] 7.5 Reexecutar o scan em documentação e configuração usando a allowlist definida na Task 1.
 
 ## Critérios de sucesso
 

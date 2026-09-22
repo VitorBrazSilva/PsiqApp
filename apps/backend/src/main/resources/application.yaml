@@ -55,16 +55,16 @@ springdoc:
     path: /api/v1/openapi
   paths-to-match: /api/v1/**
 psiqapp:
-  analysis:
+  analise:
     worker:
-      enabled: ${PSIQAPP_ANALYSIS_WORKER_ENABLED:false}
-      poll-interval: ${PSIQAPP_ANALYSIS_WORKER_POLL_INTERVAL:2s}
-      call-timeout: ${PSIQAPP_ANALYSIS_CALL_TIMEOUT:120s}
-      attempt-budget: ${PSIQAPP_ANALYSIS_ATTEMPT_BUDGET:180s}
-      lease-ttl: ${PSIQAPP_ANALYSIS_LEASE_TTL:240s}
-      max-attempts: ${PSIQAPP_ANALYSIS_MAX_ATTEMPTS:3}
-      backoff-initial: ${PSIQAPP_ANALYSIS_BACKOFF_INITIAL:5s}
-      backoff-final: ${PSIQAPP_ANALYSIS_BACKOFF_FINAL:20s}
+      enabled: ${PSIQAPP_ANALISE_WORKER_ENABLED:false}
+      poll-interval: ${PSIQAPP_ANALISE_WORKER_POLL_INTERVAL:2s}
+      call-timeout: ${PSIQAPP_ANALISE_CALL_TIMEOUT:120s}
+      attempt-budget: ${PSIQAPP_ANALISE_ATTEMPT_BUDGET:180s}
+      lease-ttl: ${PSIQAPP_ANALISE_LEASE_TTL:240s}
+      max-attempts: ${PSIQAPP_ANALISE_MAX_ATTEMPTS:3}
+      backoff-initial: ${PSIQAPP_ANALISE_BACKOFF_INITIAL:5s}
+      backoff-final: ${PSIQAPP_ANALISE_BACKOFF_FINAL:20s}
     provider:
-      type: ${PSIQAPP_ANALYSIS_PROVIDER:fake}
+      type: ${PSIQAPP_ANALISE_PROVIDER:fake}
       model: ${OPENAI_MODEL:gpt-5.6-terra}

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @ConditionalOnProperty(prefix = "psiqapp.product", name = "enabled", havingValue = "true", matchIfMissing = true)
-@ConditionalOnProperty(prefix = "psiqapp.analysis.provider", name = "type", havingValue = "fake", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "psiqapp.analise.provider", name = "type", havingValue = "fake", matchIfMissing = true)
 class FakeAnaliseClinicaAdapter implements ProvedorAnaliseClinicaPort {
     @Override
     public ResponseProvider gerar(Solicitacao solicitacao) {

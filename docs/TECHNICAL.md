@@ -822,15 +822,15 @@ Backend lê por ambiente:
 
 Variáveis do worker de análise:
 
-- `PSIQAPP_ANALYSIS_WORKER_ENABLED`, padrão `false`;
-- `PSIQAPP_ANALYSIS_PROVIDER`, padrão `fake`, aceita `fake` ou `openai`;
-- `PSIQAPP_ANALYSIS_WORKER_POLL_INTERVAL`, padrão `2s`;
-- `PSIQAPP_ANALYSIS_CALL_TIMEOUT`, padrão `120s`;
-- `PSIQAPP_ANALYSIS_ATTEMPT_BUDGET`, padrão `180s`;
-- `PSIQAPP_ANALYSIS_LEASE_TTL`, padrão `240s`;
-- `PSIQAPP_ANALYSIS_MAX_ATTEMPTS`, padrão `3`;
-- `PSIQAPP_ANALYSIS_BACKOFF_INITIAL`, padrão `5s`;
-- `PSIQAPP_ANALYSIS_BACKOFF_FINAL`, padrão `20s`.
+- `PSIQAPP_ANALISE_WORKER_ENABLED`, padrão `false`;
+- `PSIQAPP_ANALISE_PROVIDER`, padrão `fake`, aceita `fake` ou `openai`;
+- `PSIQAPP_ANALISE_WORKER_POLL_INTERVAL`, padrão `2s`;
+- `PSIQAPP_ANALISE_CALL_TIMEOUT`, padrão `120s`;
+- `PSIQAPP_ANALISE_ATTEMPT_BUDGET`, padrão `180s`;
+- `PSIQAPP_ANALISE_LEASE_TTL`, padrão `240s`;
+- `PSIQAPP_ANALISE_MAX_ATTEMPTS`, padrão `3`;
+- `PSIQAPP_ANALISE_BACKOFF_INITIAL`, padrão `5s`;
+- `PSIQAPP_ANALISE_BACKOFF_FINAL`, padrão `20s`.
 
 Frontend recebe apenas configuração pública. Nunca expor `OPENAI_API_KEY`, credenciais de banco ou secrets no bundle, logs, Problem Details, fixtures, testes ou documentação.
 

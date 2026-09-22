@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @ConditionalOnProperty(prefix = "psiqapp.product", name = "enabled", havingValue = "true", matchIfMissing = true)
-@ConditionalOnProperty(prefix = "psiqapp.analysis.provider", name = "type", havingValue = "openai")
+@ConditionalOnProperty(prefix = "psiqapp.analise.provider", name = "type", havingValue = "openai")
 class OpenAiAnaliseClinicaAdapter implements ProvedorAnaliseClinicaPort {
     private final OpenAiPropriedades props;
     private final ObjectMapper json;
