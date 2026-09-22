@@ -47,13 +47,13 @@ function ConteudoAnalise({ analise, aoAbrirFonte }: { analise: AnaliseClinica, a
 }
 
 export function PainelAnaliseAtual({ estado, carregando, erro, aoRegenerar, regenerando, aoAbrirFonte }: Props) {
-  const ativa = estado?.activeGeneration
-  const falha = estado?.latestGeneration?.estado === 'FALHA'
+  const ativa = estado?.geracaoAtiva
+  const falha = estado?.ultimaGeracao?.estado === 'FALHA'
   return (
     <section className="painel analise">
       <div className="registro-cabecalho">
         <h2>Análise atual</h2>
-        <button type="button" disabled={!estado?.canRegenerate || regenerando} onClick={aoRegenerar}>
+        <button type="button" disabled={!estado?.podeRegenerar || regenerando} onClick={aoRegenerar}>
           {regenerando ? 'Solicitando...' : 'Regenerar'}
         </button>
       </div>
@@ -61,9 +61,9 @@ export function PainelAnaliseAtual({ estado, carregando, erro, aoRegenerar, rege
       {erro && <p role="alert" className="erro">{erro}</p>}
       {ativa && <p className="estado">Atualização em andamento: {ativa.estado}. O prontuário continua disponível.</p>}
       {falha && <p role="status" className="erro">A última geração falhou. A análise válida anterior permanece exibida quando existe.</p>}
-      {!estado?.canRegenerate && estado?.reason && <p className="estado">{estado.reason}</p>}
-      {estado?.currentAnalysis
-        ? <ConteudoAnalise analise={estado.currentAnalysis} aoAbrirFonte={aoAbrirFonte} />
+      {!estado?.podeRegenerar && estado?.motivo && <p className="estado">{estado.motivo}</p>}
+      {estado?.analiseAtual
+        ? <ConteudoAnalise analise={estado.analiseAtual} aoAbrirFonte={aoAbrirFonte} />
         : !carregando && <p className="estado">Ainda não há análise válida para este paciente.</p>}
     </section>
   )

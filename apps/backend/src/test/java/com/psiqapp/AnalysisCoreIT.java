@@ -66,16 +66,16 @@ class AnalysisCoreIT {
         assertThat(repetida.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
         assertThat(repetida.getBody().path("id").asText()).isEqualTo(geracaoManual.toString());
 
-        var estado = http.getForEntity("/api/v1/patients/" + pacienteId + "/analysis-state", JsonNode.class);
+        var estado = http.getForEntity("/api/v1/pacientes/" + pacienteId + "/estado-analise", JsonNode.class);
         assertThat(estado.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(estado.getBody().path("activeGeneration").path("id").asText()).isEqualTo(geracaoManual.toString());
-        assertThat(estado.getBody().path("canRegenerate").asBoolean()).isFalse();
-        assertThat(estado.getBody().path("reason").asText()).isEqualTo("GENERATION_ACTIVE");
+        assertThat(estado.getBody().path("geracaoAtiva").path("id").asText()).isEqualTo(geracaoManual.toString());
+        assertThat(estado.getBody().path("podeRegenerar").asBoolean()).isFalse();
+        assertThat(estado.getBody().path("motivo").asText()).isEqualTo("GENERATION_ACTIVE");
 
-        var historico = http.getForEntity("/api/v1/patients/" + pacienteId + "/analysis-generations?page=0&size=10",
+        var historico = http.getForEntity("/api/v1/pacientes/" + pacienteId + "/geracoes-analise?pagina=0&tamanho=10",
                 JsonNode.class);
         assertThat(historico.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(historico.getBody().path("items")).hasSize(2);
+        assertThat(historico.getBody().path("itens")).hasSize(2);
     }
 
     @Test
@@ -114,11 +114,11 @@ class AnalysisCoreIT {
         UUID analise1 = inserirAnalise(geracao1, pacienteId, "RESUMO");
         UUID analise2 = inserirAnalise(geracao2, pacienteId, "LONGITUDINAL");
 
-        var estado = http.getForEntity("/api/v1/patients/" + pacienteId + "/analysis-state", JsonNode.class);
+        var estado = http.getForEntity("/api/v1/pacientes/" + pacienteId + "/estado-analise", JsonNode.class);
         assertThat(estado.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(estado.getBody().path("currentAnalysis").path("id").asText()).isEqualTo(analise2.toString());
+        assertThat(estado.getBody().path("analiseAtual").path("id").asText()).isEqualTo(analise2.toString());
 
-        var historica = http.getForEntity("/api/v1/patients/" + pacienteId + "/analyses/" + analise1, JsonNode.class);
+        var historica = http.getForEntity("/api/v1/pacientes/" + pacienteId + "/analises/" + analise1, JsonNode.class);
         assertThat(historica.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(historica.getBody().path("id").asText()).isEqualTo(analise1.toString());
 
@@ -141,21 +141,21 @@ class AnalysisCoreIT {
     private UUID criarPaciente(String nome, String cpf) {
         var body = Map.of("nome", nome, "cpf", cpf, "dataNascimento", "1990-01-01",
                 "telefone", "(11) 98765-4321", "email", "paciente@example.test", "queixaInicial", "");
-        var resposta = http.exchange(URI.create("/api/v1/patients"), HttpMethod.POST,
+        var resposta = http.exchange(URI.create("/api/v1/pacientes"), HttpMethod.POST,
                 entidade(UUID.randomUUID(), body), JsonNode.class);
         assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         return UUID.fromString(resposta.getBody().path("id").asText());
     }
 
     private UUID criarParecer(UUID pacienteId, String texto) {
-        var resposta = http.exchange(URI.create("/api/v1/patients/" + pacienteId + "/clinical-records"),
+        var resposta = http.exchange(URI.create("/api/v1/pacientes/" + pacienteId + "/registros-clinicos"),
                 HttpMethod.POST, entidade(UUID.randomUUID(), Map.of("texto", texto)), JsonNode.class);
         assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         return UUID.fromString(resposta.getBody().path("geracao").path("id").asText());
     }
 
     private ResponseEntity<JsonNode> regenerar(UUID pacienteId, UUID chave) {
-        return http.exchange(URI.create("/api/v1/patients/" + pacienteId + "/analysis-generations"),
+        return http.exchange(URI.create("/api/v1/pacientes/" + pacienteId + "/geracoes-analise"),
                 HttpMethod.POST, entidade(chave, Map.of()), JsonNode.class);
     }
 

@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/patients/{pacienteId}/clinical-records")
+@RequestMapping("/api/v1/pacientes/{pacienteId}/registros-clinicos")
 @ConditionalOnProperty(prefix = "psiqapp.product", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class RegistroClinicoController {
     private final CriarParecerUseCase criarParecer;
@@ -34,25 +34,25 @@ public class RegistroClinicoController {
         var resultado = criarParecer.executar(new CriarParecerUseCase.Comando(pacienteId, requisicao.texto(),
                 requisicao.humor(), requisicao.medicamentos(), requisicao.dataHoraClinica(), requisicao.consultaId(),
                 ChaveIdempotencia.obrigatoria(chave)));
-        return ResponseEntity.created(URI.create("/api/v1/patients/" + pacienteId + "/clinical-records/"
+        return ResponseEntity.created(URI.create("/api/v1/pacientes/" + pacienteId + "/registros-clinicos/"
                 + resultado.registro().id())).body(CriarRegistroClinicoResponse.de(resultado));
     }
 
-    @PostMapping("/{originalId}/complements")
+    @PostMapping("/{parecerOriginalId}/complementos")
     ResponseEntity<CriarRegistroClinicoResponse> criarComplemento(@PathVariable UUID pacienteId,
-            @PathVariable UUID originalId, @RequestHeader(value = "Idempotency-Key", required = false) String chave,
+            @PathVariable UUID parecerOriginalId, @RequestHeader(value = "Idempotency-Key", required = false) String chave,
             @RequestBody CriarRegistroClinicoRequest requisicao) {
-        var resultado = criarComplemento.executar(new CriarComplementoUseCase.Comando(pacienteId, originalId,
+        var resultado = criarComplemento.executar(new CriarComplementoUseCase.Comando(pacienteId, parecerOriginalId,
                 requisicao.texto(), requisicao.humor(), requisicao.medicamentos(), requisicao.dataHoraClinica(),
                 requisicao.consultaId(), ChaveIdempotencia.obrigatoria(chave)));
-        return ResponseEntity.created(URI.create("/api/v1/patients/" + pacienteId + "/clinical-records/"
+        return ResponseEntity.created(URI.create("/api/v1/pacientes/" + pacienteId + "/registros-clinicos/"
                 + resultado.registro().id())).body(CriarRegistroClinicoResponse.de(resultado));
     }
 
     @GetMapping
     PaginaResponse<RegistroClinicoResponse> listar(@PathVariable UUID pacienteId,
-            @RequestParam(name = "page", required = false) Integer pagina,
-            @RequestParam(name = "size", required = false) Integer tamanho) {
+            @RequestParam(name = "pagina", required = false) Integer pagina,
+            @RequestParam(name = "tamanho", required = false) Integer tamanho) {
         return PaginaResponse.de(listarLinhaDoTempo.executar(pacienteId, pagina, tamanho), RegistroClinicoResponse::de);
     }
 

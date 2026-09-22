@@ -24,7 +24,7 @@ const consulta = {
   criadaEm: '2026-01-01T12:00:00Z',
   statusAlteradoEm: null,
 }
-const paginaVazia = { items: [], page: 0, size: 25, total: 0 }
+const paginaVazia = { itens: [], pagina: 0, tamanho: 25, total: 0 }
 
 beforeEach(() => vi.stubGlobal('fetch', fetchMock))
 afterEach(() => vi.unstubAllGlobals())
@@ -32,9 +32,9 @@ afterEach(() => vi.unstubAllGlobals())
 describe('PaginaAgenda', () => {
   it('cria consulta retroativa ou futura consumindo API real de agenda', async () => {
     fetchMock.mockImplementation(async (url, opcoes) => {
-      if (url === '/api/v1/appointments?page=0&size=50') return Response.json(paginaVazia)
-      if (url === '/api/v1/patients?page=0&size=100') return Response.json({ ...paginaVazia, items: [paciente] })
-      if (opcoes?.method === 'POST' && url === `/api/v1/patients/${paciente.id}/appointments`) {
+      if (url === '/api/v1/consultas?pagina=0&tamanho=50') return Response.json(paginaVazia)
+      if (url === '/api/v1/pacientes?pagina=0&tamanho=100') return Response.json({ ...paginaVazia, itens: [paciente] })
+      if (opcoes?.method === 'POST' && url === `/api/v1/pacientes/${paciente.id}/consultas`) {
         return Response.json(consulta, { status: 201 })
       }
       return Response.json(paginaVazia)
@@ -49,16 +49,16 @@ describe('PaginaAgenda', () => {
 
     expect(await screen.findByText('Status: Agendada')).toBeVisible()
     expect(screen.getByText('Paciente: Paciente Ficticia')).toBeVisible()
-    const chamadaCriacao = fetchMock.mock.calls.find(([url]) => url === `/api/v1/patients/${paciente.id}/appointments`)
+    const chamadaCriacao = fetchMock.mock.calls.find(([url]) => url === `/api/v1/pacientes/${paciente.id}/consultas`)
     expect(chamadaCriacao).toBeDefined()
     expect(new Headers(chamadaCriacao?.[1]?.headers).get('Idempotency-Key')).toMatch(/[0-9a-f-]{36}/)
   })
 
   it('atualiza status final e bloqueia novas transicoes na interface', async () => {
     fetchMock.mockImplementation(async (url, opcoes) => {
-      if (url === '/api/v1/appointments?page=0&size=50') return Response.json({ ...paginaVazia, items: [consulta] })
-      if (url === '/api/v1/patients?page=0&size=100') return Response.json({ ...paginaVazia, items: [paciente] })
-      if (opcoes?.method === 'POST' && url === `/api/v1/appointments/${consulta.id}/status`) {
+      if (url === '/api/v1/consultas?pagina=0&tamanho=50') return Response.json({ ...paginaVazia, itens: [consulta] })
+      if (url === '/api/v1/pacientes?pagina=0&tamanho=100') return Response.json({ ...paginaVazia, itens: [paciente] })
+      if (opcoes?.method === 'POST' && url === `/api/v1/consultas/${consulta.id}/status`) {
         return Response.json({ ...consulta, status: 'REALIZADA', statusAlteradoEm: '2026-05-01T16:00:00Z' })
       }
       return Response.json(paginaVazia)
@@ -70,13 +70,13 @@ describe('PaginaAgenda', () => {
     await waitFor(() => expect(screen.getByText('Status: Realizada')).toBeVisible())
     expect(screen.getByText('Paciente: Paciente Ficticia')).toBeVisible()
     expect(screen.getByText('Estado final')).toBeVisible()
-    expect(fetchMock).toHaveBeenCalledWith(`/api/v1/appointments/${consulta.id}/status`, expect.any(Object))
+    expect(fetchMock).toHaveBeenCalledWith(`/api/v1/consultas/${consulta.id}/status`, expect.any(Object))
   })
 
   it('mantem identificador do paciente quando o nome nao veio na pagina carregada', async () => {
     fetchMock.mockImplementation(async (url) => {
-      if (url === '/api/v1/appointments?page=0&size=50') return Response.json({ ...paginaVazia, items: [consulta] })
-      if (url === '/api/v1/patients?page=0&size=100') return Response.json(paginaVazia)
+      if (url === '/api/v1/consultas?pagina=0&tamanho=50') return Response.json({ ...paginaVazia, itens: [consulta] })
+      if (url === '/api/v1/pacientes?pagina=0&tamanho=100') return Response.json(paginaVazia)
       return Response.json(paginaVazia)
     })
     render(<MemoryRouter><PaginaAgenda /></MemoryRouter>)

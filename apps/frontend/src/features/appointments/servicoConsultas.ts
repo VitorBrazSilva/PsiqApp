@@ -32,16 +32,16 @@ export function rotuloStatus(status: StatusConsulta) {
 }
 
 export const servicoConsultas = {
-  listar(filtros: { pacienteId?: string, from?: string, to?: string } = {}, signal?: AbortSignal) {
-    const params = new URLSearchParams({ page: '0', size: '50' })
-    if (filtros.pacienteId) params.set('patientId', filtros.pacienteId)
-    if (filtros.from) params.set('from', filtros.from)
-    if (filtros.to) params.set('to', filtros.to)
-    return api.requisitar<Pagina<Consulta>>(`/appointments?${params}`, { signal })
+  listar(filtros: { pacienteId?: string, de?: string, ate?: string } = {}, signal?: AbortSignal) {
+    const params = new URLSearchParams({ pagina: '0', tamanho: '50' })
+    if (filtros.pacienteId) params.set('pacienteId', filtros.pacienteId)
+    if (filtros.de) params.set('de', filtros.de)
+    if (filtros.ate) params.set('ate', filtros.ate)
+    return api.requisitar<Pagina<Consulta>>(`/consultas?${params}`, { signal })
   },
 
   criar(dados: CriarConsulta) {
-    return api.requisitar<Consulta>(`/patients/${dados.pacienteId}/appointments`, {
+    return api.requisitar<Consulta>(`/pacientes/${dados.pacienteId}/consultas`, {
       metodo: 'POST',
       corpo: { agendadaPara: dados.agendadaPara, observacoes: dados.observacoes },
       chaveDeIdempotencia: chaveDeIdempotencia(),
@@ -49,7 +49,7 @@ export const servicoConsultas = {
   },
 
   atualizarStatus(id: string, status: Exclude<StatusConsulta, 'AGENDADA'>) {
-    return api.requisitar<Consulta>(`/appointments/${id}/status`, {
+    return api.requisitar<Consulta>(`/consultas/${id}/status`, {
       metodo: 'POST',
       corpo: { status },
     })

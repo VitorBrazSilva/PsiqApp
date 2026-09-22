@@ -7,7 +7,7 @@ import { PaginaProntuario } from './PaginaProntuario'
 const fetchMock = vi.fn<typeof fetch>()
 const pacienteA = { id: '11111111-1111-4111-8111-111111111111', nome: 'Paciente Atual A', cpf: '***.***.***-09', dataNascimento: '1990-01-01', telefone: '+5511999999999', email: 'a@example.test', queixaInicial: null, criadoEm: '2026-01-01T12:00:00Z' }
 const pacienteB = { ...pacienteA, id: '22222222-2222-4222-8222-222222222222', nome: 'Paciente Atual B', email: 'b@example.test' }
-const paginaVazia = { items: [], page: 0, size: 25, total: 0 }
+const paginaVazia = { itens: [], pagina: 0, tamanho: 25, total: 0 }
 const registroOriginal = { id: '33333333-3333-4333-8333-333333333333', pacienteId: pacienteA.id, tipo: 'ORIGINAL', parecerOriginalId: null, consultaId: null, dataHoraClinica: '2026-06-01T15:00:00Z', criadoEm: '2026-06-01T15:01:00Z', texto: 'Paciente fictício relata melhora do sono.', humor: 'estável', medicamentos: 'medicação fictícia mantida', revisao: 1 }
 const novoParecer = { ...registroOriginal, id: '34343434-3434-4434-8434-343434343434', texto: 'Novo parecer fictício.', revisao: 3 }
 const complemento = { ...registroOriginal, id: '44444444-4444-4444-8444-444444444444', tipo: 'COMPLEMENTO', parecerOriginalId: registroOriginal.id, dataHoraClinica: '2026-06-02T15:00:00Z', criadoEm: '2026-06-02T15:01:00Z', texto: 'Complemento fictício informa contexto adicional.', revisao: 2 }
@@ -34,21 +34,21 @@ function renderProntuario(id = pacienteA.id) {
 beforeEach(() => {
   vi.stubGlobal('fetch', fetchMock)
   fetchMock.mockImplementation(async (url, opcoes) => {
-    if (url === `/api/v1/patients/${pacienteA.id}`) return json(pacienteA)
-    if (url === `/api/v1/patients/${pacienteB.id}`) return json(pacienteB)
-    if (url === `/api/v1/appointments?page=0&size=50&patientId=${pacienteA.id}`) return json(paginaVazia)
-    if (url === `/api/v1/appointments?page=0&size=50&patientId=${pacienteB.id}`) return json(paginaVazia)
-    if (url === `/api/v1/patients/${pacienteA.id}/clinical-records?page=0&size=100`) return json({ ...paginaVazia, items: [registroOriginal], total: 1 })
-    if (url === `/api/v1/patients/${pacienteB.id}/clinical-records?page=0&size=100`) return json(paginaVazia)
-    if (url === `/api/v1/patients/${pacienteA.id}/analysis-state`) return json({ currentAnalysis: analiseSummary, latestGeneration: { ...geracao, estado: 'CONCLUIDA' }, activeGeneration: null, canRegenerate: true, reason: null })
-    if (url === `/api/v1/patients/${pacienteB.id}/analysis-state`) return json({ currentAnalysis: null, latestGeneration: null, activeGeneration: null, canRegenerate: false, reason: 'Sem parecer original.' })
-    if (url === `/api/v1/patients/${pacienteA.id}/analysis-generations?page=0&size=25`) return json({ ...paginaVazia, items: [{ ...geracao, estado: 'CONCLUIDA' }], total: 1 })
-    if (url === `/api/v1/patients/${pacienteB.id}/analysis-generations?page=0&size=25`) return json(paginaVazia)
-    if (url === `/api/v1/patients/${pacienteA.id}/clinical-records/${registroOriginal.id}`) return json(registroOriginal)
-    if (opcoes?.method === 'POST' && url === `/api/v1/patients/${pacienteB.id}/appointments`) return json({ id: '77777777-7777-4777-8777-777777777777', pacienteId: pacienteB.id, agendadaPara: '2026-06-01T15:00:00Z', status: 'AGENDADA', observacoes: null, criadaEm: '2026-01-01T12:00:00Z', statusAlteradoEm: null }, { status: 201 })
-    if (opcoes?.method === 'POST' && url === `/api/v1/patients/${pacienteA.id}/clinical-records`) return json({ registro: novoParecer, generationId: geracao.id, geracao }, { status: 201 })
-    if (opcoes?.method === 'POST' && url === `/api/v1/patients/${pacienteA.id}/clinical-records/${registroOriginal.id}/complements`) return json({ registro: complemento, generationId: geracao.id, geracao }, { status: 201 })
-    if (opcoes?.method === 'POST' && url === `/api/v1/patients/${pacienteA.id}/analysis-generations`) return json(geracao, { status: 202 })
+    if (url === `/api/v1/pacientes/${pacienteA.id}`) return json(pacienteA)
+    if (url === `/api/v1/pacientes/${pacienteB.id}`) return json(pacienteB)
+    if (url === `/api/v1/consultas?pagina=0&tamanho=50&pacienteId=${pacienteA.id}`) return json(paginaVazia)
+    if (url === `/api/v1/consultas?pagina=0&tamanho=50&pacienteId=${pacienteB.id}`) return json(paginaVazia)
+    if (url === `/api/v1/pacientes/${pacienteA.id}/registros-clinicos?pagina=0&tamanho=100`) return json({ ...paginaVazia, itens: [registroOriginal], total: 1 })
+    if (url === `/api/v1/pacientes/${pacienteB.id}/registros-clinicos?pagina=0&tamanho=100`) return json(paginaVazia)
+    if (url === `/api/v1/pacientes/${pacienteA.id}/estado-analise`) return json({ analiseAtual: analiseSummary, ultimaGeracao: { ...geracao, estado: 'CONCLUIDA' }, geracaoAtiva: null, podeRegenerar: true, motivo: null })
+    if (url === `/api/v1/pacientes/${pacienteB.id}/estado-analise`) return json({ analiseAtual: null, ultimaGeracao: null, geracaoAtiva: null, podeRegenerar: false, motivo: 'Sem parecer original.' })
+    if (url === `/api/v1/pacientes/${pacienteA.id}/geracoes-analise?pagina=0&tamanho=25`) return json({ ...paginaVazia, itens: [{ ...geracao, estado: 'CONCLUIDA' }], total: 1 })
+    if (url === `/api/v1/pacientes/${pacienteB.id}/geracoes-analise?pagina=0&tamanho=25`) return json(paginaVazia)
+    if (url === `/api/v1/pacientes/${pacienteA.id}/registros-clinicos/${registroOriginal.id}`) return json(registroOriginal)
+    if (opcoes?.method === 'POST' && url === `/api/v1/pacientes/${pacienteB.id}/consultas`) return json({ id: '77777777-7777-4777-8777-777777777777', pacienteId: pacienteB.id, agendadaPara: '2026-06-01T15:00:00Z', status: 'AGENDADA', observacoes: null, criadaEm: '2026-01-01T12:00:00Z', statusAlteradoEm: null }, { status: 201 })
+    if (opcoes?.method === 'POST' && url === `/api/v1/pacientes/${pacienteA.id}/registros-clinicos`) return json({ registro: novoParecer, geracaoId: geracao.id, geracao }, { status: 201 })
+    if (opcoes?.method === 'POST' && url === `/api/v1/pacientes/${pacienteA.id}/registros-clinicos/${registroOriginal.id}/complementos`) return json({ registro: complemento, geracaoId: geracao.id, geracao }, { status: 201 })
+    if (opcoes?.method === 'POST' && url === `/api/v1/pacientes/${pacienteA.id}/geracoes-analise`) return json(geracao, { status: 202 })
     return json(paginaVazia)
   })
 })
@@ -66,8 +66,8 @@ describe('PaginaProntuario', () => {
     await usuario.type(screen.getByLabelText('Data e hora'), '2026-06-01T12:00')
     await usuario.click(screen.getByRole('button', { name: 'Criar consulta' }))
     expect(await screen.findByText('Paciente: Paciente Atual B')).toBeVisible()
-    expect(fetchMock).toHaveBeenCalledWith(`/api/v1/patients/${pacienteB.id}/appointments`, expect.any(Object))
-    expect(fetchMock).not.toHaveBeenCalledWith(`/api/v1/patients/${pacienteA.id}/appointments`, expect.any(Object))
+    expect(fetchMock).toHaveBeenCalledWith(`/api/v1/pacientes/${pacienteB.id}/consultas`, expect.any(Object))
+    expect(fetchMock).not.toHaveBeenCalledWith(`/api/v1/pacientes/${pacienteA.id}/consultas`, expect.any(Object))
   })
 
   it('exibe timeline com original, registra parecer com idempotencia e cria complemento', async () => {
@@ -79,7 +79,7 @@ describe('PaginaProntuario', () => {
     expect(await screen.findByText('Informe o texto do parecer.')).toBeVisible()
     await usuario.type(screen.getByLabelText('Texto do parecer'), 'Novo parecer fictício.')
     await usuario.click(screen.getByRole('button', { name: 'Salvar parecer' }))
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(`/api/v1/patients/${pacienteA.id}/clinical-records`, expect.objectContaining({ method: 'POST', headers: expect.any(Headers) })))
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(`/api/v1/pacientes/${pacienteA.id}/registros-clinicos`, expect.objectContaining({ method: 'POST', headers: expect.any(Headers) })))
     await usuario.click(screen.getAllByRole('button', { name: 'Complementar' }).at(-1)!)
     await usuario.click(screen.getByRole('button', { name: 'Salvar complemento' }))
     expect(await screen.findByText('Informe o texto do complemento.')).toBeVisible()
@@ -100,11 +100,11 @@ describe('PaginaProntuario', () => {
 
   it('exibe LONGITUDINAL com evidencias quando a API retorna padroes validados', async () => {
     fetchMock.mockImplementation(async url => {
-      if (url === `/api/v1/patients/${pacienteA.id}`) return json(pacienteA)
-      if (url === `/api/v1/appointments?page=0&size=50&patientId=${pacienteA.id}`) return json(paginaVazia)
-      if (url === `/api/v1/patients/${pacienteA.id}/clinical-records?page=0&size=100`) return json({ ...paginaVazia, items: [registroOriginal, complemento], total: 2 })
-      if (url === `/api/v1/patients/${pacienteA.id}/analysis-state`) return json({ currentAnalysis: analiseLongitudinal, latestGeneration: { ...geracao, estado: 'CONCLUIDA', modo: 'LONGITUDINAL', totalOriginais: 2 }, activeGeneration: null, canRegenerate: true, reason: null })
-      if (url === `/api/v1/patients/${pacienteA.id}/analysis-generations?page=0&size=25`) return json({ ...paginaVazia, items: [{ ...geracao, estado: 'CONCLUIDA' }], total: 1 })
+      if (url === `/api/v1/pacientes/${pacienteA.id}`) return json(pacienteA)
+      if (url === `/api/v1/consultas?pagina=0&tamanho=50&pacienteId=${pacienteA.id}`) return json(paginaVazia)
+      if (url === `/api/v1/pacientes/${pacienteA.id}/registros-clinicos?pagina=0&tamanho=100`) return json({ ...paginaVazia, itens: [registroOriginal, complemento], total: 2 })
+      if (url === `/api/v1/pacientes/${pacienteA.id}/estado-analise`) return json({ analiseAtual: analiseLongitudinal, ultimaGeracao: { ...geracao, estado: 'CONCLUIDA', modo: 'LONGITUDINAL', totalOriginais: 2 }, geracaoAtiva: null, podeRegenerar: true, motivo: null })
+      if (url === `/api/v1/pacientes/${pacienteA.id}/geracoes-analise?pagina=0&tamanho=25`) return json({ ...paginaVazia, itens: [{ ...geracao, estado: 'CONCLUIDA' }], total: 1 })
       return json(paginaVazia)
     })
     renderProntuario()
@@ -115,11 +115,11 @@ describe('PaginaProntuario', () => {
   it('mantem analise valida anterior em falha e nao sobrescreve formulario em edicao', async () => {
     const usuario = userEvent.setup()
     fetchMock.mockImplementation(async url => {
-      if (url === `/api/v1/patients/${pacienteA.id}`) return json(pacienteA)
-      if (url === `/api/v1/appointments?page=0&size=50&patientId=${pacienteA.id}`) return json(paginaVazia)
-      if (url === `/api/v1/patients/${pacienteA.id}/clinical-records?page=0&size=100`) return json({ ...paginaVazia, items: [registroOriginal], total: 1 })
-      if (url === `/api/v1/patients/${pacienteA.id}/analysis-state`) return json({ currentAnalysis: analiseSummary, latestGeneration: { ...geracao, estado: 'FALHA' }, activeGeneration: null, canRegenerate: true, reason: null })
-      if (url === `/api/v1/patients/${pacienteA.id}/analysis-generations?page=0&size=25`) return json({ ...paginaVazia, items: [{ ...geracao, estado: 'FALHA' }], total: 1 })
+      if (url === `/api/v1/pacientes/${pacienteA.id}`) return json(pacienteA)
+      if (url === `/api/v1/consultas?pagina=0&tamanho=50&pacienteId=${pacienteA.id}`) return json(paginaVazia)
+      if (url === `/api/v1/pacientes/${pacienteA.id}/registros-clinicos?pagina=0&tamanho=100`) return json({ ...paginaVazia, itens: [registroOriginal], total: 1 })
+      if (url === `/api/v1/pacientes/${pacienteA.id}/estado-analise`) return json({ analiseAtual: analiseSummary, ultimaGeracao: { ...geracao, estado: 'FALHA' }, geracaoAtiva: null, podeRegenerar: true, motivo: null })
+      if (url === `/api/v1/pacientes/${pacienteA.id}/geracoes-analise?pagina=0&tamanho=25`) return json({ ...paginaVazia, itens: [{ ...geracao, estado: 'FALHA' }], total: 1 })
       return json(paginaVazia)
     })
     renderProntuario()
@@ -131,11 +131,11 @@ describe('PaginaProntuario', () => {
 
   it('faz polling somente com geracao ativa e pausa com aba oculta', async () => {
     fetchMock.mockImplementation(async url => {
-      if (url === `/api/v1/patients/${pacienteA.id}`) return json(pacienteA)
-      if (url === `/api/v1/appointments?page=0&size=50&patientId=${pacienteA.id}`) return json(paginaVazia)
-      if (url === `/api/v1/patients/${pacienteA.id}/clinical-records?page=0&size=100`) return json({ ...paginaVazia, items: [registroOriginal], total: 1 })
-      if (url === `/api/v1/patients/${pacienteA.id}/analysis-state`) return json({ currentAnalysis: analiseSummary, latestGeneration: geracao, activeGeneration: geracao, canRegenerate: false, reason: 'Geração em andamento.' })
-      if (url === `/api/v1/patients/${pacienteA.id}/analysis-generations?page=0&size=25`) return json({ ...paginaVazia, items: [geracao], total: 1 })
+      if (url === `/api/v1/pacientes/${pacienteA.id}`) return json(pacienteA)
+      if (url === `/api/v1/consultas?pagina=0&tamanho=50&pacienteId=${pacienteA.id}`) return json(paginaVazia)
+      if (url === `/api/v1/pacientes/${pacienteA.id}/registros-clinicos?pagina=0&tamanho=100`) return json({ ...paginaVazia, itens: [registroOriginal], total: 1 })
+      if (url === `/api/v1/pacientes/${pacienteA.id}/estado-analise`) return json({ analiseAtual: analiseSummary, ultimaGeracao: geracao, geracaoAtiva: geracao, podeRegenerar: false, motivo: 'Geração em andamento.' })
+      if (url === `/api/v1/pacientes/${pacienteA.id}/geracoes-analise?pagina=0&tamanho=25`) return json({ ...paginaVazia, itens: [geracao], total: 1 })
       return json(paginaVazia)
     })
     renderProntuario()

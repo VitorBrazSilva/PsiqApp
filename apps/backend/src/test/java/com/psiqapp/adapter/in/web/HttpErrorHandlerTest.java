@@ -37,10 +37,10 @@ class HttpErrorHandlerTest {
                 .andExpect(jsonPath("$.type").value("about:blank"))
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.title").value("Bad Request"))
-                .andExpect(jsonPath("$.code").value("ENTRADA_INVALIDA"))
-                .andExpect(jsonPath("$.fieldErrors[0].field").value("texto"))
-                .andExpect(jsonPath("$.fieldErrors[0].message").value("Valor invalido."))
-                .andExpect(jsonPath("$.requestId").value(id))
+                .andExpect(jsonPath("$.codigo").value("ENTRADA_INVALIDA"))
+                .andExpect(jsonPath("$.errosDeCampo[0].campo").value("texto"))
+                .andExpect(jsonPath("$.errosDeCampo[0].mensagem").value("Valor invalido."))
+                .andExpect(jsonPath("$.idRequisicao").value(id))
                 .andExpect(jsonPath("$.instance").value("urn:uuid:" + id))
                 .andExpect(header().string(FiltroRequestId.HEADER, id))
                 .andExpect(result -> assertThat(result.getResponse().getContentAsString()).doesNotContain(SENSIVEL));
@@ -53,8 +53,8 @@ class HttpErrorHandlerTest {
                         .header(FiltroRequestId.HEADER, SENSIVEL)
                         .contentType(MediaType.APPLICATION_JSON).content(SENSIVEL))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("ENTRADA_INVALIDA"))
-                .andExpect(jsonPath("$.fieldErrors").doesNotExist())
+                .andExpect(jsonPath("$.codigo").value("ENTRADA_INVALIDA"))
+                .andExpect(jsonPath("$.errosDeCampo").doesNotExist())
                 .andReturn().getResponse();
         String id = resposta.getHeader(FiltroRequestId.HEADER);
         assertThat(UUID.fromString(id).toString()).isEqualTo(id);
@@ -65,7 +65,7 @@ class HttpErrorHandlerTest {
     void recursoAusenteNaoEcoaCaminhoNemQueryString() throws Exception {
         mvc.perform(get("/nao-existe/" + SENSIVEL).param("q", SENSIVEL))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("RECURSO_NAO_ENCONTRADO"))
+                .andExpect(jsonPath("$.codigo").value("RECURSO_NAO_ENCONTRADO"))
                 .andExpect(result -> assertThat(result.getResponse().getContentAsString()).doesNotContain(SENSIVEL));
     }
 
@@ -73,11 +73,11 @@ class HttpErrorHandlerTest {
     void falhasTecnicasNaoExpoemMensagensDeExcecao() throws Exception {
         mvc.perform(get("/teste/falha"))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.code").value("ERRO_INTERNO"))
+                .andExpect(jsonPath("$.codigo").value("ERRO_INTERNO"))
                 .andExpect(result -> assertThat(result.getResponse().getContentAsString()).doesNotContain(SENSIVEL));
         mvc.perform(get("/teste/indisponivel"))
                 .andExpect(status().isServiceUnavailable())
-                .andExpect(jsonPath("$.code").value("SERVICO_INDISPONIVEL"))
+                .andExpect(jsonPath("$.codigo").value("SERVICO_INDISPONIVEL"))
                 .andExpect(result -> assertThat(result.getResponse().getContentAsString()).doesNotContain(SENSIVEL));
     }
 
@@ -85,7 +85,7 @@ class HttpErrorHandlerTest {
     void preservaStatusDeConflitoSemExporReason() throws Exception {
         mvc.perform(get("/teste/conflito"))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value("CONFLITO"))
+                .andExpect(jsonPath("$.codigo").value("CONFLITO"))
                 .andExpect(result -> assertThat(result.getResponse().getContentAsString()).doesNotContain(SENSIVEL));
     }
 

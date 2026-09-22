@@ -120,14 +120,14 @@ class AnalysisWorkerIT {
     private UUID criarPaciente(String nome, String cpf) {
         var body = Map.of("nome", nome, "cpf", cpf, "dataNascimento", "1990-01-01",
                 "telefone", "(11) 98765-4321", "email", "paciente@example.test", "queixaInicial", "");
-        var resposta = http.exchange(URI.create("/api/v1/patients"), HttpMethod.POST,
+        var resposta = http.exchange(URI.create("/api/v1/pacientes"), HttpMethod.POST,
                 entidade(UUID.randomUUID(), body), JsonNode.class);
         assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         return UUID.fromString(resposta.getBody().path("id").asText());
     }
 
     private UUID criarParecer(UUID pacienteId, String texto) {
-        var resposta = http.exchange(URI.create("/api/v1/patients/" + pacienteId + "/clinical-records"),
+        var resposta = http.exchange(URI.create("/api/v1/pacientes/" + pacienteId + "/registros-clinicos"),
                 HttpMethod.POST, entidade(UUID.randomUUID(), Map.of("texto", texto)), JsonNode.class);
         assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         return UUID.fromString(resposta.getBody().path("geracao").path("id").asText());

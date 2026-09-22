@@ -62,26 +62,26 @@ class BackendApiContractIT {
         assertThat(parecer.getBody().path("registro").path("pacienteId").asText()).isEqualTo(pacienteId.toString());
         assertThat(parecer.getBody().path("geracao").path("estado").asText()).isEqualTo("ENFILEIRADA");
 
-        var paciente = http.getForEntity("/api/v1/patients/" + pacienteId, JsonNode.class);
+        var paciente = http.getForEntity("/api/v1/pacientes/" + pacienteId, JsonNode.class);
         assertThat(paciente.getBody().path("dataNascimento").asText()).isEqualTo("1990-01-01");
         assertThat(paciente.getBody().path("cpf").asText()).isEqualTo("***.***.***-25");
         assertThat(paciente.getBody().toString()).doesNotContain("52998224725").doesNotContain("529.982.247-25");
 
-        var timelinePadrao = http.getForEntity("/api/v1/patients/" + pacienteId + "/clinical-records",
+        var timelinePadrao = http.getForEntity("/api/v1/pacientes/" + pacienteId + "/registros-clinicos",
                 JsonNode.class);
-        assertThat(timelinePadrao.getBody().path("page").asInt()).isZero();
-        assertThat(timelinePadrao.getBody().path("size").asInt()).isEqualTo(25);
-        assertThat(timelinePadrao.getBody().path("items").get(0).path("id").asText()).isEqualTo(registroId.toString());
+        assertThat(timelinePadrao.getBody().path("pagina").asInt()).isZero();
+        assertThat(timelinePadrao.getBody().path("tamanho").asInt()).isEqualTo(25);
+        assertThat(timelinePadrao.getBody().path("itens").get(0).path("id").asText()).isEqualTo(registroId.toString());
 
-        var timelineMaximo = http.getForEntity("/api/v1/patients/" + pacienteId + "/clinical-records?size=100",
+        var timelineMaximo = http.getForEntity("/api/v1/pacientes/" + pacienteId + "/registros-clinicos?tamanho=100",
                 JsonNode.class);
         assertThat(timelineMaximo.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(timelineMaximo.getBody().path("size").asInt()).isEqualTo(100);
+        assertThat(timelineMaximo.getBody().path("tamanho").asInt()).isEqualTo(100);
 
-        var paginaInvalida = http.getForEntity("/api/v1/patients/" + pacienteId + "/clinical-records?page=-1",
+        var paginaInvalida = http.getForEntity("/api/v1/pacientes/" + pacienteId + "/registros-clinicos?pagina=-1",
                 JsonNode.class);
         assertProblem(paginaInvalida, HttpStatus.BAD_REQUEST, "ENTRADA_INVALIDA");
-        assertThat(paginaInvalida.getBody().path("fieldErrors").get(0).path("field").asText()).isEqualTo("page");
+        assertThat(paginaInvalida.getBody().path("errosDeCampo").get(0).path("campo").asText()).isEqualTo("page");
     }
 
     @Test
@@ -105,13 +105,13 @@ class BackendApiContractIT {
                 .doesNotContain("Outro texto clinico ficticio rejeitado")
                 .doesNotContain("39053344705");
 
-        var semChave = http.exchange(URI.create("/api/v1/patients/" + pacienteId + "/analysis-generations"),
+        var semChave = http.exchange(URI.create("/api/v1/pacientes/" + pacienteId + "/geracoes-analise"),
                 HttpMethod.POST, json(Map.of()), JsonNode.class);
         assertProblem(semChave, HttpStatus.BAD_REQUEST, "ENTRADA_INVALIDA");
-        assertThat(semChave.getBody().path("fieldErrors").get(0).path("field").asText())
+        assertThat(semChave.getBody().path("errosDeCampo").get(0).path("campo").asText())
                 .isEqualTo("Idempotency-Key");
 
-        var ausente = http.getForEntity("/api/v1/patients/" + UUID.randomUUID(), JsonNode.class);
+        var ausente = http.getForEntity("/api/v1/pacientes/" + UUID.randomUUID(), JsonNode.class);
         assertProblem(ausente, HttpStatus.NOT_FOUND, "RECURSO_NAO_ENCONTRADO");
     }
 
@@ -121,17 +121,17 @@ class BackendApiContractIT {
 
         assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
         JsonNode paths = resposta.getBody().path("paths");
-        assertThat(paths.has("/api/v1/patients")).isTrue();
-        assertThat(paths.has("/api/v1/patients/{id}")).isTrue();
-        assertThat(paths.has("/api/v1/patients/{pacienteId}/appointments")).isTrue();
-        assertThat(paths.has("/api/v1/appointments")).isTrue();
-        assertThat(paths.has("/api/v1/appointments/{id}/status")).isTrue();
-        assertThat(paths.has("/api/v1/patients/{pacienteId}/clinical-records")).isTrue();
-        assertThat(paths.has("/api/v1/patients/{pacienteId}/clinical-records/{originalId}/complements")).isTrue();
-        assertThat(paths.has("/api/v1/patients/{pacienteId}/clinical-records/{registroId}")).isTrue();
-        assertThat(paths.has("/api/v1/patients/{pacienteId}/analysis-generations")).isTrue();
-        assertThat(paths.has("/api/v1/patients/{pacienteId}/analysis-state")).isTrue();
-        assertThat(paths.has("/api/v1/patients/{pacienteId}/analyses/{analiseId}")).isTrue();
+        assertThat(paths.has("/api/v1/pacientes")).isTrue();
+        assertThat(paths.has("/api/v1/pacientes/{id}")).isTrue();
+        assertThat(paths.has("/api/v1/pacientes/{pacienteId}/consultas")).isTrue();
+        assertThat(paths.has("/api/v1/consultas")).isTrue();
+        assertThat(paths.has("/api/v1/consultas/{id}/status")).isTrue();
+        assertThat(paths.has("/api/v1/pacientes/{pacienteId}/registros-clinicos")).isTrue();
+        assertThat(paths.has("/api/v1/pacientes/{pacienteId}/registros-clinicos/{parecerOriginalId}/complementos")).isTrue();
+        assertThat(paths.has("/api/v1/pacientes/{pacienteId}/registros-clinicos/{registroId}")).isTrue();
+        assertThat(paths.has("/api/v1/pacientes/{pacienteId}/geracoes-analise")).isTrue();
+        assertThat(paths.has("/api/v1/pacientes/{pacienteId}/estado-analise")).isTrue();
+        assertThat(paths.has("/api/v1/pacientes/{pacienteId}/analises/{analiseId}")).isTrue();
         String openapi = resposta.getBody().toString();
         assertThat(openapi).contains("Idempotency-Key", "PacienteResponse", "ConsultaResponse",
                 "RegistroClinicoResponse", "EstadoAnaliseResponse", "PaginaResponse");
@@ -144,17 +144,17 @@ class BackendApiContractIT {
     private ResponseEntity<JsonNode> criarPaciente(UUID chave, String nome, String cpf) {
         var body = Map.of("nome", nome, "cpf", cpf, "dataNascimento", "1990-01-01",
                 "telefone", "(11) 98765-4321", "email", "paciente@example.test", "queixaInicial", "");
-        return http.exchange(URI.create("/api/v1/patients"), HttpMethod.POST, entidade(chave, body), JsonNode.class);
+        return http.exchange(URI.create("/api/v1/pacientes"), HttpMethod.POST, entidade(chave, body), JsonNode.class);
     }
 
     private ResponseEntity<JsonNode> criarConsulta(UUID pacienteId, UUID chave, String agendadaPara) {
         var body = Map.of("agendadaPara", agendadaPara, "observacoes", "Observacao ficticia de agenda.");
-        return http.exchange(URI.create("/api/v1/patients/" + pacienteId + "/appointments"),
+        return http.exchange(URI.create("/api/v1/pacientes/" + pacienteId + "/consultas"),
                 HttpMethod.POST, entidade(chave, body), JsonNode.class);
     }
 
     private ResponseEntity<JsonNode> criarParecer(UUID pacienteId, UUID chave, Map<String, String> body) {
-        return http.exchange(URI.create("/api/v1/patients/" + pacienteId + "/clinical-records"),
+        return http.exchange(URI.create("/api/v1/pacientes/" + pacienteId + "/registros-clinicos"),
                 HttpMethod.POST, entidade(chave, body), JsonNode.class);
     }
 
@@ -176,8 +176,8 @@ class BackendApiContractIT {
         assertThat(resposta.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_PROBLEM_JSON);
         assertThat(resposta.getHeaders().getFirst("X-Request-Id")).isNotBlank();
         assertThat(resposta.getBody().path("status").asInt()).isEqualTo(status.value());
-        assertThat(resposta.getBody().path("code").asText()).isEqualTo(codigo);
-        assertThat(resposta.getBody().path("requestId").asText())
+        assertThat(resposta.getBody().path("codigo").asText()).isEqualTo(codigo);
+        assertThat(resposta.getBody().path("idRequisicao").asText())
                 .isEqualTo(resposta.getHeaders().getFirst("X-Request-Id"));
     }
 }

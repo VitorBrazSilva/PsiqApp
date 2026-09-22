@@ -15,7 +15,7 @@ export function FormularioConsulta({ pacienteFixoId, aoCriar }: { pacienteFixoId
 
   useEffect(() => {
     if (pacienteFixoId) return
-    servicoPacientes.buscar('', undefined, 100).then(pagina => setPacientes(Array.isArray(pagina.items) ? pagina.items : [])).catch(() => setPacientes([]))
+    servicoPacientes.buscar('', undefined, 100).then(pagina => setPacientes(Array.isArray(pagina.itens) ? pagina.itens : [])).catch(() => setPacientes([]))
   }, [pacienteFixoId])
 
   async function enviar(evento: React.FormEvent) {

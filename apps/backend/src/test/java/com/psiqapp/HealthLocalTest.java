@@ -50,7 +50,7 @@ class HealthLocalTest {
                 "/api/v1/patients", "/teste/falha"}) {
             var resposta = http.getForEntity(rota, JsonNode.class);
             assertThat(resposta.getStatusCode()).as(rota).isEqualTo(HttpStatus.NOT_FOUND);
-            assertThat(resposta.getBody().path("code").asText()).isEqualTo("RECURSO_NAO_ENCONTRADO");
+            assertThat(resposta.getBody().path("codigo").asText()).isEqualTo("RECURSO_NAO_ENCONTRADO");
         }
         var openapi = http.getForEntity("/api/v1/openapi", JsonNode.class);
         assertThat(openapi.getStatusCode()).isEqualTo(HttpStatus.OK);

@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/patients")
+@RequestMapping("/api/v1/pacientes")
 @ConditionalOnProperty(prefix = "psiqapp.product", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class PacienteController {
     private final CriarPacienteUseCase criarPaciente;
@@ -30,13 +30,13 @@ public class PacienteController {
         var paciente = criarPaciente.executar(new CriarPacienteUseCase.Comando(requisicao.nome(), requisicao.cpf(),
                 requisicao.dataNascimento(), requisicao.telefone(), requisicao.email(), requisicao.queixaInicial(),
                 ChaveIdempotencia.obrigatoria(chave)));
-        return ResponseEntity.created(URI.create("/api/v1/patients/" + paciente.id())).body(PacienteResponse.de(paciente));
+        return ResponseEntity.created(URI.create("/api/v1/pacientes/" + paciente.id())).body(PacienteResponse.de(paciente));
     }
 
     @GetMapping
-    PaginaResponse<PacienteResponse> buscar(@RequestParam(name = "q", required = false) String termo,
-            @RequestParam(name = "page", required = false) Integer pagina,
-            @RequestParam(name = "size", required = false) Integer tamanho) {
+    PaginaResponse<PacienteResponse> buscar(@RequestParam(name = "nome", required = false) String termo,
+            @RequestParam(name = "pagina", required = false) Integer pagina,
+            @RequestParam(name = "tamanho", required = false) Integer tamanho) {
         return PaginaResponse.de(buscarPacientes.executar(termo, pagina, tamanho), PacienteResponse::de);
     }
 

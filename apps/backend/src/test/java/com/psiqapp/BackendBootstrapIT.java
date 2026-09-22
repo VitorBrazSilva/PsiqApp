@@ -69,7 +69,7 @@ class BackendBootstrapIT {
                 "/actuator", "/api/v1/clinical-records", "/teste/falha"}) {
             var resposta = http.getForEntity(caminho, JsonNode.class);
             assertThat(resposta.getStatusCode()).as(caminho).isEqualTo(HttpStatus.NOT_FOUND);
-            assertThat(resposta.getBody().path("code").asText()).isEqualTo("RECURSO_NAO_ENCONTRADO");
+            assertThat(resposta.getBody().path("codigo").asText()).isEqualTo("RECURSO_NAO_ENCONTRADO");
         }
     }
 
@@ -78,9 +78,9 @@ class BackendBootstrapIT {
         var resposta = http.getForEntity("/api/v1/openapi", JsonNode.class);
         assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(resposta.getBody().path("openapi").asText()).startsWith("3.");
-        assertThat(resposta.getBody().path("paths").has("/api/v1/patients")).isTrue();
-        assertThat(resposta.getBody().path("paths").has("/api/v1/appointments")).isTrue();
-        assertThat(resposta.getBody().path("paths").has("/api/v1/patients/{pacienteId}/clinical-records")).isTrue();
-        assertThat(resposta.getBody().path("paths").has("/api/v1/patients/{pacienteId}/analysis-state")).isTrue();
+        assertThat(resposta.getBody().path("paths").has("/api/v1/pacientes")).isTrue();
+        assertThat(resposta.getBody().path("paths").has("/api/v1/consultas")).isTrue();
+        assertThat(resposta.getBody().path("paths").has("/api/v1/pacientes/{pacienteId}/registros-clinicos")).isTrue();
+        assertThat(resposta.getBody().path("paths").has("/api/v1/pacientes/{pacienteId}/estado-analise")).isTrue();
     }
 }
