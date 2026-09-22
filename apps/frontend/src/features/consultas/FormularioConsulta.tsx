@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { errosDeCampo, mensagemErro, type ErrosFormulario } from '../../shared/formularios/errosDeCampo'
-import { servicoPacientes, type Paciente } from '../patients/servicoPacientes'
+import { servicoPacientes, type Paciente } from '../pacientes/servicoPacientes'
 import { paraIsoComOffset, validarConsulta } from './validacaoConsulta'
 import { servicoConsultas, type Consulta } from './servicoConsultas'
 

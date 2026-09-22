@@ -1,6 +1,6 @@
 import { ClienteApi } from '../../shared/api/clienteApi'
 import { chaveDeIdempotencia } from '../../shared/idempotencia/chaveDeIdempotencia'
-import type { Pagina } from '../patients/servicoPacientes'
+import type { Pagina } from '../pacientes/servicoPacientes'
 
 const api = new ClienteApi()
 

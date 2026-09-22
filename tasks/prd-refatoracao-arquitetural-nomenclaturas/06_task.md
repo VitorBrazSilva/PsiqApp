@@ -32,11 +32,11 @@ Task 5.0.
 
 ## Subtarefas
 
-- [ ] 6.1 Renomear diretórios e módulos de negócio.
-- [ ] 6.2 Atualizar tipos, serviços, hooks, componentes e cliente HTTP.
-- [ ] 6.3 Atualizar testes Vitest, mocks e fixtures.
-- [ ] 6.4 Atualizar fixtures e cenários Playwright para as rotas e campos finais.
-- [ ] 6.5 Reexecutar o scan de referências antigas.
+- [x] 6.1 Renomear diretórios e módulos de negócio.
+- [x] 6.2 Atualizar tipos, serviços, hooks, componentes e cliente HTTP.
+- [x] 6.3 Atualizar testes Vitest, mocks e fixtures.
+- [x] 6.4 Atualizar fixtures e cenários Playwright para as rotas e campos finais.
+- [x] 6.5 Reexecutar o scan de referências antigas.
 
 ## Critérios de sucesso
 
@@ -48,13 +48,13 @@ Task 5.0.
 
 ## Testes obrigatórios
 
-- [ ] `npm run typecheck`.
-- [ ] `npm run lint`.
-- [ ] `npm test -- --run`.
+- [x] `npm run typecheck`.
+- [x] `npm run lint`.
+- [x] `npm test -- --run`.
 - [ ] Testes do `ApiClient`, formulários, páginas e tratamento de erro.
 - [ ] E2E de pacientes, consultas, parecer, complemento, timeline, polling, evidência e regeneração.
 - [ ] E2E de isolamento entre dois pacientes e provider fake indisponível/falhando sem perda do registro clínico.
-- [ ] `npm run build` e `npm run e2e`.
+- [x] `npm run build` e `npm run e2e`.
 
 ## Skills aplicáveis
 
