@@ -62,36 +62,36 @@ class PatientAppointmentIT {
 
         var conflito = criarPaciente(chave, "Outra Pessoa", "390.533.447-05");
         assertThat(conflito.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(conflito.getBody().path("code").asText()).isEqualTo("CONFLITO");
+        assertThat(conflito.getBody().path("codigo").asText()).isEqualTo("CONFLITO");
 
-        var busca = http.getForEntity("/api/v1/patients?q=avila&page=0&size=10", JsonNode.class);
+        var busca = http.getForEntity("/api/v1/pacientes?nome=avila&pagina=0&tamanho=10", JsonNode.class);
         assertThat(busca.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(busca.getBody().path("items").get(0).path("id").asText()).isEqualTo(id);
+        assertThat(busca.getBody().path("itens").get(0).path("id").asText()).isEqualTo(id);
 
         criarPaciente(UUID.randomUUID(), "Ana Percentual % Literal", "390.533.447-05");
-        var uriCuringaLiteral = UriComponentsBuilder.fromPath("/api/v1/patients")
-                .queryParam("q", "%")
-                .queryParam("page", 0)
-                .queryParam("size", 10)
+        var uriCuringaLiteral = UriComponentsBuilder.fromPath("/api/v1/pacientes")
+                .queryParam("nome", "%")
+                .queryParam("pagina", 0)
+                .queryParam("tamanho", 10)
                 .build().encode().toUri();
         var curingaLiteral = http.getForEntity(uriCuringaLiteral, JsonNode.class);
         assertThat(curingaLiteral.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(curingaLiteral.getBody().path("items")).hasSize(1);
+        assertThat(curingaLiteral.getBody().path("itens")).hasSize(1);
 
         criarPaciente(UUID.randomUUID(), "Ana Segunda", "111.444.777-35");
-        var pagina0 = http.getForEntity("/api/v1/patients?q=ana&page=0&size=1", JsonNode.class);
-        var pagina1 = http.getForEntity("/api/v1/patients?q=ana&page=1&size=1", JsonNode.class);
-        assertThat(pagina0.getBody().path("items")).hasSize(1);
-        assertThat(pagina1.getBody().path("items")).hasSize(1);
+        var pagina0 = http.getForEntity("/api/v1/pacientes?nome=ana&pagina=0&tamanho=1", JsonNode.class);
+        var pagina1 = http.getForEntity("/api/v1/pacientes?nome=ana&pagina=1&tamanho=1", JsonNode.class);
+        assertThat(pagina0.getBody().path("itens")).hasSize(1);
+        assertThat(pagina1.getBody().path("itens")).hasSize(1);
         assertThat(pagina0.getBody().path("total").asLong()).isGreaterThanOrEqualTo(3);
 
-        var obtido = http.getForEntity("/api/v1/patients/" + id, JsonNode.class);
+        var obtido = http.getForEntity("/api/v1/pacientes/" + id, JsonNode.class);
         assertThat(obtido.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(obtido.getBody().path("nome").asText()).isEqualTo("Ana Ávila");
 
         var invalido = criarPaciente(UUID.randomUUID(), "", "111.111.111-11");
         assertThat(invalido.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(invalido.getBody().path("code").asText()).isEqualTo("ENTRADA_INVALIDA");
+        assertThat(invalido.getBody().path("codigo").asText()).isEqualTo("ENTRADA_INVALIDA");
         assertThat(invalido.getBody().toString()).doesNotContain("111.111.111-11");
     }
 
@@ -108,10 +108,10 @@ class PatientAppointmentIT {
         assertThat(consulta.getBody().path("status").asText()).isEqualTo("AGENDADA");
         assertThat(consulta.getBody().path("agendadaPara").asText()).isEqualTo("2026-09-10T13:00:00Z");
 
-        var agendaA = http.getForEntity("/api/v1/appointments?patientId=" + pacienteA + "&page=0&size=25", JsonNode.class);
-        var agendaB = http.getForEntity("/api/v1/appointments?patientId=" + pacienteB + "&page=0&size=25", JsonNode.class);
-        assertThat(agendaA.getBody().path("items")).hasSize(1);
-        assertThat(agendaB.getBody().path("items")).isEmpty();
+        var agendaA = http.getForEntity("/api/v1/consultas?pacienteId=" + pacienteA + "&pagina=0&tamanho=25", JsonNode.class);
+        var agendaB = http.getForEntity("/api/v1/consultas?pacienteId=" + pacienteB + "&pagina=0&tamanho=25", JsonNode.class);
+        assertThat(agendaA.getBody().path("itens")).hasSize(1);
+        assertThat(agendaB.getBody().path("itens")).isEmpty();
 
         UUID chaveConsulta = UUID.randomUUID();
         var consultaIdempotente = criarConsulta(pacienteA, chaveConsulta, "2026-09-11T10:00:00-03:00");
@@ -170,19 +170,19 @@ class PatientAppointmentIT {
     private ResponseEntity<JsonNode> criarPaciente(UUID chave, String nome, String cpf) {
         var body = Map.of("nome", nome, "cpf", cpf, "dataNascimento", "1990-01-01",
                 "telefone", "(11) 98765-4321", "email", "paciente@example.test", "queixaInicial", "");
-        return http.exchange(URI.create("/api/v1/patients"), HttpMethod.POST, entidade(chave, body), JsonNode.class);
+        return http.exchange(URI.create("/api/v1/pacientes"), HttpMethod.POST, entidade(chave, body), JsonNode.class);
     }
 
     private ResponseEntity<JsonNode> criarConsulta(UUID pacienteId, UUID chave, String agendadaPara) {
         var body = Map.of("agendadaPara", agendadaPara, "observacoes", "Observacao ficticia de agenda.");
-        return http.exchange(URI.create("/api/v1/patients/" + pacienteId + "/appointments"),
+        return http.exchange(URI.create("/api/v1/pacientes/" + pacienteId + "/consultas"),
                 HttpMethod.POST, entidade(chave, body), JsonNode.class);
     }
 
     private ResponseEntity<JsonNode> atualizarStatus(UUID consultaId, String status) {
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        return http.exchange(URI.create("/api/v1/appointments/" + consultaId + "/status"),
+        return http.exchange(URI.create("/api/v1/consultas/" + consultaId + "/status"),
                 HttpMethod.POST, new HttpEntity<>(Map.of("status", status), headers), JsonNode.class);
     }
 

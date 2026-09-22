@@ -47,24 +47,24 @@ export interface GeracaoAnalise {
 }
 
 export interface EstadoAnalise {
-  currentAnalysis: AnaliseClinica | null
-  latestGeneration: GeracaoAnalise | null
-  activeGeneration: GeracaoAnalise | null
-  canRegenerate: boolean
-  reason: string | null
+  analiseAtual: AnaliseClinica | null
+  ultimaGeracao: GeracaoAnalise | null
+  geracaoAtiva: GeracaoAnalise | null
+  podeRegenerar: boolean
+  motivo: string | null
 }
 
 export const servicoAnalises = {
   obterEstado(pacienteId: string, signal?: AbortSignal) {
-    return api.requisitar<EstadoAnalise>(`/patients/${pacienteId}/analysis-state`, { signal })
+    return api.requisitar<EstadoAnalise>(`/pacientes/${pacienteId}/estado-analise`, { signal })
   },
 
   listarGeracoes(pacienteId: string, signal?: AbortSignal) {
-    return api.requisitar<Pagina<GeracaoAnalise>>(`/patients/${pacienteId}/analysis-generations?page=0&size=25`, { signal })
+    return api.requisitar<Pagina<GeracaoAnalise>>(`/pacientes/${pacienteId}/geracoes-analise?pagina=0&tamanho=25`, { signal })
   },
 
   regenerar(pacienteId: string) {
-    return api.requisitar<GeracaoAnalise>(`/patients/${pacienteId}/analysis-generations`, {
+    return api.requisitar<GeracaoAnalise>(`/pacientes/${pacienteId}/geracoes-analise`, {
       metodo: 'POST',
       chaveDeIdempotencia: chaveDeIdempotencia(),
     })

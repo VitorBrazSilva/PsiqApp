@@ -60,7 +60,7 @@ class ClinicalRecordsIT {
         JsonNode body = parecer.getBody();
         UUID registroId = UUID.fromString(body.path("registro").path("id").asText());
         UUID geracaoId = UUID.fromString(body.path("geracao").path("id").asText());
-        assertThat(body.path("generationId").asText()).isEqualTo(geracaoId.toString());
+        assertThat(body.path("geracaoId").asText()).isEqualTo(geracaoId.toString());
         assertThat(body.path("registro").path("tipo").asText()).isEqualTo("PARECER");
         assertThat(body.path("registro").path("consultaId").asText()).isEqualTo(consultaId.toString());
         assertThat(body.path("registro").path("dataHoraClinica").asText()).isEqualTo("2026-09-14T12:30:00Z");
@@ -105,13 +105,13 @@ class ClinicalRecordsIT {
         assertThat(complemento.getBody().path("geracao").path("totalRegistros").asInt()).isEqualTo(3);
         assertThat(complemento.getBody().path("geracao").path("totalComplementos").asInt()).isEqualTo(1);
 
-        var timeline = http.getForEntity("/api/v1/patients/" + pacienteId + "/clinical-records?page=0&size=10", JsonNode.class);
+        var timeline = http.getForEntity("/api/v1/pacientes/" + pacienteId + "/registros-clinicos?pagina=0&tamanho=10", JsonNode.class);
         assertThat(timeline.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(timeline.getBody().path("items")).hasSize(3);
-        assertThat(timeline.getBody().path("items").get(0).path("id").asText()).isEqualTo(segundoId.toString());
-        assertThat(timeline.getBody().path("items").get(1).path("id").asText()).isEqualTo(originalId.toString());
+        assertThat(timeline.getBody().path("itens")).hasSize(3);
+        assertThat(timeline.getBody().path("itens").get(0).path("id").asText()).isEqualTo(segundoId.toString());
+        assertThat(timeline.getBody().path("itens").get(1).path("id").asText()).isEqualTo(originalId.toString());
 
-        var fonte = http.getForEntity("/api/v1/patients/" + pacienteId + "/clinical-records/" + originalId, JsonNode.class);
+        var fonte = http.getForEntity("/api/v1/pacientes/" + pacienteId + "/registros-clinicos/" + originalId, JsonNode.class);
         assertThat(fonte.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(fonte.getBody().path("texto").asText()).isEqualTo("Primeiro registro ficticio.");
     }
@@ -124,7 +124,7 @@ class ClinicalRecordsIT {
 
         var vazio = criarParecer(pacienteA, UUID.randomUUID(), Map.of("texto", ""));
         assertThat(vazio.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(vazio.getBody().path("code").asText()).isEqualTo("ENTRADA_INVALIDA");
+        assertThat(vazio.getBody().path("codigo").asText()).isEqualTo("ENTRADA_INVALIDA");
         assertThat(vazio.getBody().toString()).doesNotContain("Registro clinico");
 
         var consultaDeOutroPaciente = criarParecer(pacienteA, UUID.randomUUID(), Map.of(
@@ -184,7 +184,7 @@ class ClinicalRecordsIT {
     private UUID criarPaciente(String nome, String cpf) {
         var body = Map.of("nome", nome, "cpf", cpf, "dataNascimento", "1990-01-01",
                 "telefone", "(11) 98765-4321", "email", "paciente@example.test", "queixaInicial", "");
-        var resposta = http.exchange(URI.create("/api/v1/patients"), HttpMethod.POST,
+        var resposta = http.exchange(URI.create("/api/v1/pacientes"), HttpMethod.POST,
                 entidade(UUID.randomUUID(), body), JsonNode.class);
         assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         return UUID.fromString(resposta.getBody().path("id").asText());
@@ -192,19 +192,19 @@ class ClinicalRecordsIT {
 
     private UUID criarConsulta(UUID pacienteId, String agendadaPara) {
         var body = Map.of("agendadaPara", agendadaPara, "observacoes", "Observacao ficticia de agenda.");
-        var resposta = http.exchange(URI.create("/api/v1/patients/" + pacienteId + "/appointments"),
+        var resposta = http.exchange(URI.create("/api/v1/pacientes/" + pacienteId + "/consultas"),
                 HttpMethod.POST, entidade(UUID.randomUUID(), body), JsonNode.class);
         assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         return UUID.fromString(resposta.getBody().path("id").asText());
     }
 
     private ResponseEntity<JsonNode> criarParecer(UUID pacienteId, UUID chave, Map<String, String> body) {
-        return http.exchange(URI.create("/api/v1/patients/" + pacienteId + "/clinical-records"),
+        return http.exchange(URI.create("/api/v1/pacientes/" + pacienteId + "/registros-clinicos"),
                 HttpMethod.POST, entidade(chave, body), JsonNode.class);
     }
 
     private ResponseEntity<JsonNode> criarComplemento(UUID pacienteId, UUID originalId, UUID chave, Map<String, String> body) {
-        return http.exchange(URI.create("/api/v1/patients/" + pacienteId + "/clinical-records/" + originalId + "/complements"),
+        return http.exchange(URI.create("/api/v1/pacientes/" + pacienteId + "/registros-clinicos/" + originalId + "/complementos"),
                 HttpMethod.POST, entidade(chave, body), JsonNode.class);
     }
 

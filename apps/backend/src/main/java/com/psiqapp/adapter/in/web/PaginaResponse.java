@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.function.Function;
 
 record PaginaResponse<T>(
-        @JsonProperty("items") List<T> itens,
-        @JsonProperty("page") int pagina,
-        @JsonProperty("size") int tamanho,
+        @JsonProperty("itens") List<T> itens,
+        int pagina,
+        int tamanho,
         long total) {
     static <D, R> PaginaResponse<R> de(Pagina<D> pagina, Function<D, R> mapper) {
         return new PaginaResponse<>(pagina.itens().stream().map(mapper).toList(),

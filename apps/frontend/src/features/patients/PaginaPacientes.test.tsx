@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PaginaPacientes } from './PaginaPacientes'
 
 const fetchMock = vi.fn<typeof fetch>()
-const paginaVazia = { items: [], page: 0, size: 25, total: 0 }
+const paginaVazia = { itens: [], pagina: 0, tamanho: 25, total: 0 }
 const paciente = {
   id: '11111111-1111-4111-8111-111111111111',
   nome: 'Paciente Ficticia',
@@ -24,7 +24,7 @@ describe('PaginaPacientes', () => {
   it('busca pacientes, exibe vazio e permite abrir prontuario', async () => {
     fetchMock
       .mockResolvedValueOnce(Response.json(paginaVazia))
-      .mockResolvedValueOnce(Response.json({ ...paginaVazia, items: [paciente], total: 1 }))
+      .mockResolvedValueOnce(Response.json({ ...paginaVazia, itens: [paciente], total: 1 }))
     const usuario = userEvent.setup()
     render(<MemoryRouter><PaginaPacientes /></MemoryRouter>)
 
@@ -33,7 +33,7 @@ describe('PaginaPacientes', () => {
 
     expect(await screen.findByText('Paciente Ficticia')).toBeVisible()
     expect(screen.getByRole('link', { name: 'Abrir prontuário' })).toHaveAttribute('href', `/prontuario/${paciente.id}`)
-    expect(fetchMock).toHaveBeenLastCalledWith('/api/v1/patients?page=0&size=25&q=Ficticia', expect.any(Object))
+    expect(fetchMock).toHaveBeenLastCalledWith('/api/v1/pacientes?pagina=0&tamanho=25&nome=Ficticia', expect.any(Object))
   })
 
   it('valida campos do cadastro no cliente antes de chamar a API', async () => {
@@ -52,9 +52,9 @@ describe('PaginaPacientes', () => {
     fetchMock
       .mockResolvedValueOnce(Response.json(paginaVazia))
       .mockResolvedValueOnce(Response.json({
-        code: 'CPF_DUPLICADO',
-        requestId: 'd6b462cb-fbd3-444f-b3e1-fc30d40b0b24',
-        fieldErrors: [{ field: 'cpf', message: 'valor sensivel' }],
+        codigo: 'CPF_DUPLICADO',
+        idRequisicao: 'd6b462cb-fbd3-444f-b3e1-fc30d40b0b24',
+        errosDeCampo: [{ campo: 'cpf', mensagem: 'valor sensivel' }],
       }, { status: 409, headers: { 'Content-Type': 'application/problem+json' } }))
     const usuario = userEvent.setup()
     render(<MemoryRouter><PaginaPacientes /></MemoryRouter>)
@@ -69,8 +69,8 @@ describe('PaginaPacientes', () => {
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('conflito'))
     const [, opcoes] = fetchMock.mock.calls[1]
-    expect(fetchMock.mock.calls[1][0]).toBe('/api/v1/patients')
+    expect(fetchMock.mock.calls[1][0]).toBe('/api/v1/pacientes')
     expect(new Headers(opcoes?.headers).get('Idempotency-Key')).toMatch(/[0-9a-f-]{36}/)
-    expect(screen.getByText('Valor inválido.')).toBeVisible()
+    expect(screen.getByText('Valor invalido.')).toBeVisible()
   })
 })

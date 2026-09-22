@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/patients/{pacienteId}")
+@RequestMapping("/api/v1/pacientes/{pacienteId}")
 @ConditionalOnProperty(prefix = "psiqapp.product", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class AnaliseController {
     private final ObterEstadoAnaliseUseCase obterEstado;
@@ -25,29 +25,29 @@ public class AnaliseController {
         this.regenerar = regenerar;
     }
 
-    @GetMapping("/analysis-state")
+    @GetMapping("/estado-analise")
     EstadoAnaliseResponse estado(@PathVariable UUID pacienteId) {
         return EstadoAnaliseResponse.de(obterEstado.executar(pacienteId));
     }
 
-    @GetMapping("/analysis-generations")
+    @GetMapping("/geracoes-analise")
     PaginaResponse<GeracaoAnaliseResponse> geracoes(@PathVariable UUID pacienteId,
-            @RequestParam(name = "page", required = false) Integer pagina,
-            @RequestParam(name = "size", required = false) Integer tamanho) {
+            @RequestParam(name = "pagina", required = false) Integer pagina,
+            @RequestParam(name = "tamanho", required = false) Integer tamanho) {
         return PaginaResponse.de(listarGeracoes.executar(pacienteId, pagina, tamanho), GeracaoAnaliseResponse::de);
     }
 
-    @GetMapping("/analyses/{analiseId}")
+    @GetMapping("/analises/{analiseId}")
     AnaliseResponse analise(@PathVariable UUID pacienteId, @PathVariable UUID analiseId) {
         return AnaliseResponse.de(obterAnalise.executar(pacienteId, analiseId));
     }
 
-    @PostMapping("/analysis-generations")
+    @PostMapping("/geracoes-analise")
     ResponseEntity<GeracaoAnaliseResponse> regenerar(@PathVariable UUID pacienteId,
             @RequestHeader(value = "Idempotency-Key", required = false) String chave) {
         var resultado = regenerar.executar(pacienteId, ChaveIdempotencia.obrigatoria(chave));
         return ResponseEntity.accepted()
-                .location(URI.create("/api/v1/patients/" + pacienteId + "/analysis-generations/"
+                .location(URI.create("/api/v1/pacientes/" + pacienteId + "/geracoes-analise/"
                         + resultado.geracao().id()))
                 .body(GeracaoAnaliseResponse.de(resultado.geracao()));
     }

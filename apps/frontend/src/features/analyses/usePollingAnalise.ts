@@ -22,7 +22,7 @@ export function usePollingAnalise(pacienteId: string | null) {
       ])
       if (pacienteAtual.current !== pacienteId || signal?.aborted) return
       setEstado(novoEstado)
-      setGeracoes(paginaGeracoes.items)
+      setGeracoes(paginaGeracoes.itens)
       setErro('')
     } catch (falha) {
       if (falha instanceof DOMException) return
@@ -41,8 +41,8 @@ export function usePollingAnalise(pacienteId: string | null) {
   }, [carregar, pacienteId])
 
   useEffect(() => {
-    const aguardandoAnalisePersistida = estado?.latestGeneration?.estado === 'CONCLUIDA' && !estado.currentAnalysis
-    if (!pacienteId || (!estado?.activeGeneration && !aguardandoAnalisePersistida)) return
+    const aguardandoAnalisePersistida = estado?.ultimaGeracao?.estado === 'CONCLUIDA' && !estado.analiseAtual
+    if (!pacienteId || (!estado?.geracaoAtiva && !aguardandoAnalisePersistida)) return
     const controle = new AbortController()
     const aoVisibilizar = () => {
       if (!document.hidden) void carregar(controle.signal)
@@ -56,7 +56,7 @@ export function usePollingAnalise(pacienteId: string | null) {
       window.clearInterval(timer)
       controle.abort()
     }
-  }, [carregar, estado?.activeGeneration, estado?.currentAnalysis, estado?.latestGeneration?.estado, pacienteId])
+  }, [carregar, estado?.geracaoAtiva, estado?.analiseAtual, estado?.ultimaGeracao?.estado, pacienteId])
 
   return { estado, geracoes, carregando, erro, recarregar: carregar }
 }

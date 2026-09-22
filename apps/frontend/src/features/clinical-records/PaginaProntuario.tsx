@@ -37,8 +37,8 @@ export function PaginaProntuario() {
       servicoRegistrosClinicos.listar(pacienteId, controle.signal),
     ]).then(([pacienteResposta, paginaConsultas, paginaRegistros]) => {
       setPaciente(pacienteResposta)
-      setConsultas(paginaConsultas.items)
-      setRegistros(paginaRegistros.items)
+      setConsultas(paginaConsultas.itens)
+      setRegistros(paginaRegistros.itens)
       setOriginalEmComplemento(null)
       setFonteAberta(null)
       setErro('')

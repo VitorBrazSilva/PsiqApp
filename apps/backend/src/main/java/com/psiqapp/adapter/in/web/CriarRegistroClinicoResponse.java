@@ -5,7 +5,7 @@ import com.psiqapp.application.usecase.CriarParecerUseCase;
 
 public record CriarRegistroClinicoResponse(
         RegistroClinicoResponse registro,
-        String generationId,
+        String geracaoId,
         GeracaoAnaliseResponse geracao) {
     static CriarRegistroClinicoResponse de(CriarParecerUseCase.Resultado resultado) {
         return new CriarRegistroClinicoResponse(RegistroClinicoResponse.de(resultado.registro()),

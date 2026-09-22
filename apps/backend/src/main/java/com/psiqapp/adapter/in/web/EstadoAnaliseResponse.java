@@ -2,8 +2,8 @@ package com.psiqapp.adapter.in.web;
 
 import com.psiqapp.application.usecase.ObterEstadoAnaliseUseCase;
 
-public record EstadoAnaliseResponse(AnaliseResponse currentAnalysis, GeracaoAnaliseResponse latestGeneration,
-        GeracaoAnaliseResponse activeGeneration, boolean canRegenerate, String reason) {
+public record EstadoAnaliseResponse(AnaliseResponse analiseAtual, GeracaoAnaliseResponse ultimaGeracao,
+        GeracaoAnaliseResponse geracaoAtiva, boolean podeRegenerar, String motivo) {
     static EstadoAnaliseResponse de(ObterEstadoAnaliseUseCase.Resultado resultado) {
         return new EstadoAnaliseResponse(AnaliseResponse.de(resultado.analiseAtual()),
                 GeracaoAnaliseResponse.de(resultado.ultimaGeracao()),

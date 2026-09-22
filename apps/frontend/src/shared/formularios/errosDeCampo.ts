@@ -4,9 +4,11 @@ export type ErrosFormulario = Record<string, string>
 
 export function errosDeCampo(erro: unknown): ErrosFormulario {
   const api = erro as Partial<ErroApi>
-  if (!Array.isArray(api.fieldErrors)) return {}
-  return api.fieldErrors.reduce<ErrosFormulario>((acumulado, item) => {
-    if (item.field && !acumulado[item.field]) acumulado[item.field] = item.message
+  if (!Array.isArray(api.errosDeCampo)) return {}
+  return api.errosDeCampo.reduce<ErrosFormulario>((acumulado, item) => {
+    const campo = item.campo ?? item.field
+    const mensagem = item.mensagem ?? item.message
+    if (campo && !acumulado[campo]) acumulado[campo] = mensagem ?? 'Valor invalido.'
     return acumulado
   }, {})
 }

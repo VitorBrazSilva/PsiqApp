@@ -1,6 +1,8 @@
 export interface ErroDeCampo {
-  field: string
-  message: string
+  campo?: string
+  mensagem?: string
+  field?: string
+  message?: string
 }
 
 const mensagens: Record<number, string> = {
@@ -13,17 +15,17 @@ const mensagens: Record<number, string> = {
 
 export class ErroApi extends Error {
   readonly status: number
-  readonly code: string
-  readonly requestId?: string
-  readonly fieldErrors: ErroDeCampo[]
+  readonly codigo: string
+  readonly idRequisicao?: string
+  readonly errosDeCampo: ErroDeCampo[]
 
   constructor(status: number, code = 'ERRO_HTTP', requestId?: string, fieldErrors: ErroDeCampo[] = []) {
     super(mensagens[status] ?? 'Não foi possível processar a solicitação.')
     this.name = 'ErroApi'
     this.status = status
-    this.code = code
-    this.requestId = requestId
-    this.fieldErrors = fieldErrors
+    this.codigo = code
+    this.idRequisicao = requestId
+    this.errosDeCampo = fieldErrors
   }
 }
 
@@ -39,12 +41,13 @@ function identificadorRequisicao(valor: unknown): string | undefined {
 // Não reter title, detail, instance, valores rejeitados ou mensagens remotas.
 export function erroDeResposta(status: number, problema: unknown, requestId: string | null): ErroApi {
   const dados = objeto(problema) ? problema : {}
-  const code = typeof dados.code === 'string' && /^[A-Z][A-Z_]{0,63}$/.test(dados.code)
-    ? dados.code : 'ERRO_HTTP'
-  const campos = Array.isArray(dados.fieldErrors) ? dados.fieldErrors : []
-  const fieldErrors = campos.filter((campo): campo is Record<string, unknown> =>
-    objeto(campo) && typeof campo.field === 'string' && /^[a-zA-Z][a-zA-Z.[\]]{0,63}$/.test(campo.field),
+  const code = typeof dados.codigo === 'string' && /^[A-Z][A-Z_]{0,63}$/.test(dados.codigo)
+    ? dados.codigo : 'ERRO_HTTP'
+  const campos = Array.isArray(dados.errosDeCampo) ? dados.errosDeCampo : []
+  const fieldErrors = campos.filter(campo => objeto(campo) && typeof (campo as Record<string, unknown>).campo === 'string')
+    .map(campo => ({ campo: (campo as Record<string, unknown>).campo as string, mensagem: 'Valor invalido.' })); /*
+    objeto(campo) && typeof campo.campo === 'string',
   ).map(campo => ({ field: campo.field as string, message: 'Valor inválido.' }))
-  return new ErroApi(status, code,
-    identificadorRequisicao(requestId) ?? identificadorRequisicao(dados.requestId), fieldErrors)
+  */ return new ErroApi(status, code,
+    identificadorRequisicao(requestId) ?? identificadorRequisicao(dados.idRequisicao), fieldErrors)
 }

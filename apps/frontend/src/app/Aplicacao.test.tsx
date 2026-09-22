@@ -8,7 +8,7 @@ const fetchMock = vi.fn<typeof fetch>()
 
 beforeEach(() => {
   vi.stubGlobal('fetch', fetchMock)
-  fetchMock.mockResolvedValue(Response.json({ items: [], page: 0, size: 25, total: 0 }))
+  fetchMock.mockResolvedValue(Response.json({ itens: [], pagina: 0, tamanho: 25, total: 0 }))
 })
 
 afterEach(() => vi.unstubAllGlobals())

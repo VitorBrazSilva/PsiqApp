@@ -13,7 +13,7 @@ export function PaginaAgenda() {
   useEffect(() => {
     const controle = new AbortController()
     servicoConsultas.listar({}, controle.signal)
-      .then(pagina => { setConsultas(pagina.items); setErro('') })
+      .then(pagina => { setConsultas(pagina.itens); setErro('') })
       .catch(falha => { if (falha instanceof DOMException) return; setErro('Não foi possível carregar a agenda.') })
       .finally(() => { if (!controle.signal.aborted) setCarregando(false) })
     return () => controle.abort()
@@ -22,7 +22,7 @@ export function PaginaAgenda() {
   useEffect(() => {
     const controle = new AbortController()
     servicoPacientes.buscar('', controle.signal, 100)
-      .then(pagina => setPacientes(Array.isArray(pagina.items) ? pagina.items : []))
+      .then(pagina => setPacientes(Array.isArray(pagina.itens) ? pagina.itens : []))
       .catch(() => setPacientes([]))
     return () => controle.abort()
   }, [])

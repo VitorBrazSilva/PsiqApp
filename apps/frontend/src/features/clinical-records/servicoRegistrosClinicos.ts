@@ -31,7 +31,7 @@ export interface CriarRegistroClinico {
 
 export interface CriarRegistroClinicoResposta {
   registro: RegistroClinico
-  generationId: string
+  geracaoId: string
   geracao: GeracaoAnalise
 }
 
@@ -41,15 +41,15 @@ export function ehComplemento(registro: Pick<RegistroClinico, 'tipo'>) {
 
 export const servicoRegistrosClinicos = {
   listar(pacienteId: string, signal?: AbortSignal) {
-    return api.requisitar<Pagina<RegistroClinico>>(`/patients/${pacienteId}/clinical-records?page=0&size=100`, { signal })
+    return api.requisitar<Pagina<RegistroClinico>>(`/pacientes/${pacienteId}/registros-clinicos?pagina=0&tamanho=100`, { signal })
   },
 
   obter(pacienteId: string, registroId: string, signal?: AbortSignal) {
-    return api.requisitar<RegistroClinico>(`/patients/${pacienteId}/clinical-records/${registroId}`, { signal })
+    return api.requisitar<RegistroClinico>(`/pacientes/${pacienteId}/registros-clinicos/${registroId}`, { signal })
   },
 
   criarParecer(pacienteId: string, dados: CriarRegistroClinico) {
-    return api.requisitar<CriarRegistroClinicoResposta>(`/patients/${pacienteId}/clinical-records`, {
+    return api.requisitar<CriarRegistroClinicoResposta>(`/pacientes/${pacienteId}/registros-clinicos`, {
       metodo: 'POST',
       corpo: dados,
       chaveDeIdempotencia: chaveDeIdempotencia(),
@@ -57,7 +57,7 @@ export const servicoRegistrosClinicos = {
   },
 
   criarComplemento(pacienteId: string, originalId: string, dados: CriarRegistroClinico) {
-    return api.requisitar<CriarRegistroClinicoResposta>(`/patients/${pacienteId}/clinical-records/${originalId}/complements`, {
+    return api.requisitar<CriarRegistroClinicoResposta>(`/pacientes/${pacienteId}/registros-clinicos/${originalId}/complementos`, {
       metodo: 'POST',
       corpo: dados,
       chaveDeIdempotencia: chaveDeIdempotencia(),

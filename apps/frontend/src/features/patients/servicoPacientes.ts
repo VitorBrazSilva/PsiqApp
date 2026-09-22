@@ -15,9 +15,9 @@ export interface Paciente {
 }
 
 export interface Pagina<T> {
-  items: T[]
-  page: number
-  size: number
+  itens: T[]
+  pagina: number
+  tamanho: number
   total: number
 }
 
@@ -32,17 +32,17 @@ export interface CriarPaciente {
 
 export const servicoPacientes = {
   buscar(q: string, signal?: AbortSignal, size = 25) {
-    const params = new URLSearchParams({ page: '0', size: String(size) })
-    if (q.trim()) params.set('q', q.trim())
-    return api.requisitar<Pagina<Paciente>>(`/patients?${params}`, { signal })
+    const params = new URLSearchParams({ pagina: '0', tamanho: String(size) })
+    if (q.trim()) params.set('nome', q.trim())
+    return api.requisitar<Pagina<Paciente>>(`/pacientes?${params}`, { signal })
   },
 
   obter(id: string, signal?: AbortSignal) {
-    return api.requisitar<Paciente>(`/patients/${id}`, { signal })
+    return api.requisitar<Paciente>(`/pacientes/${id}`, { signal })
   },
 
   criar(corpo: CriarPaciente) {
-    return api.requisitar<Paciente>('/patients', {
+    return api.requisitar<Paciente>('/pacientes', {
       metodo: 'POST',
       corpo,
       chaveDeIdempotencia: chaveDeIdempotencia(),

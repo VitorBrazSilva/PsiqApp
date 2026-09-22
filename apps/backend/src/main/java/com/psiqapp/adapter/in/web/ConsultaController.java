@@ -24,25 +24,25 @@ public class ConsultaController {
         this.atualizarStatus = atualizarStatus;
     }
 
-    @PostMapping("/api/v1/patients/{pacienteId}/appointments")
+    @PostMapping("/api/v1/pacientes/{pacienteId}/consultas")
     ResponseEntity<ConsultaResponse> criar(@PathVariable UUID pacienteId,
             @RequestHeader(value = "Idempotency-Key", required = false) String chave,
             @RequestBody CriarConsultaRequest requisicao) {
         var consulta = criarConsulta.executar(new CriarConsultaUseCase.Comando(pacienteId,
                 requisicao.agendadaPara(), requisicao.observacoes(), ChaveIdempotencia.obrigatoria(chave)));
-        return ResponseEntity.created(URI.create("/api/v1/appointments/" + consulta.id())).body(ConsultaResponse.de(consulta));
+        return ResponseEntity.created(URI.create("/api/v1/consultas/" + consulta.id())).body(ConsultaResponse.de(consulta));
     }
 
-    @GetMapping("/api/v1/appointments")
-    PaginaResponse<ConsultaResponse> listar(@RequestParam(name = "from", required = false) Instant from,
-            @RequestParam(name = "to", required = false) Instant to,
-            @RequestParam(name = "patientId", required = false) UUID patientId,
-            @RequestParam(name = "page", required = false) Integer pagina,
-            @RequestParam(name = "size", required = false) Integer tamanho) {
-        return PaginaResponse.de(listarConsultas.executar(from, to, patientId, pagina, tamanho), ConsultaResponse::de);
+    @GetMapping("/api/v1/consultas")
+    PaginaResponse<ConsultaResponse> listar(@RequestParam(name = "de", required = false) Instant de,
+            @RequestParam(name = "ate", required = false) Instant ate,
+            @RequestParam(name = "pacienteId", required = false) UUID pacienteId,
+            @RequestParam(name = "pagina", required = false) Integer pagina,
+            @RequestParam(name = "tamanho", required = false) Integer tamanho) {
+        return PaginaResponse.de(listarConsultas.executar(de, ate, pacienteId, pagina, tamanho), ConsultaResponse::de);
     }
 
-    @PostMapping("/api/v1/appointments/{id}/status")
+    @PostMapping("/api/v1/consultas/{id}/status")
     ConsultaResponse status(@PathVariable UUID id, @RequestBody AtualizarStatusConsultaRequest requisicao) {
         return ConsultaResponse.de(atualizarStatus.executar(id, requisicao.status()));
     }

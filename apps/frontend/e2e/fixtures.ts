@@ -21,7 +21,7 @@ export const ficticio = {
 }
 
 export async function criarPaciente(api: APIRequestContext) {
-  const response = await api.post('/api/v1/patients', {
+  const response = await api.post('/api/v1/pacientes', {
     headers: { 'Idempotency-Key': randomUUID() },
     data: { ...ficticio, nome: `Paciente E2E ${randomUUID().slice(0, 8)}`, cpf: cpfFicticioUnico() },
   })
@@ -30,7 +30,7 @@ export async function criarPaciente(api: APIRequestContext) {
 }
 
 export async function criarParecer(api: APIRequestContext, pacienteId: string, texto = ficticio.texto) {
-  const response = await api.post(`/api/v1/patients/${pacienteId}/clinical-records`, {
+  const response = await api.post(`/api/v1/pacientes/${pacienteId}/registros-clinicos`, {
     headers: { 'Idempotency-Key': randomUUID() },
     data: { texto, dataHoraClinica: '2026-09-10T12:00:00Z' },
   })
@@ -40,11 +40,11 @@ export async function criarParecer(api: APIRequestContext, pacienteId: string, t
 
 export async function aguardarGeracaoConcluida(api: APIRequestContext, pacienteId: string) {
   await expect.poll(async () => {
-    const response = await api.get(`/api/v1/patients/${pacienteId}/analysis-state`)
+  const response = await api.get(`/api/v1/pacientes/${pacienteId}/estado-analise`)
     const corpo = await response.text()
     expect(response.ok()).toBeTruthy()
-    const estado = JSON.parse(corpo) as { latestGeneration?: { estado?: string } | null }
-    return estado.latestGeneration?.estado ?? null
+    const estado = JSON.parse(corpo) as { ultimaGeracao?: { estado?: string } | null }
+    return estado.ultimaGeracao?.estado ?? null
   }, { timeout: 30_000, intervals: [500, 1_000, 2_000] }).toBe('CONCLUIDA')
 }
 

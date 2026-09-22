@@ -33,11 +33,11 @@ Tasks 2.0, 3.0 e 4.0.
 
 ## Subtarefas
 
-- [ ] 5.1 Atualizar Controllers, rotas e query params.
-- [ ] 5.2 Atualizar Request/Response DTOs e mappers HTTP.
-- [ ] 5.3 Atualizar Problem Details e tratamento seguro de erros.
-- [ ] 5.4 Atualizar OpenAPI e contratos internos consumidos pelo frontend.
-- [ ] 5.5 Confirmar ausência de rotas e campos antigos nos consumidores ativos.
+- [x] 5.1 Atualizar Controllers, rotas e query params.
+- [x] 5.2 Atualizar Request/Response DTOs e mappers HTTP.
+- [x] 5.3 Atualizar Problem Details e tratamento seguro de erros.
+- [x] 5.4 Atualizar OpenAPI e contratos internos consumidos pelo frontend.
+- [x] 5.5 Confirmar ausência de rotas e campos antigos nos consumidores ativos.
 
 ## Critérios de sucesso
 
@@ -49,12 +49,12 @@ Tasks 2.0, 3.0 e 4.0.
 
 ## Testes obrigatórios
 
-- [ ] Testes de contrato HTTP para rotas, métodos, status 201/202/200 e campos finais.
-- [ ] Testes de paginação, datas UTC, CPF mascarado e headers de correlação/idempotência.
-- [ ] Testes de Problem Details, validação, recurso ausente, conflito e erro interno.
-- [ ] Testes confirmando 404 para rotas antigas e ausência delas no OpenAPI.
-- [ ] Testes de isolamento entre pacientes e idempotência das criações protegidas.
-- [ ] `./mvnw --batch-mode --no-transfer-progress verify`.
+- [x] Testes de contrato HTTP para rotas, métodos, status 201/202/200 e campos finais.
+- [x] Testes de paginação, datas UTC, CPF mascarado e headers de correlação/idempotência.
+- [x] Testes de Problem Details, validação, recurso ausente, conflito e erro interno.
+- [x] Testes confirmando 404 para rotas antigas e ausência delas no OpenAPI.
+- [x] Testes de isolamento entre pacientes e idempotência das criações protegidas.
+- [x] `./mvnw --batch-mode --no-transfer-progress verify`.
 
 ## Skills aplicáveis
 

@@ -12,7 +12,7 @@ export function PaginaPacientes() {
   useEffect(() => {
     const controle = new AbortController()
     servicoPacientes.buscar(busca, controle.signal)
-      .then(pagina => { setPacientes(pagina.items); setErro('') })
+      .then(pagina => { setPacientes(pagina.itens); setErro('') })
       .catch(falha => { if (falha instanceof DOMException) return; setErro('Não foi possível carregar pacientes.') })
       .finally(() => { if (!controle.signal.aborted) setCarregando(false) })
     return () => controle.abort()
