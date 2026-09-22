@@ -103,6 +103,12 @@ alter table analise_clinica drop constraint if exists clinical_analysis_mode_che
 alter table evidencia_analise drop constraint if exists analysis_evidence_section_check;
 alter table evidencia_analise drop constraint if exists analysis_evidence_field_check;
 
+-- A conversão dos valores históricos é parte da migração e não altera o
+-- comportamento append-only após a migração. O trigger é reativado logo após
+-- os updates canônicos.
+alter table registro_clinico disable trigger trg_clinical_record_append_only_update;
+alter table analise_clinica disable trigger trg_clinical_analysis_append_only_update;
+
 update registro_clinico set tipo = 'PARECER' where tipo = 'ORIGINAL';
 update registro_clinico set tipo = 'COMPLEMENTO' where tipo = 'COMPLEMENT';
 update geracao_analise set gatilho = 'AUTOMATICA' where gatilho = 'AUTO';
@@ -116,6 +122,9 @@ update analise_clinica set modo = 'RESUMO' where modo = 'SUMMARY_ONLY';
 update evidencia_analise set secao = 'LINHA_DO_TEMPO' where secao = 'TIMELINE';
 update evidencia_analise set secao = 'PADROES' where secao = 'PATTERNS';
 update evidencia_analise set secao = 'PONTOS_DE_ATENCAO' where secao = 'ATTENTION_POINTS';
+
+alter table registro_clinico enable trigger trg_clinical_record_append_only_update;
+alter table analise_clinica enable trigger trg_clinical_analysis_append_only_update;
 
 -- A função histórica continua anexada ao trigger após o rename da tabela;
 -- sua implementação precisa acompanhar os nomes e valores canônicos.
