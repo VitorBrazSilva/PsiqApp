@@ -5,10 +5,10 @@ import com.psiqapp.application.port.out.SnapshotAnalise;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class MontadorSnapshotAnalise {
+public class SnapshotAnaliseAssembler {
     private final RepositoryRegistroClinicoPort registros;
 
-    public MontadorSnapshotAnalise(RepositoryRegistroClinicoPort registros) {
+    public SnapshotAnaliseAssembler(RepositoryRegistroClinicoPort registros) {
         this.registros = registros;
     }
 

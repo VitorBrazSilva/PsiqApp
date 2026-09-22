@@ -43,7 +43,7 @@ public class CriarComplementoUseCase {
                 var geracao = geracoes.buscarPorRegistroDisparador(registroId).orElseThrow(ConflitoException::new);
                 return new Resultado(registro, geracao);
             }
-            var resultado = criador.criar(new CriarRegistroClinicoServico.Entrada(TipoRegistroClinico.COMPLEMENT,
+            var resultado = criador.criar(new CriarRegistroClinicoServico.Entrada(TipoRegistroClinico.COMPLEMENTO,
                     comando.pacienteId(), comando.parecerOriginalId(), comando.consultaId(), comando.dataHoraClinica(),
                     comando.texto(), comando.humor(), comando.medicamentos()));
             idempotencia.registrar(OPERACAO, comando.pacienteId(), comando.chaveIdempotencia(), comando,

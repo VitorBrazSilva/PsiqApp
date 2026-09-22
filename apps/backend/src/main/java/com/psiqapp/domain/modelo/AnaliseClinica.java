@@ -10,8 +10,13 @@ public record AnaliseClinica(
         UUID pacienteId,
         Instant geradaEm,
         ModoAnalise modo,
-        List<ItemAnaliseClinica> timeline,
-        List<ItemAnaliseClinica> patterns,
-        List<ItemAnaliseClinica> attentionPoints,
-        List<String> limitations,
-        String versaoRegrasSeguranca) {}
+        List<ItemAnaliseClinica> linhaDoTempo,
+        List<ItemAnaliseClinica> padroes,
+        List<ItemAnaliseClinica> pontosDeAtencao,
+        List<String> limitacoes,
+        String versaoRegrasSeguranca) {
+    @Deprecated public List<ItemAnaliseClinica> timeline() { return linhaDoTempo; }
+    @Deprecated public List<ItemAnaliseClinica> patterns() { return padroes; }
+    @Deprecated public List<ItemAnaliseClinica> attentionPoints() { return pontosDeAtencao; }
+    @Deprecated public List<String> limitations() { return limitacoes; }
+}

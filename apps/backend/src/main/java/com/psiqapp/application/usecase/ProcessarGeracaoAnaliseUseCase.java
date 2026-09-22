@@ -1,8 +1,8 @@
 package com.psiqapp.application.usecase;
 
 import com.psiqapp.application.port.out.*;
-import com.psiqapp.application.servico.MontadorSnapshotAnalise;
-import com.psiqapp.application.servico.ValidadorResponseAnalise;
+import com.psiqapp.application.servico.SnapshotAnaliseAssembler;
+import com.psiqapp.application.servico.AnaliseResponseValidator;
 import com.psiqapp.domain.modelo.AnaliseClinica;
 import com.psiqapp.domain.modelo.TentativaGeracao;
 import com.psiqapp.domain.exception.ValidacaoException;
@@ -14,8 +14,8 @@ public class ProcessarGeracaoAnaliseUseCase {
     private final RepositoryGeracaoAnalisePort geracoes;
     private final RepositoryAnaliseClinicaPort analises;
     private final RepositoryTentativaGeracaoPort tentativas;
-    private final MontadorSnapshotAnalise snapshots;
-    private final ValidadorResponseAnalise validador;
+    private final SnapshotAnaliseAssembler snapshots;
+    private final AnaliseResponseValidator validador;
     private final ProvedorAnaliseClinicaPort provedor;
     private final TransactionRunnerPort transacao;
     private final Clock relogio;
@@ -23,7 +23,7 @@ public class ProcessarGeracaoAnaliseUseCase {
 
     public ProcessarGeracaoAnaliseUseCase(RepositoryGeracaoAnalisePort geracoes,
             RepositoryAnaliseClinicaPort analises, RepositoryTentativaGeracaoPort tentativas,
-            MontadorSnapshotAnalise snapshots, ValidadorResponseAnalise validador,
+            SnapshotAnaliseAssembler snapshots, AnaliseResponseValidator validador,
             ProvedorAnaliseClinicaPort provedor, TransactionRunnerPort transacao, Clock relogio, Config config) {
         this.geracoes = geracoes;
         this.analises = analises;

@@ -43,7 +43,7 @@ public class CriarParecerUseCase {
                 var geracao = geracoes.buscarPorRegistroDisparador(registroId).orElseThrow(ConflitoException::new);
                 return new Resultado(registro, geracao);
             }
-            var resultado = criador.criar(new CriarRegistroClinicoServico.Entrada(TipoRegistroClinico.ORIGINAL,
+            var resultado = criador.criar(new CriarRegistroClinicoServico.Entrada(TipoRegistroClinico.PARECER,
                     comando.pacienteId(), null, comando.consultaId(), comando.dataHoraClinica(),
                     comando.texto(), comando.humor(), comando.medicamentos()));
             idempotencia.registrar(OPERACAO, comando.pacienteId(), comando.chaveIdempotencia(), comando,
