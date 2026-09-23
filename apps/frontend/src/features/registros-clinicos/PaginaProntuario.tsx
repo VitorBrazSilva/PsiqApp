@@ -15,6 +15,7 @@ import { servicoPacientes, type Paciente } from '../pacientes/servicoPacientes'
 import { FormularioParecer } from './FormularioParecer'
 import { LinhaDoTempoClinica } from './LinhaDoTempoClinica'
 import { servicoRegistrosClinicos, type CriarRegistroClinicoResposta, type RegistroClinico } from './servicoRegistrosClinicos'
+import { Paginacao } from '../../shared/componentes/Paginacao'
 
 export function PaginaProntuario() {
   const { pacienteId } = useParams()
@@ -26,6 +27,7 @@ export function PaginaProntuario() {
   const [originalEmComplemento, setOriginalEmComplemento] = useState<string | null>(null)
   const [fonteAberta, setFonteAberta] = useState<string | null>(null)
   const [regenerando, setRegenerando] = useState(false)
+  const [paginaRegistros, setPaginaRegistros] = useState({ pagina: 0, tamanho: 100, total: 0 })
   const { estado, geracoes, carregando: carregandoAnalise, erro: erroAnalise, recarregar } = usePollingAnalise(pacienteId ?? null)
 
   useEffect(() => {
@@ -34,11 +36,12 @@ export function PaginaProntuario() {
     Promise.all([
       servicoPacientes.obter(pacienteId, controle.signal),
       servicoConsultas.listar({ pacienteId }, controle.signal),
-      servicoRegistrosClinicos.listar(pacienteId, controle.signal),
+      servicoRegistrosClinicos.listar(pacienteId, controle.signal, paginaRegistros.pagina, 100),
     ]).then(([pacienteResposta, paginaConsultas, paginaRegistros]) => {
       setPaciente(pacienteResposta)
       setConsultas(paginaConsultas.itens)
       setRegistros(paginaRegistros.itens)
+      setPaginaRegistros({ pagina: paginaRegistros.pagina, tamanho: paginaRegistros.tamanho, total: paginaRegistros.total })
       setOriginalEmComplemento(null)
       setFonteAberta(null)
       setErro('')
@@ -47,12 +50,12 @@ export function PaginaProntuario() {
       setErro('Não foi possível carregar o prontuário.')
     }).finally(() => { if (!controle.signal.aborted) setCarregando(false) })
     return () => controle.abort()
-  }, [pacienteId])
+  }, [pacienteId, paginaRegistros.pagina])
 
   if (!pacienteId) {
     return (
       <section className="painel">
-        <h1>Prontuário</h1>
+        <div className="cabecalho-pagina prontuario-titulo"><div><p className="etiqueta">PRONTUÁRIO CLÍNICO</p><h1>{paciente?.nome ?? 'Prontuário'}</h1><p className="subtitulo">Histórico, consultas e registros em uma única leitura.</p></div><Link className="botao-secundario" to="/pacientes">Trocar paciente</Link></div>
         <EstadoVazio mensagem="Busque um paciente e abra o prontuário a partir da lista de pacientes." />
         <Link to="/pacientes">Ir para pacientes</Link>
       </section>
@@ -116,6 +119,7 @@ export function PaginaProntuario() {
           aoCancelarComplemento={() => setOriginalEmComplemento(null)}
           aoCriarComplemento={registrarCriacao}
         />
+        <Paginacao {...paginaRegistros} aoMudar={novaPagina => setPaginaRegistros(atual => ({ ...atual, pagina: novaPagina }))} />
       </section>
 
       <div>
