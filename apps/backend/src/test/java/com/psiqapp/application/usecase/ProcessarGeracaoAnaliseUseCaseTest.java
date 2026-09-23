@@ -66,7 +66,7 @@ class ProcessarGeracaoAnaliseUseCaseTest {
         var registros = new RegistrosFake(registro);
         var geracoes = new GeracoesFake(new GeracaoAnalise(geracaoId, pacienteId, GatilhoGeracaoAnalise.AUTO,
                 registroId, 1, 1, agora, EstadoGeracaoAnalise.QUEUED, 1, 1, 0, registroId,
-                ModoAnalise.RESUMO));
+                ModoAnalise.RESUMO, null));
         var analises = new AnalisesFake();
         var tentativas = new TentativasFake();
         var usecase = new ProcessarGeracaoAnaliseUseCase(geracoes, analises, tentativas,

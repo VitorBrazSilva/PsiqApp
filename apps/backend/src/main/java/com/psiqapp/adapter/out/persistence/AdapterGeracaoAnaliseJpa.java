@@ -179,7 +179,7 @@ class AdapterGeracaoAnaliseJpa implements RepositoryGeracaoAnalisePort {
         return new GeracaoAnalise(entidade.id, entidade.pacienteId, entidade.gatilho,
                 entidade.registroDisparadorId, entidade.revisaoSnapshot, entidade.sequenciaRequest,
                 entidade.solicitadaEm, entidade.state, entidade.totalRegistros, entidade.totalOriginais,
-                entidade.totalComplementos, entidade.ultimoRegistroClinicoId, entidade.mode);
+                entidade.totalComplementos, entidade.ultimoRegistroClinicoId, entidade.mode, null);
     }
 
     private GeracaoAnalise lerGeracao(java.sql.ResultSet rs) throws java.sql.SQLException {
@@ -189,6 +189,6 @@ class AdapterGeracaoAnaliseJpa implements RepositoryGeracaoAnalisePort {
                 rs.getLong("sequencia_requisicao"), rs.getTimestamp("solicitada_em").toInstant(),
                 EstadoGeracaoAnalise.valueOf(rs.getString("estado")), rs.getInt("total_registros"),
                 rs.getInt("total_pareceres"), rs.getInt("total_complementos"),
-                rs.getObject("ultimo_registro_clinico_id", UUID.class), ModoAnalise.valueOf(rs.getString("modo")));
+                rs.getObject("ultimo_registro_clinico_id", UUID.class), ModoAnalise.valueOf(rs.getString("modo")), null);
     }
 }

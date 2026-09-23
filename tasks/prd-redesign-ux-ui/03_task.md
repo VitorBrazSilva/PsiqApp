@@ -38,12 +38,12 @@ Integrar a direção visual A aos estados de análise de IA, observações, evid
 
 ## Subtarefas
 
-- [ ] 3.1 Implementar estado da análise, polling e transições de operação.
-- [ ] 3.2 Implementar painel atual, histórico paginado e regeneração idempotente.
-- [ ] 3.3 Implementar observações, evidências e fonte integral com isolamento por paciente.
-- [ ] 3.4 Expor e validar o vínculo mínimo geração → análise no contrato histórico e OpenAPI.
-- [ ] 3.5 Implementar navegação/retorno da análise histórica sem substituir a análise atual.
-- [ ] 3.6 Registrar na matriz cada campo, endpoint, teste e evidência visual/funcional.
+- [x] 3.1 Implementar estado da análise, polling e transições de operação.
+- [x] 3.2 Implementar painel atual, histórico paginado e regeneração idempotente.
+- [x] 3.3 Implementar observações, evidências e fonte integral com isolamento por paciente.
+- [x] 3.4 Expor e validar o vínculo mínimo geração → análise no contrato histórico e OpenAPI.
+- [x] 3.5 Implementar navegação/retorno da análise histórica sem substituir a análise atual.
+- [x] 3.6 Registrar na matriz cada campo, endpoint, teste e evidência visual/funcional.
 
 ## Critérios de sucesso
 

@@ -44,6 +44,7 @@ export interface GeracaoAnalise {
   totalComplementos: number
   ultimoRegistroClinicoId: string | null
   modo: ModoAnalise
+  analiseId: string | null
 }
 
 export interface EstadoAnalise {

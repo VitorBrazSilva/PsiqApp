@@ -3,9 +3,10 @@ import type { GeracaoAnalise } from './servicoAnalises'
 
 interface Props {
   geracoes: GeracaoAnalise[]
+  aoAbrir: (geracao: GeracaoAnalise) => void
 }
 
-export function HistoricoGeracoes({ geracoes }: Props) {
+export function HistoricoGeracoes({ geracoes, aoAbrir }: Props) {
   return (
     <section className="bloco">
       <h2>Histórico de gerações</h2>
@@ -17,6 +18,7 @@ export function HistoricoGeracoes({ geracoes }: Props) {
                 <strong>{geracao.estado}</strong>
                 <span>{formatarDataHora(geracao.solicitadaEm)} · snapshot {geracao.revisaoSnapshot} · {geracao.totalOriginais} originais · {geracao.totalComplementos} complementos</span>
               </div>
+              {geracao.estado === 'CONCLUIDA' && <button type="button" className="secundario" disabled={!geracao.analiseId} onClick={() => aoAbrir(geracao)}>{geracao.analiseId ? 'Abrir versão' : 'Versão indisponível'}</button>}
             </li>
           ))}
         </ul>

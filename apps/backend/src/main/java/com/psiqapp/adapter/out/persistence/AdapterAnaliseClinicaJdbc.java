@@ -82,8 +82,9 @@ class AdapterAnaliseClinicaJdbc implements RepositoryAnaliseClinicaPort {
         var itens = jdbc.query("""
                 select id, paciente_id, gatilho, registro_disparador_id, revisao_snapshot, sequencia_requisicao,
                        solicitada_em, estado, total_registros, total_pareceres, total_complementos,
-                       ultimo_registro_clinico_id, modo
-                  from geracao_analise
+                       ultimo_registro_clinico_id, modo,
+                       (select ca.id from analise_clinica ca where ca.geracao_id = ag.id limit 1) analise_id
+                  from geracao_analise ag
                  where paciente_id = ?
                  order by revisao_snapshot desc, sequencia_requisicao desc, id desc
                  limit ? offset ?
@@ -100,7 +101,8 @@ class AdapterAnaliseClinicaJdbc implements RepositoryAnaliseClinicaPort {
                         rs.getInt("total_pareceres"),
                         rs.getInt("total_complementos"),
                         rs.getObject("ultimo_registro_clinico_id", UUID.class),
-                        ModoAnalise.valueOf(rs.getString("modo"))),
+                        ModoAnalise.valueOf(rs.getString("modo")),
+                        rs.getObject("analise_id", UUID.class)),
                 pacienteId, tamanho, (long) pagina * tamanho);
         return new Pagina<>(itens, pagina, tamanho, total == null ? 0 : total);
     }
