@@ -43,7 +43,7 @@ export function PaginaAgenda() {
         <div className="cabecalho-pagina"><div><p className="etiqueta">ROTINA DO CONSULTÓRIO</p><h1>Agenda</h1><p className="subtitulo">Acompanhe consultas e mantenha cada transição registrada.</p></div><span className="contador">{consultas.length} consultas</span></div>
         {erro && <p role="alert" className="erro">{erro}</p>}
         <div className="filtros-agenda" aria-label="Filtros da agenda">
-          <label>Filtrar por paciente<select value={pacienteFiltro} onChange={e => { setPagina(atual => ({ ...atual, pagina: 0 })); setPacienteFiltro(e.target.value) }}><option value="">Todos os pacientes</option>{pacientes.map(paciente => <option key={paciente.id} value={paciente.id}>{paciente.nome}</option>)}</select></label>
+          <label><span>Filtrar por paciente</span><select aria-label="Filtro da agenda" value={pacienteFiltro} onChange={e => { setPagina(atual => ({ ...atual, pagina: 0 })); setPacienteFiltro(e.target.value) }}><option value="">Todos os pacientes</option>{pacientes.map(paciente => <option key={paciente.id} value={paciente.id}>{paciente.nome}</option>)}</select></label>
           <label>De<input type="date" value={de} onChange={e => { setPagina(atual => ({ ...atual, pagina: 0 })); setDe(e.target.value) }} /></label>
           <label>Até<input type="date" value={ate} onChange={e => { setPagina(atual => ({ ...atual, pagina: 0 })); setAte(e.target.value) }} /></label>
         </div>
