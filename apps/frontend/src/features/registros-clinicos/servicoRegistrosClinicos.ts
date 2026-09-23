@@ -40,8 +40,8 @@ export function ehComplemento(registro: Pick<RegistroClinico, 'tipo'>) {
 }
 
 export const servicoRegistrosClinicos = {
-  listar(pacienteId: string, signal?: AbortSignal) {
-    return api.requisitar<Pagina<RegistroClinico>>(`/pacientes/${pacienteId}/registros-clinicos?pagina=0&tamanho=100`, { signal })
+  listar(pacienteId: string, signal?: AbortSignal, pagina = 0, tamanho = 100) {
+    return api.requisitar<Pagina<RegistroClinico>>(`/pacientes/${pacienteId}/registros-clinicos?pagina=${pagina}&tamanho=${tamanho}`, { signal })
   },
 
   obter(pacienteId: string, registroId: string, signal?: AbortSignal) {

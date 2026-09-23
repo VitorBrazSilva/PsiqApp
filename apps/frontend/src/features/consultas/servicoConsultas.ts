@@ -32,8 +32,8 @@ export function rotuloStatus(status: StatusConsulta) {
 }
 
 export const servicoConsultas = {
-  listar(filtros: { pacienteId?: string, de?: string, ate?: string } = {}, signal?: AbortSignal) {
-    const params = new URLSearchParams({ pagina: '0', tamanho: '50' })
+  listar(filtros: { pacienteId?: string, de?: string, ate?: string, pagina?: number, tamanho?: number } = {}, signal?: AbortSignal) {
+    const params = new URLSearchParams({ pagina: String(filtros.pagina ?? 0), tamanho: String(filtros.tamanho ?? 50) })
     if (filtros.pacienteId) params.set('pacienteId', filtros.pacienteId)
     if (filtros.de) params.set('de', filtros.de)
     if (filtros.ate) params.set('ate', filtros.ate)

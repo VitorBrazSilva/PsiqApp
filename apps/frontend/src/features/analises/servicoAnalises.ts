@@ -59,8 +59,12 @@ export const servicoAnalises = {
     return api.requisitar<EstadoAnalise>(`/pacientes/${pacienteId}/estado-analise`, { signal })
   },
 
-  listarGeracoes(pacienteId: string, signal?: AbortSignal) {
-    return api.requisitar<Pagina<GeracaoAnalise>>(`/pacientes/${pacienteId}/geracoes-analise?pagina=0&tamanho=25`, { signal })
+  listarGeracoes(pacienteId: string, signal?: AbortSignal, pagina = 0, tamanho = 25) {
+    return api.requisitar<Pagina<GeracaoAnalise>>(`/pacientes/${pacienteId}/geracoes-analise?pagina=${pagina}&tamanho=${tamanho}`, { signal })
+  },
+
+  obterHistorica(pacienteId: string, analiseId: string, signal?: AbortSignal) {
+    return api.requisitar<AnaliseClinica>(`/pacientes/${pacienteId}/analises/${analiseId}`, { signal })
   },
 
   regenerar(pacienteId: string) {
