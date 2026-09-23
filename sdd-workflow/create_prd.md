@@ -155,534 +155,142 @@ nenhum detalhe de implementação foi introduzido sem necessidade.
 
 <prompt_base>
 
-Contexto de Ideação — PsiqApp MVP
+## 1. Solicitação e ponto de partida
 
-1. Resumo da ideia
+Crie o PRD de **Redesign de UX/UI do PsiqApp — Foco clínico**, seguindo este agente e `sdd-workflow/workflow.md`. Use o slug `redesign-ux-ui` e salve o PRD em `tasks/prd-redesign-ux-ui/prd.md`.
 
-O PsiqApp é um sistema de apoio ao atendimento psiquiátrico voltado inicialmente para um médico que atende em consultório próprio.
+Este briefing foi consolidado após a aprovação de um protótipo visual pelo usuário em 23 de setembro de 2026. Ele deve permitir iniciar o trabalho em uma conversa nova, sem depender de mensagens, imagens anexadas, memória do agente ou servidor que tenha ficado aberto em uma sessão anterior.
 
-O produto tem dois objetivos complementares: substituir controles dispersos, como papel, planilhas ou anotações não estruturadas, por um prontuário organizado; e, principalmente, reduzir o esforço necessário para o médico compreender rapidamente a evolução de um paciente ao longo de várias consultas.
+O PsiqApp já possui um MVP funcional de prontuário psiquiátrico para um único médico em consultório próprio, com pacientes, agenda, pareceres, complementos e análise longitudinal de IA. O usuário considera a experiência e a qualidade visual atuais insuficientes e quer um produto mais moderno, profissional, bonito, legível e fácil de usar. O objetivo é reorganizar e melhorar o frontend existente, preservando os fluxos, os dados e as regras de negócio; não reconstruir o produto do zero.
 
-A principal dor a ser resolvida é a dificuldade de reler meses ou anos de registros antes de uma consulta e identificar mudanças, recorrências e padrões importantes.
+A exploração visual já aconteceu. Entre duas propostas navegáveis, o usuário escolheu **A — Foco clínico** e aprovou sua revisão com cadastro de pacientes e análise de IA com múltiplas observações/evidências. Não reabra a escolha A/B nem proponha uma terceira identidade visual sem uma necessidade concreta discutida com o usuário.
 
-O sistema deve centralizar pacientes, consultas e registros de evolução e utilizar inteligência artificial como ferramenta de apoio para produzir uma leitura longitudinal do histórico clínico já registrado pelo próprio médico.
+Até a preparação deste briefing, o redesign existe somente em `docs/redesign/`. Ele ainda não foi migrado para o frontend funcional em `apps/frontend/`. Verifique o estado atual do repositório antes de assumir que essa situação permanece igual.
 
-A IA não substitui julgamento clínico, não realiza diagnóstico e não prescreve condutas.
+## 2. Recuperação obrigatória do contexto no repositório
 
-2. Problema percebido
+Antes de fazer perguntas ou escrever o PRD, leia:
 
-Em um consultório pequeno, o histórico de um paciente pode ficar distribuído em diferentes registros ou acumular dezenas de pareceres ao longo do tempo.
+1. `sdd-workflow/workflow.md` e as Rules em `.agents/rules/`, incluindo invariantes de produto, segurança clínica da IA, privacidade, limites arquiteturais, testes e manutenção documental.
+2. `docs/BUSINESS.md`, `docs/TECHNICAL.md` e `README.md`, para entender o produto e a implementação atuais. Consulte o PRD aprovado em `tasks/prd-psiqapp-mvp/prd.md` e os artefatos posteriores aplicáveis quando precisar confirmar uma regra. Não copie o PRD inteiro do MVP para o redesign.
+3. `docs/redesign/README.md`: estado da proposta aprovada, como abrir o protótipo, roteiro de avaliação, capacidades simuladas e limitações.
+4. `docs/redesign/DESIGN.md`: referência visual e de interação da direção A. A seção da direção B é apenas histórico da exploração.
+5. `docs/redesign/analise-ia.md`: estrutura já existente de observações e evidências, exemplos e caminhos de código que comprovam a relação.
+6. `docs/redesign/diagnostico.md`: motivação e problemas encontrados na interface anterior. É um diagnóstico inicial de 22/09/2026; referências a cadastro ainda pendente no protótipo foram superadas pela revisão de 23/09 descrita no README e no DESIGN.
+7. `docs/redesign/index.html`, `docs/redesign/prototipos.css` e `docs/redesign/prototipos.js`: referência navegável aprovada, incluindo estados, formulários, grupos de análise, fontes e retorno ao contexto. Leia os arquivos; não dependa apenas da captura da tela inicial.
 
-Mesmo quando o prontuário está organizado, compreender a evolução completa de um paciente exige que o médico releia manualmente muitos registros.
+Inspecione também as referências visuais locais, quando houver ferramenta disponível: `docs/redesign/previa-foco.png`, `previa-foco-mobile.png`, `previa-pacientes.png`, `previa-cadastro.png`, `previa-cadastro-mobile.png` e `previa-evidencias.png`, todas na pasta `docs/redesign/`. A versão atual do protótipo prevalece sobre uma captura eventualmente desatualizada. Não afirme ter inspecionado imagens ou interações se não conseguir fazê-lo; registre a limitação.
 
-Isso dificulta responder rapidamente perguntas como:
+Para explorar o protótipo, siga o README da pasta. Ele pode ser servido localmente com `python -m http.server 4174 --bind 127.0.0.1 --directory docs/redesign`. Os caminhos de avaliação são `/?direcao=foco`, `/?direcao=foco&tela=pacientes` e `/?direcao=foco&secao=analise`. Não é necessário acessar um serviço externo para recuperar o design aprovado.
 
-como os sintomas relatados mudaram ao longo do tempo;
+Explore pontualmente o frontend e os contratos existentes para distinguir capacidade real de simulação. As Rules e os requisitos aprovados regem o comportamento clínico; o protótipo rege a direção visual. Código divergente de regra não cria uma nova regra: registre o conflito e peça decisão quando necessário. Nenhuma simplificação do protótipo autoriza retirar uma capacidade real do MVP.
 
-quais temas aparecem repetidamente;
+## 3. Memória da direção visual aprovada
 
-quando ocorreram mudanças relevantes;
+Esta seção registra uma decisão de design já tomada, não determina tecnologia ou arquitetura. No PRD, descreva a experiência esperada e referencie os artefatos; a tradução em componentes, estilos e organização de código pertence à TechSpec.
 
-quais medicações estavam registradas em determinados períodos;
+- Aparência sóbria, clara e acolhedora para trabalho clínico prolongado, com verde discreto, superfícies claras, hierarquia tipográfica e espaçamento consistente. Não é uma landing page, dashboard comercial ou interface de marketing.
+- No desktop, navegação lateral com Pacientes e Agenda. No prontuário, identidade do paciente antes das ações e das informações clínicas.
+- “Novo parecer” como ação principal; “Agendar consulta” como ação secundária. Formulários abertos por intenção explícita, evitando ocupar permanentemente a área de leitura.
+- Seções do prontuário: Histórico clínico, Análise de IA, Consultas e Dados pessoais.
+- Na visão de histórico, próxima consulta quando existir, registros clínicos à esquerda e painel de análise diferenciado à direita. Em telas menores, adaptar a composição sem perder conteúdo ou ações.
+- Registros mostram conteúdo original, tipo, data/hora clínica, data/hora de criação, campos opcionais e acesso contextual a complemento. Conteúdo clínico não deve ser alterado ou resumido apenas para caber na composição.
+- Na lista de pacientes, busca e resultados são o foco, com “Novo paciente” no cabeçalho.
+- Na análise lateral, grupos expansíveis mostram contagens; o protótipo inicia Padrões observados aberto. Na seção de análise completa, os três grupos começam abertos. As limitações permanecem identificáveis.
+- Evidências abrem com a observação de origem, suas citações e acesso ao registro completo; o retorno preserva o contexto de leitura.
+- Foco de teclado visível, rótulos claros, erros junto aos campos, estados compreensíveis e uso com preferência por movimento reduzido.
 
-quais pontos merecem ser revisitados na próxima consulta.
+Referência visual registrada no DESIGN: fundo `#F7F9F7`, superfície `#FFFFFF`, texto principal `#24382F`, secundário `#62716A`, ação principal `#285C47` e superfície de apoio `#F1F6F0`. Tipografia Segoe UI com alternativas nativas; no estudo, nome do paciente em 29 px, títulos em 18 px e registros em 14 px com entrelinha ampla. Consulte o CSS para os demais detalhes. Ajustes necessários de contraste, legibilidade ou responsividade devem preservar essa direção, não criar outra identidade silenciosamente. A marca desenhada no protótipo é provisória, não um projeto de branding definitivo.
 
-Quanto maior o histórico, maior o esforço cognitivo necessário para reconstruir essa evolução.
+O catálogo getdesign.md foi usado apenas como inspiração de princípios visuais. As referências já estão documentadas no DESIGN local. Não é preciso instalar uma “skill Design.md”, copiar interfaces de empresas ou repetir pesquisa externa para descobrir o que foi aprovado.
 
-O problema central do PsiqApp é transformar um histórico clínico longitudinal em uma visão organizada e rapidamente compreensível, sem substituir a fonte original nem o julgamento do médico.
+As skills locais `frontend-design`, `ui-ux-pro-max` e `web-design-guidelines` estão disponíveis em `.agents/skills/` para as etapas pertinentes. Leia cada SKILL.md antes de utilizá-la. Elas auxiliam a execução e a revisão, mas não substituem as Rules nem a direção aprovada. Não deixe sugestões genéricas de marketing/conversão sobreporem-se ao contexto de prontuário.
 
-3. Público-alvo inicial
+## 4. Escopo funcional do redesign
 
-O usuário inicial é um único médico psiquiatra que atende em consultório próprio.
+O PRD deve cobrir a experiência dos fluxos existentes abaixo, com requisitos e critérios de aceite rastreáveis, sem introduzir novas regras clínicas:
 
-O médico não deve precisar possuir conhecimento técnico para utilizar o sistema.
+- **Navegação e contexto:** orientação entre Pacientes, Agenda e prontuário, identificação inequívoca do paciente, acesso às seções, retorno à lista e navegação voltar/avançar sem troca indevida de contexto.
+- **Pacientes:** listar, buscar por nome, tratar busca sem resultados, cadastrar, visualizar dados e abrir prontuário. Nome, CPF, nascimento, telefone e e-mail são obrigatórios; queixa inicial é opcional. Preservar validação e unicidade de CPF, formatos de contato, restrição de nascimento futuro e exibição mascarada do CPF. Após cadastro bem-sucedido, abrir o novo prontuário vazio, conforme a proposta aprovada. O cadastro já existe no MVP: não é uma nova capacidade de backend.
+- **Prontuário:** histórico de originais e complementos, leitura confortável, metadados compreensíveis, registro de novo parecer e criação de complemento ligado ao original correto. Preservar texto obrigatório, humor e medicações opcionais, data/hora clínica inclusive retroativa e associação opcional a consulta conforme o contrato existente.
+- **Análise de IA:** análise atual, observações e respectivas evidências, limitações, suficiência de histórico, cobertura dos registros, processamento, falha, regeneração quando permitida e consulta ao histórico de gerações/análises. A seção seguinte é obrigatória para evitar regressão conceitual.
+- **Agenda e consultas:** visão global e por paciente, criação de consulta, identificação de paciente/data/hora/status e atualização para estados finais. Preservar consultas retroativas e as transições existentes; o redesign não introduz reversão de status final.
+- **Estados transversais:** carregamento, vazio, sucesso, erro de campo, erro de operação, indisponibilidade e prevenção de reenvio acidental. Não fazer parecer que um registro foi salvo se a operação falhou.
+- **Continuidade do preenchimento:** mensagens de erro e atualizações de IA não devem apagar o que está sendo escrito. O protótipo conserva rascunhos temporários ao fechar/reabrir o formulário, separados por paciente e por parecer/complemento. Especificar a experiência de recuperação/descarte; não inferir armazenamento persistente de dados clínicos no navegador.
+- **Responsividade e acessibilidade:** leitura e ações utilizáveis em desktop e celular, formulários acessíveis por teclado, foco previsível ao abrir/fechar diálogos, erros associados aos campos e conteúdo não dependente só de cor. O protótipo foi verificado em 375, 768, 1024 e 1440 px; isso é evidência do estudo, não uma definição automática de todos os dispositivos suportados ou de conformidade formal.
 
-A primeira versão será validada com um médico real, porém as regras de negócio não devem ser implementadas de maneira específica para essa pessoa. A intenção é permitir que o produto possa futuramente ser utilizado por outros psiquiatras.
+## 5. Relação entre análise de IA, observações e evidências
 
-No MVP:
+O usuário apontou explicitamente que a primeira versão do protótipo havia simplificado demais a análise. A revisão corrigiu isso e foi aprovada. Não reintroduza essa simplificação.
 
-existe apenas um médico;
+O contrato atual contém três listas: `linhaDoTempo`, `padroes` e `pontosDeAtencao`. Cada item possui `texto`, `natureza` (relato ou interpretação) e sua própria lista `evidencias`. Cada evidência identifica `apelidoRegistro`, `registroId`, `campo` (`TEXTO`, `HUMOR` ou `MEDICAMENTOS`) e `citacao`. `limitacoes` é uma lista separada, sem a mesma exigência de evidência por item. Esses nomes servem para localizar o contrato existente; não são uma proposta de novo schema.
 
-não existem diferentes perfis de usuário;
+Em termos de experiência:
 
-não existe portal do paciente;
+- Cada seção pode conter vários itens ou estar vazia, respeitando o modo de análise. Não mostrar apenas a primeira observação nem impor a quantidade fixa do exemplo.
+- Cada observação deve manter seu próprio conjunto de evidências. Não agrupar todas as evidências da seção como se sustentassem indistintamente todos os itens.
+- Uma observação pode usar vários registros. Observações diferentes podem usar conjuntos diferentes ou trechos diferentes do mesmo registro.
+- Ao abrir evidências, mostrar a observação de origem, sua natureza, a citação literal, o campo e o registro/data de origem. Permitir abrir a fonte completa com destaque do trecho no campo correspondente e retornar às evidências ou ao histórico.
+- Evidência pode apontar para parecer original ou complemento, sempre do mesmo paciente e pertencente ao snapshot da análise selecionada. Não confundir “fonte original” com restrição a registros do tipo parecer original.
+- O histórico de análises deve respeitar as evidências e o snapshot de cada versão, não substituir suas referências pelas da análise atual.
 
-não existe equipe administrativa utilizando o sistema.
+O exemplo aprovado tem três itens de linha do tempo, dois padrões e três pontos de atenção: oito observações e dez vínculos de evidência. Um padrão cita agosto e setembro; outro cita julho e setembro, com trechos diferentes. Um ponto de atenção cita especificamente HUMOR. São exemplos fictícios para verificar a interação, não limites do produto nem conteúdo a fixar na aplicação.
 
-4. Objetivo principal
+Confirmações no código, a verificar no estado atual: `apps/frontend/src/features/analises/servicoAnalises.ts`, `PainelAnaliseAtual.tsx` e `ListaEvidencias.tsx`, os dois últimos na mesma pasta. As referências de backend e o detalhamento estão em `docs/redesign/analise-ia.md`. A relação já é suportada pelo sistema; o redesign deve preservá-la, não solicitar novo modelo de domínio para isso.
 
-Permitir que o médico registre e consulte o histórico dos seus pacientes e consiga compreender rapidamente a evolução longitudinal de cada paciente sem precisar reler manualmente todo o prontuário antes de cada consulta.
+## 6. Invariantes que devem continuar verificáveis
 
-O sucesso do MVP deve considerar tanto o funcionamento correto dos fluxos quanto a utilidade real da visão produzida.
+- Registros escritos pelo médico são a fonte clínica de verdade; IA é conteúdo derivado, identificado como apoio. Relato e interpretação não se confundem.
+- Pareceres e complementos são append-only. Correção não sobrescreve o registro original. Análises anteriores também permanecem imutáveis e consultáveis.
+- Salvar um parecer/complemento não depende da conclusão ou disponibilidade da IA. Processamento em andamento ou falha não bloqueia o trabalho nem apaga registros ou a última análise válida.
+- Sem parecer original não há geração; com um original, mesmo com complementos, não há tendência longitudinal. Dois ou mais originais permitem análise longitudinal com todos os registros aplicáveis do snapshot. Complementos são fonte/evidência, mas não aumentam a contagem de pontos temporais originais.
+- A análise atual e a permissão de regenerar seguem o estado fornecido pelo sistema. Não escolhê-las pela mera ordem de término de chamadas nem habilitar ação proibida durante geração ativa.
+- Isolamento entre pacientes em dados, consultas, análises, evidências, formulários e rascunhos. Trocar de paciente durante uma requisição não pode mostrar a resposta anterior no novo prontuário.
+- Preservar a distinção entre data/hora clínica e de criação; horários de exibição seguem a política do projeto, atualmente `America/Sao_Paulo`.
+- IA não diagnostica, prescreve ou recomenda conduta. Não usa análises anteriores como fonte e não inventa informação ausente.
+- MVP local apenas com dados fictícios, aviso explícito e sem prontidão implícita para uso clínico real. Não adicionar exposição de dados em logs, telemetria, erros ou serviços externos.
 
-Uma experiência considerada bem-sucedida é aquela em que o médico consegue abrir o prontuário, entender os principais acontecimentos do histórico e obter uma leitura útil da evolução em poucos minutos.
+Estas são lembranças dos invariantes relevantes, não substitutos da leitura integral das Rules.
 
-5. Objetivos secundários
+## 7. Protótipo aprovado não é implementação de produção
 
-Centralizar os registros dos pacientes.
+O protótipo usa dados fictícios mantidos em memória, perde alterações ao recarregar e não executa chamadas ao backend ou ao provedor de IA. Cadastro, pareceres, consultas e demais ações são simulações de interação.
 
-Organizar consultas e histórico clínico.
+A implementação futura deve usar as capacidades reais do aplicativo. Não transportar os dados de Helena/Marina, as datas fixas, as contagens, a análise de exemplo ou a ausência de persistência para o produto. Não substituir a integração real por mocks permanentes para reproduzir a aparência.
 
-Tornar o histórico facilmente navegável.
+O seletor A/B, a indicação “Direção A escolhida”, “Sobre o protótipo” e o preenchimento automático de exemplo fictício são ferramentas de avaliação, não funcionalidades automaticamente aprovadas para a aplicação. O aviso obrigatório de uso exclusivo de dados fictícios do MVP deve continuar existindo, independentemente da retirada dos controles de comparação.
 
-Manter registros clínicos auditáveis.
+Nem todos os estados reais aparecem no estudo: erros, carregamento, IA em processamento/falha, histórico de gerações, ausência de análise, seções vazias, textos longos e listas volumosas precisam ser especificados sem perder o estilo aprovado. A aprovação visual não comprova qualidade da integração, acessibilidade integral ou ganho de tempo medido.
 
-Reduzir o esforço de preparação para uma consulta.
+## 8. Limites do trabalho
 
-Ajudar o médico a perceber padrões ao longo do tempo.
+Não há mudança de backend, banco, provider/modelo/prompt clínico, contrato de IA ou regra de negócio prevista para este redesign. Se surgir incompatibilidade real que exija ampliar esse escopo, identifique-a com evidências e consulte o usuário; não amplie silenciosamente.
 
-Preservar a fonte clínica original.
+Não incluir novas capacidades como edição/exclusão de prontuário, edição cadastral não existente, autenticação, múltiplos médicos, portal do paciente, faturamento, integrações externas, prescrição, diagnóstico automatizado, RAG, dashboard clínico avançado ou produção com dados reais.
 
-Permitir rastrear quais informações deram origem a uma análise de IA.
+Não trocar stack, impor biblioteca de componentes ou iniciar refatoração arquitetural geral durante a criação do PRD. A TechSpec deve partir do repositório real. Não usar esta solicitação para instalar skills ou dependências adicionais sem necessidade e autorização no escopo apropriado.
 
-Criar uma base simples que possa evoluir futuramente sem exigir uma arquitetura complexa no MVP.
+## 9. Como produzir o PRD e transmitir o contexto às etapas seguintes
 
-6. Escopo funcional do MVP
+- Use o template obrigatório deste agente, com RF/RNF e critérios de aceite verificáveis. Não reduza o resultado a uma lista de cores/telas ou ao critério subjetivo “ficar bonito”.
+- Trate como critérios de produto a disponibilidade das ações, clareza do contexto, leitura das informações, preservação dos dados, vínculo observação/evidência e recuperação de falhas. Referencie o design aprovado para fidelidade visual, sem antecipar a arquitetura ou transformar cada valor CSS em requisito de negócio.
+- Inclua cenários que evitem as omissões já encontradas: cadastro acessível; prontuário recém-criado vazio; múltiplas observações por seção; conjuntos diferentes de evidências por item; citações em diferentes campos; fonte de complemento; retorno à observação correta; troca de paciente sem mistura de dados; IA com zero/um/vários originais; salvamento preservado apesar de falha da IA.
+- Considere textos longos e o volume já previsto no MVP. Não limite registros ou observações às poucas amostras do protótipo. Soluções como paginação ou composição de componentes pertencem à TechSpec, salvo comportamento de produto que precise ser confirmado.
+- Não invente porcentagens de melhoria, metas de tempo, resultados de pesquisa com médico ou certificação de acessibilidade. Há hipóteses de usabilidade e aprovação visual do usuário, não mensuração formal desses resultados.
+- Na seção 14 do PRD, registre explicitamente a direção A aprovada, os caminhos do DESIGN, do protótipo, do README, do contrato de análise e das capturas relevantes como referências para TechSpec, Tasks, implementação e QA. Leve também as decisões funcionais críticas para requisitos/ACs; não as deixe apenas neste prompt ou escondidas em imagens.
+- Oriente a etapa técnica a preservar e consultar essas referências locais. A implementação deverá ser avaliada tanto pelos fluxos reais quanto pela comparação com o protótipo A; testes funcionais isoladamente não comprovam fidelidade visual.
+- A divisão discutida anteriormente — base visual/componentes, navegação/layout, pacientes, prontuário, análise/evidências e agenda — é apenas uma proposta inicial de implementação. Não crie tasks agora nem trate essa divisão como aprovação formal. O agente `create_tasks.md` exige apresentar as tarefas de alto nível para aprovação.
 
-Pacientes
+Assim, a cadeia de contexto deve permanecer explícita: este briefing e os artefatos locais informam o PRD; o PRD registra as decisões e referências; a TechSpec e as Tasks mantêm sua rastreabilidade; a implementação e as revisões usam o mesmo material aprovado.
 
-O médico deve poder:
+## 10. Esclarecimentos e condição de parada
 
-cadastrar um paciente;
+Não pergunte novamente qual direção visual usar, se haverá cadastro, se cada seção de análise pode ter múltiplos itens ou se as evidências pertencem a cada item: essas decisões estão confirmadas.
 
-buscar pacientes pelo nome;
+Após ler as fontes, pergunte somente o que ainda alterar materialmente escopo, comportamento, risco, prioridade ou aceite. Possíveis pontos a verificar, sem transformá-los automaticamente em bloqueadores: contexto prioritário de dispositivos; limites da recuperação de rascunhos ao navegar/recarregar; nível de acessibilidade a adotar como aceite; detalhes funcionais de telas/estados reais não representados no protótipo. Não suponha persistência de rascunhos entre sessões ou metas numéricas que não foram aprovadas. Se as fontes já resolverem um ponto, não repita a pergunta.
 
-visualizar os dados básicos do paciente;
+Apresente o resumo das decisões confirmadas e das premissas antes de gerar o PRD, conforme este agente. Se algum artefato essencial citado não estiver acessível ou houver conflito material entre as fontes, informe precisamente a lacuna em vez de reconstruir o design por imaginação.
 
-abrir seu prontuário;
-
-consultar sua agenda e seu histórico clínico.
-
-O nome é obrigatório.
-
-Campos previstos:
-
-nome;
-
-CPF;
-
-data de nascimento;
-
-telefone;
-
-e-mail;
-
-queixa inicial.
-
-Além do nome, os demais campos podem ser opcionais conforme definição final do PRD.
-
-7. Agenda
-
-O médico deve poder:
-
-criar uma consulta futura;
-
-associar a consulta a um paciente;
-
-visualizar próximas consultas;
-
-marcar uma consulta como realizada;
-
-cancelar uma consulta;
-
-registrar que o paciente faltou.
-
-A agenda do MVP é interna ao PsiqApp.
-
-Não haverá nesta versão integração com Google Calendar, WhatsApp, sistemas externos de agendamento ou sistemas de clínicas. O cadastro será manual.
-
-8. Prontuário e pareceres
-
-O médico poderá registrar um parecer tanto durante quanto depois da consulta.
-
-O parecer terá:
-
-texto livre obrigatório;
-
-estado/humor opcional;
-
-medicações em uso opcionais.
-
-O registro de medicação será simples no MVP. Não será criado inicialmente catálogo farmacológico, validação de medicamentos, mecanismo de prescrição, regras de dose ou regras de interação medicamentosa.
-
-Um parecer pode estar associado a uma consulta específica, mas essa associação não é obrigatória. Isso permite registrar também informações clínicas fora de uma consulta agendada quando necessário.
-
-9. Imutabilidade e correções
-
-Pareceres já registrados não devem ser sobrescritos.
-
-O modelo inicial será append-only.
-
-Caso seja necessário corrigir ou complementar uma informação, o médico deverá criar um novo registro de correção ou adendo. O registro original continua preservado.
-
-Essa abordagem busca simplificar o MVP, preservar auditabilidade, evitar histórico complexo de versões e permitir reconstruir cronologicamente o que foi registrado.
-
-10. Histórico do paciente
-
-O prontuário deve apresentar todos os pareceres em uma linha do tempo organizada.
-
-O médico deve conseguir identificar data, conteúdo do parecer, estado/humor registrado, medicações registradas e consulta relacionada, quando houver.
-
-A linha do tempo deve permitir que o médico compreenda rapidamente a sequência dos acontecimentos.
-
-11. Análise de evolução com inteligência artificial
-
-A IA é uma funcionalidade de apoio à leitura do prontuário.
-
-Seu objetivo não é fornecer uma resposta clínica pronta, mas organizar as informações registradas pelo médico de maneira longitudinal.
-
-A análise deve conter quatro áreas principais:
-
-linha do tempo resumida;
-
-padrões observados;
-
-pontos de atenção;
-
-limitações da análise.
-
-12. Fonte de informação da IA
-
-A fonte de verdade para a análise são exclusivamente os registros clínicos escritos pelo médico.
-
-Para cada nova análise, a IA deve considerar novamente o histórico original de pareceres aplicável ao paciente.
-
-Uma análise anterior gerada por IA nunca deve ser utilizada como fonte clínica para produzir outra análise.
-
-Conceitualmente: pareceres do médico -> nova análise. Nunca: análise anterior + novo parecer -> nova análise.
-
-Essa regra existe para impedir que interpretações ou erros produzidos anteriormente pela IA sejam propagados para análises futuras.
-
-13. Histórico utilizado em cada análise
-
-No MVP, cada nova análise deve partir novamente de todo o histórico de pareceres do paciente, organizado cronologicamente.
-
-Não será implementado inicialmente RAG, busca vetorial, embeddings, recuperação semântica de partes do prontuário ou resumo incremental como fonte principal da próxima análise.
-
-Essas estratégias poderão ser avaliadas futuramente caso o tamanho dos históricos torne a abordagem inicial cara, lenta ou inviável.
-
-A prioridade inicial é simplicidade e fidelidade à fonte clínica original.
-
-14. Geração automática da análise
-
-Quando um novo parecer clínico for salvo, o sistema deve iniciar automaticamente a geração de uma nova análise do paciente.
-
-Esse processamento não deve bloquear o salvamento do parecer.
-
-Para o médico, o comportamento esperado é:
-
-registrar o parecer;
-
-salvar;
-
-continuar utilizando o sistema imediatamente;
-
-a análise ser atualizada em segundo plano;
-
-a nova análise aparecer quando estiver disponível.
-
-A indisponibilidade ou lentidão da IA nunca deve impedir o salvamento do prontuário.
-
-O PRD deve descrever esse comportamento assíncrono como requisito de produto, sem definir tecnologia de fila, broker ou mecanismo de processamento. A implementação será decidida na TechSpec.
-
-15. Estado da análise
-
-Enquanto uma nova análise estiver sendo produzida, o sistema deve deixar claro que existe uma atualização em andamento.
-
-Quando concluída, a nova análise passa a ser apresentada como a análise atual.
-
-Se houver falha:
-
-os dados clínicos continuam preservados;
-
-nenhuma informação do prontuário é alterada;
-
-a falha deve ser apresentada de maneira compreensível;
-
-o médico deve poder solicitar uma nova tentativa.
-
-Também deve existir uma ação manual para gerar novamente uma análise quando necessário, mesmo que o fluxo normal seja automático.
-
-16. Histórico mínimo
-
-Com nenhum parecer, não existe conteúdo suficiente para análise.
-
-Com apenas um parecer, a IA pode organizar ou resumir o registro, mas deve deixar explicitamente claro que não existe histórico suficiente para identificar evolução ou tendência.
-
-Com dois ou mais pareceres, pode ser realizada uma análise longitudinal.
-
-A IA nunca deve transformar um histórico curto em uma falsa tendência.
-
-17. Evidências das conclusões
-
-Conclusões importantes produzidas pela IA devem ser rastreáveis aos registros que as sustentam.
-
-Em vez de apenas apresentar "Há relatos recorrentes de dificuldade de sono", a análise deve permitir identificar algo equivalente a "Relatos relacionados a dificuldade de sono aparecem nos registros de 12/03, 02/04 e 18/05".
-
-O objetivo é permitir ao médico retornar rapidamente à fonte original.
-
-A evidência não transforma a interpretação da IA em fato clínico; ela apenas mostra de onde a interpretação foi derivada.
-
-18. Limites de comportamento da IA
-
-A IA deve utilizar apenas as informações fornecidas pelo prontuário para produzir as conclusões apresentadas no MVP.
-
-Ela não deve usar conhecimento médico externo para criar novas conclusões clínicas sobre o paciente.
-
-São proibidos:
-
-diagnóstico fechado;
-
-afirmação de que o paciente possui determinado transtorno;
-
-indicação de início de medicamento;
-
-suspensão de medicamento;
-
-troca de medicamento;
-
-indicação ou alteração de dose;
-
-afirmação de informação que não exista nos registros;
-
-transformação de hipótese em fato;
-
-preenchimento de lacunas por suposição.
-
-A análise deve ser apresentada explicitamente como ferramenta de apoio. A decisão clínica permanece sempre com o médico.
-
-19. Histórico das análises de IA
-
-As análises anteriores devem ser preservadas.
-
-Cada geração cria uma nova análise. Uma análise anterior nunca é substituída por uma nova.
-
-Cada análise representa um snapshot daquilo que a IA conseguiu observar considerando o histórico disponível naquele momento.
-
-O médico deve poder consultar análises anteriores.
-
-Mesmo quando uma análise mais nova for gerada, as anteriores continuam disponíveis e imutáveis.
-
-20. Regeneração
-
-O médico pode solicitar manualmente uma nova análise mesmo quando nenhum novo parecer tiver sido criado.
-
-Nesse caso, uma nova análise deve ser criada, a anterior deve permanecer salva e ambas podem ter considerado o mesmo conjunto de registros.
-
-Isso preserva auditabilidade e permite comparar resultados produzidos em momentos diferentes.
-
-21. Auditabilidade da análise
-
-Deve ser possível identificar, ao menos conceitualmente:
-
-quando a análise foi gerada;
-
-para qual paciente;
-
-quantos pareceres foram considerados;
-
-qual era o último parecer considerado;
-
-quais evidências sustentam suas conclusões relevantes.
-
-Detalhes técnicos adicionais de auditoria, como identificação de versão de prompt ou modelo utilizado, podem ser definidos posteriormente na TechSpec.
-
-22. Falhas da IA
-
-A IA deve ser tratada como uma dependência externa que pode falhar.
-
-Uma falha pode ocorrer por indisponibilidade, timeout, resposta inválida, erro de autenticação, limite de uso ou comportamento inesperado do modelo.
-
-Independentemente da causa:
-
-o parecer já salvo permanece salvo;
-
-consultas não são alteradas;
-
-dados antigos não são removidos;
-
-análises anteriores continuam disponíveis.
-
-A IA não faz parte da operação responsável por persistir o prontuário.
-
-Retry automático controlado pode existir como decisão técnica, mas o produto também deve permitir nova tentativa manual quando a geração não for concluída.
-
-23. Privacidade e dados sensíveis
-
-O sistema trabalhará com informações de saúde e, portanto, dados pessoais sensíveis.
-
-Privacidade deve ser tratada como requisito central.
-
-No MVP de desenvolvimento e validação:
-
-serão utilizados dados fictícios;
-
-não será considerada a aplicação pronta para armazenar prontuários reais em produção;
-
-não haverá premissa de que qualquer provedor de IA possa receber dados clínicos reais.
-
-Antes do uso com pacientes reais deverão ser tratados requisitos adicionais relacionados a LGPD, autenticação, autorização, criptografia, hospedagem, backup, segurança operacional, retenção, logs, fornecedores externos e tratamento de dados por provedores de IA.
-
-Essa evolução não deve bloquear o MVP com dados fictícios.
-
-24. Operação da primeira versão
-
-A primeira versão será simples e poderá ser utilizada localmente para desenvolvimento e validação.
-
-Haverá um único médico, ausência de autenticação no protótipo local, dados fictícios e ambiente controlado.
-
-Isso não significa que autenticação seja considerada desnecessária para o produto final. Login e demais controles de acesso deverão ser requisitos obrigatórios antes do uso com dados clínicos reais.
-
-25. Volume inicial esperado
-
-Para orientar o MVP, considerar aproximadamente:
-
-100 a 500 pacientes ativos;
-
-normalmente 20 a 100 pareceres por paciente;
-
-casos de histórico longo com 200 ou mais pareceres.
-
-Esses valores são estimativas iniciais e devem servir apenas para evitar requisitos de desempenho completamente arbitrários.
-
-A arquitetura deve priorizar simplicidade e permitir evolução caso o volume real seja significativamente maior.
-
-26. Critério principal de sucesso
-
-O MVP terá atingido seu principal objetivo quando um médico conseguir:
-
-encontrar rapidamente um paciente;
-
-visualizar seu histórico organizado;
-
-registrar uma nova evolução sem complexidade;
-
-retornar imediatamente ao trabalho após salvá-la;
-
-receber posteriormente uma análise atualizada;
-
-compreender rapidamente os principais acontecimentos e padrões registrados;
-
-acessar as evidências originais que sustentam as observações da IA.
-
-O ganho esperado é reduzir significativamente a necessidade de releitura manual de todo o prontuário antes de cada consulta.
-
-27. Fora do escopo do MVP
-
-Não fazem parte inicialmente:
-
-múltiplos médicos;
-
-múltiplos perfis de acesso;
-
-portal ou aplicativo do paciente;
-
-prescrição eletrônica;
-
-assinatura digital;
-
-emissão de atestado;
-
-faturamento;
-
-convênios;
-
-financeiro;
-
-Google Calendar;
-
-WhatsApp;
-
-integração com sistemas externos de clínicas;
-
-RAG;
-
-banco vetorial;
-
-embeddings;
-
-busca semântica no prontuário;
-
-catálogo farmacológico;
-
-recomendação terapêutica;
-
-diagnóstico automatizado;
-
-dashboard clínico avançado;
-
-utilização em produção com dados reais;
-
-infraestrutura completa de segurança para operação clínica;
-
-exportação avançada do prontuário.
-
-Esses itens podem ser tratados como evoluções futuras sem impedir a entrega da primeira versão funcional.
-
-28. Possíveis evoluções
-
-Depois da validação do MVP poderão ser estudados:
-
-autenticação e autorização;
-
-múltiplos médicos;
-
-deploy seguro;
-
-backups;
-
-exportação do prontuário;
-
-integração com agenda externa;
-
-pesquisa avançada no histórico;
-
-RAG para perguntas específicas sobre prontuários extensos;
-
-sumarização hierárquica de históricos muito grandes;
-
-extração estruturada de sintomas e eventos;
-
-visualização longitudinal de sintomas;
-
-comparação entre períodos;
-
-busca por ocorrências específicas;
-
-métricas clínicas apresentadas sem produzir diagnóstico;
-
-otimização de custo e contexto da IA.
-
-Essas evoluções devem surgir a partir de necessidade comprovada e não devem aumentar desnecessariamente a complexidade do MVP.
-
-29. Princípios do produto
-
-Fonte clínica é o registro do médico.
-
-IA produz artefatos derivados, nunca fatos clínicos.
-
-Uma saída de IA nunca deve ser utilizada como fonte de uma nova análise.
-
-Falha da IA nunca pode comprometer o prontuário.
-
-Registros clínicos devem ser auditáveis.
-
-Pareceres são append-only no MVP.
-
-Análises são preservadas historicamente e são imutáveis.
-
-Toda observação relevante da IA deve ser rastreável à fonte.
-
-Histórico insuficiente deve ser declarado como insuficiente.
-
-A IA não diagnostica nem prescreve.
-
-A decisão final sempre pertence ao médico.
-
-O MVP deve permanecer simples e evoluir apenas quando uma necessidade real justificar complexidade adicional.
-
-30. Ideia refinada em uma frase
-
-O PsiqApp é um prontuário psiquiátrico simples que organiza pacientes, consultas e evoluções clínicas e utiliza IA, de maneira assíncrona, auditável e baseada exclusivamente nos registros do médico, para ajudar o profissional a compreender rapidamente a evolução longitudinal de cada paciente sem substituir seu julgamento clínico.
+Conclua apenas o PRD e informe seu caminho. Não marque revisões como aprovadas, não crie TechSpec/Tasks, não altere código de aplicação, não faça commits nem avance automaticamente para implementação. As próximas etapas devem seguir os gates de `sdd-workflow/workflow.md`, incluindo a revisão de segurança clínica aplicável ao prontuário e à análise de IA.
 
 </prompt_base>
