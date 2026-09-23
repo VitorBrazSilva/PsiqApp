@@ -13,12 +13,12 @@ interface Props {
 
 function SecaoAnalise({ titulo, vazio, itens, aoAbrirFonte }: { titulo: string, vazio: string, itens: ItemAnalise[], aoAbrirFonte: (registroId: string) => void }) {
   return (
-    <section className="bloco">
+    <section className="bloco analise-secao">
       <h3>{titulo}</h3>
       {itens.length === 0 ? <p className="estado">{vazio}</p> : (
         <ul className="itens-analise">
           {itens.map((item, indice) => (
-            <li key={`${titulo}-${indice}`}>
+            <li className="item-analise" key={`${titulo}-${indice}`}>
               <p>{item.texto}</p>
               <span className="etiqueta">{item.natureza === 'RELATO' ? 'Relato registrado' : 'Interpretação apoiada em evidência'}</span>
               <ListaEvidencias evidencias={item.evidencias} aoAbrirFonte={aoAbrirFonte} />
@@ -51,10 +51,10 @@ export function PainelAnaliseAtual({ estado, carregando, erro, aoRegenerar, rege
   const ativa = estado?.geracaoAtiva
   const falha = estado?.ultimaGeracao?.estado === 'FALHA'
   return (
-    <section className="painel analise">
+    <section className="painel analise" aria-labelledby="titulo-analise">
       <div className="registro-cabecalho">
-        <h2>Análise atual</h2>
-        <button type="button" disabled={!estado?.podeRegenerar || regenerando} onClick={aoRegenerar}>
+        <h2 id="titulo-analise">Análise atual</h2>
+        <button className="analise-acao" type="button" disabled={!estado?.podeRegenerar || regenerando} onClick={aoRegenerar}>
           {regenerando ? 'Solicitando...' : 'Regenerar'}
         </button>
       </div>

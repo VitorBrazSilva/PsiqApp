@@ -17,11 +17,11 @@ interface Props {
 export function ListaEvidencias({ evidencias, aoAbrirFonte }: Props) {
   if (evidencias.length === 0) return <p className="estado">Sem evidências vinculadas.</p>
   return (
-    <ul className="evidencias">
+    <ul className="evidencias" aria-label="Evidências da observação">
       {evidencias.map((evidencia, indice) => (
         <li key={`${evidencia.registroId}-${indice}`}>
-          <button type="button" className="link-botao" onClick={() => aoAbrirFonte(evidencia.registroId)}>
-            Abrir fonte
+          <button type="button" aria-label="Abrir fonte" className="link-botao evidencia-link" onClick={() => aoAbrirFonte(evidencia.registroId)}>
+            Ver fonte completa <span aria-hidden="true">↗</span>
           </button>
           <span>{campos[evidencia.campo]}: "{evidencia.citacao}"</span>
         </li>
