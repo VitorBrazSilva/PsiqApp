@@ -4,6 +4,8 @@ import { aguardarGeracaoConcluida, abrirProntuario, criarPaciente, criarParecer,
 test('cadastra, busca, abre paciente e preserva aviso de dados ficticios', async ({ page }) => {
   await page.goto('/pacientes')
   await expect(page.getByText('Use somente dados fictícios.')).toBeVisible()
+  await page.getByRole('button', { name: /Novo paciente/ }).click()
+  await expect(page.getByRole('dialog', { name: 'Novo paciente' })).toBeVisible()
   await page.getByLabel('Nome', { exact: true }).fill(ficticio.nome)
   await page.getByLabel('CPF').fill(ficticio.cpf)
   await page.getByLabel('Nascimento').fill(ficticio.dataNascimento)

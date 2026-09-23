@@ -4,25 +4,29 @@ import { Rotas } from './rotas'
 
 export function Aplicacao() {
   const localizacao = useLocation()
-  const nomeRota = localizacao.pathname.startsWith('/prontuario/') ? 'Prontuário' : localizacao.pathname === '/agenda' ? 'Agenda' : 'Pacientes'
+  const emAgenda = localizacao.pathname === '/agenda'
+  const emProntuario = localizacao.pathname.startsWith('/prontuario/')
+  const contexto = emAgenda ? 'Agenda' : emProntuario ? 'Prontuário' : 'Todos os pacientes'
   return <>
-    <a className="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
-    <AvisoDadosFicticios />
-    <div className="aplicacao-shell">
-      <header className="cabecalho">
-        <div className="marca"><span className="marca-simbolo" aria-hidden="true">P</span><span className="marca-nome">PsiqApp</span><span className="marca-contexto">Ambiente de validação</span></div>
-        <nav className="navegacao" aria-label="Navegação principal">
-          <NavLink to="/pacientes"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 20v-1a6 6 0 0 1 12 0v1M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM18 8v6m3-3h-6" /></svg> Pacientes</NavLink>
-          <NavLink to="/agenda"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" /><path d="M12 7v5l3 2" /></svg> Agenda</NavLink>
-          <NavLink to="/prontuario"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 4h12v16H6zM9 8h6M9 12h6M9 16h4" /></svg> Prontuário</NavLink>
+    <a className="skip-link" href="#conteudo">Pular para o conteúdo</a>
+    <div className="review-bar" aria-label="Ambiente da aplicação"><div className="review-label"><span className="review-dot" />PsiqApp <span className="review-stage">/ Foco clínico</span></div><span className="review-about">Ambiente de validação</span><AvisoDadosFicticios /></div>
+    <div className="app-shell">
+      <aside className="sidebar" role="presentation">
+        <div className="brand"><span className="brand-mark" aria-hidden="true">◒</span><span>PsiqApp</span></div>
+        <p className="workspace-label">Seu espaço de cuidado</p>
+        <nav className="primary-nav" aria-label="Navegação principal">
+          <NavLink to="/pacientes"><span aria-hidden="true">♧</span>Pacientes</NavLink>
+          <NavLink to="/agenda"><span aria-hidden="true">□</span>Agenda</NavLink>
+          <NavLink to="/prontuario"><span aria-hidden="true">▤</span>Prontuário</NavLink>
         </nav>
-        <div className="perfil-clinico"><span className="avatar">DR</span><span><strong>Dr. Validação</strong><small>Consultório</small></span></div>
-      </header>
-      <main id="conteudo" className="conteudo" tabIndex={-1}>
-        <div className="trilha" aria-label="Breadcrumb"><NavLink to="/pacientes">Início</NavLink><span aria-hidden="true">/</span><span>{nomeRota}</span></div>
-        <Rotas />
-      </main>
-      <footer>Uso local · Validação com dados fictícios</footer>
+        <div className="sidebar-note"><strong>Ambiente de demonstração</strong><span>Explore com dados fictícios.<br />As alterações ficam no sistema local.</span></div>
+        <div className="account"><span className="account-avatar">MD</span><span><strong>Médico demonstrativo</strong><small>Consultório particular</small></span></div>
+      </aside>
+      <div className="app-body">
+        <header className="topbar"><div className="breadcrumb"><NavLink aria-label="Voltar à lista" to="/pacientes">Pacientes</NavLink><span aria-hidden="true">›</span><span>{contexto}</span></div><div className="topbar-tools"><NavLink className="search-button" to="/pacientes"><span aria-hidden="true">⌕</span>&nbsp; Encontrar paciente</NavLink><span className="demo-badge"><span aria-hidden="true">◉</span>&nbsp; Somente dados fictícios</span></div></header>
+        <main id="conteudo" tabIndex={-1}><Rotas /></main>
+        <footer className="page-footer"><span>Protótipo funcional com dados fictícios.</span><span>Foco clínico</span></footer>
+      </div>
     </div>
   </>
 }

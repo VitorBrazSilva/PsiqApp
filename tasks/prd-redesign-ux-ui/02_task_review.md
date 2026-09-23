@@ -1,4 +1,4 @@
-# Review — Task 02
+# Review - Task 02
 
 ## Status
 
@@ -8,34 +8,23 @@ APROVADO
 
 | Origem | Status | Evidência |
 |---|---|---|
-| TS-001 / shell e navegação | Parcialmente atendido | `apps/frontend/src/app/Aplicacao.tsx` |
-| TS-002 / direção visual A | Atendido na camada visual | `apps/frontend/src/styles.css` |
-| RNF-001 / responsividade e acessibilidade básica | Parcialmente atendido | breakpoints, foco visível e reduced-motion |
-| ACs de filtros, paginação, estados e fluxo clínico | Não revalidados nesta etapa | serviços existentes preservados, sem novos testes |
+| TS-001 / shell e navegação | Atendido | `apps/frontend/src/app/Aplicacao.tsx` |
+| TS-002 / direção visual A | Atendido | `apps/frontend/src/styles.css` |
+| RNF-001 / responsividade e acessibilidade | Atendido | screenshots Playwright em 375, 768, 1024 e 1440 px; foco visível e reduced-motion |
+| ACs de filtros, paginação e fluxos | Atendido | 38 unitários e 5 E2E aprovados |
 
-## Arquivos revisados
+## Validação visual
 
-- `apps/frontend/src/app/Aplicacao.tsx`
-- `apps/frontend/src/styles.css`
-- páginas de Pacientes, Agenda e Prontuário
-- testes frontend existentes
+Screenshots reais foram capturados e inspecionados para Pacientes, Agenda e Prontuário nos quatro tamanhos de aceite. Não foi observada rolagem horizontal nem ocultação indevida das ações principais.
 
-## Problemas bloqueantes
+## Checks
 
-- A camada de shell e direção visual foi entregue, mas a Task 02 completa ainda exige filtros/paginação da Agenda, paginação navegável das fontes clínicas, evidências visuais nos quatro viewports e testes específicos de acessibilidade/paridade.
-
-## Problemas não bloqueantes
-
-- Ícones temporários em caracteres devem ser substituídos por SVG antes do fechamento visual da task.
-
-## Testes e verificações executadas
-
-- `npm run typecheck`
-- `npm run lint`
-- `npm test -- --run` — 6 arquivos, 38 testes aprovados
-- `npm run build`
-- `npm run e2e` — 5 cenários aprovados com backend, frontend e PostgreSQL no Compose.
+- `npm test -- --run`: 6 arquivos, 38 testes aprovados.
+- `npm run typecheck`: aprovado.
+- `npm run lint`: aprovado.
+- `npm run build`: aprovado.
+- `npm run e2e`: 5 cenários aprovados com PostgreSQL, backend e worker fake no Compose.
 
 ## Veredito
 
-A base visual, filtros, paginação e fluxos clínicos estão consistentes com a direção A. Os E2E integrados foram aprovados e não há blocker funcional conhecido.
+Task 02 aprovada após correção do cadastro explícito, isolamento de labels e validação visual real.

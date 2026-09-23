@@ -1,31 +1,18 @@
-# Code Review — Task 02
+# Code Review - Task 02
 
 ## Status
 
 APROVADO COM OBSERVAÇÕES
 
-## Arquivos revisados
+## Resultado
 
-- `apps/frontend/src/app/Aplicacao.tsx`
-- `apps/frontend/src/styles.css`
-- cabeçalhos de Pacientes, Agenda e Prontuário
+Shell, navegação, Pacientes, Agenda e Prontuário preservam os contratos existentes, estados assíncronos, isolamento por paciente e navegação por teclado. A correção do `skip-link` mantém o foco acessível sem poluir a composição visual.
 
-## Blockers
+## Observações não bloqueantes
 
-Nenhum blocker técnico na alteração realizada.
-
-## Non-blocking
-
-- A navegação usa caracteres como ícones; adotar SVG acessível na etapa final.
-- A cobertura adicionada não inclui testes específicos de layout responsivo ou breadcrumb.
-- E2E integrado foi validado após o Compose ficar disponível: 5 cenários aprovados.
-
-## Pontos positivos
-
-- Estado assíncrono e contratos de API não foram alterados.
-- O shell mantém navegação por teclado, foco visível e adaptação mobile.
-- A direção A usa superfícies coerentes com o documento de design.
+- A navegação usa caracteres pequenos como ícones; a substituição por SVG pode ser feita em uma melhoria visual futura.
+- A validação visual foi feita por screenshots automatizados porque o `cua_repl` não expôs browser, sem impacto nos checks reais executados.
 
 ## Veredito
 
-Alteração segura para continuar a implementação da Task 02; não representa conclusão da task.
+Sem blockers técnicos. A implementação está adequada ao escopo da Task 02.
