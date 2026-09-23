@@ -36,3 +36,12 @@ Status `implementado` indica contrato e destino preparado nesta task; a validaç
 | E-15 | GET health | Operacional | backend `/api/v1` | operacional | readiness | planejado |
 | E-16 | GET readiness | Operacional | backend `/api/v1` | operacional | readiness | planejado |
 | E-17 | GET openapi | Operacional | backend `/api/v1` | operacional | OpenAPI | planejado |
+
+## Evidências adicionais — Task 2.0
+
+| Capacidade | Componente | Evidência | Status |
+|---|---|---|---|
+| Shell, navegação responsiva e breadcrumb | `src/app/Aplicacao.tsx` | `Aplicacao.test.tsx`, foco visível | implementado |
+| Busca e paginação de pacientes | `PaginaPacientes.tsx`, `Paginacao.tsx` | suíte frontend, query paginada | implementado |
+| Filtros por paciente/período e paginação da agenda | `PaginaAgenda.tsx`, `Paginacao.tsx` | E2E integrado aprovado | implementado |
+| Histórico clínico paginado e fonte integral | `PaginaProntuario.tsx` | E2E integrado aprovado | implementado |

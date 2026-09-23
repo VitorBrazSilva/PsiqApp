@@ -35,12 +35,12 @@ Aplicar a direção visual A aos fluxos de Pacientes, Agenda e Prontuário, mant
 
 ## Subtarefas
 
-- [ ] 2.1 Aplicar shell, rotas, contexto e estados de navegação.
-- [ ] 2.2 Implementar Pacientes, cadastro, busca e paginação usando contratos completos.
-- [ ] 2.3 Implementar Agenda global/contextual, filtros, criação e transições válidas de status.
-- [ ] 2.4 Implementar Dados pessoais e Histórico clínico com fonte integral e continuidade.
-- [ ] 2.5 Implementar formulários de parecer/complemento com vínculo correto e preservação de rascunho.
-- [ ] 2.6 Registrar na matriz cada campo, endpoint, teste e evidência visual/funcional.
+- [x] 2.1 Aplicar shell, rotas, contexto e estados de navegação.
+- [x] 2.2 Implementar Pacientes, cadastro, busca e paginação usando contratos completos.
+- [x] 2.3 Implementar Agenda global/contextual, filtros, criação e transições válidas de status.
+- [x] 2.4 Implementar Dados pessoais e Histórico clínico com fonte integral e continuidade.
+- [x] 2.5 Implementar formulários de parecer/complemento com vínculo correto e preservação de rascunho.
+- [x] 2.6 Registrar na matriz cada campo, endpoint, teste e evidência visual/funcional.
 
 ## Critérios de sucesso
 
