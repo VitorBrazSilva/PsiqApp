@@ -5,7 +5,7 @@ import { EstadoVazio } from '../../shared/componentes/EstadoVazio'
 import { FonteRegistroClinico } from '../analises/FonteRegistroClinico'
 import { HistoricoGeracoes } from '../analises/HistoricoGeracoes'
 import { PainelAnaliseAtual } from '../analises/PainelAnaliseAtual'
-import { servicoAnalises } from '../analises/servicoAnalises'
+import { servicoAnalises, type AnaliseClinica, type GeracaoAnalise } from '../analises/servicoAnalises'
 import { usePollingAnalise } from '../analises/usePollingAnalise'
 import { FormularioConsulta } from '../consultas/FormularioConsulta'
 import { ListaConsultas } from '../consultas/ListaConsultas'
@@ -27,6 +27,7 @@ export function PaginaProntuario() {
   const [originalEmComplemento, setOriginalEmComplemento] = useState<string | null>(null)
   const [fonteAberta, setFonteAberta] = useState<string | null>(null)
   const [regenerando, setRegenerando] = useState(false)
+  const [analiseHistorica, setAnaliseHistorica] = useState<AnaliseClinica | null>(null)
   const [paginaRegistros, setPaginaRegistros] = useState({ pagina: 0, tamanho: 100, total: 0 })
   const { estado, geracoes, carregando: carregandoAnalise, erro: erroAnalise, recarregar } = usePollingAnalise(pacienteId ?? null)
 
@@ -44,6 +45,7 @@ export function PaginaProntuario() {
       setPaginaRegistros({ pagina: paginaRegistros.pagina, tamanho: paginaRegistros.tamanho, total: paginaRegistros.total })
       setOriginalEmComplemento(null)
       setFonteAberta(null)
+      setAnaliseHistorica(null)
       setErro('')
     }).catch(falha => {
       if (falha instanceof DOMException) return
@@ -83,6 +85,16 @@ export function PaginaProntuario() {
       setErro(falha instanceof ErroApi ? falha.message : 'Não foi possível solicitar regeneração.')
     } finally {
       setRegenerando(false)
+    }
+  }
+
+  async function abrirHistorico(geracao: GeracaoAnalise) {
+    if (!geracao.analiseId || geracao.pacienteId !== pacienteId) return
+    try {
+      const analise = await servicoAnalises.obterHistorica(pacienteId, geracao.analiseId)
+      if (analise.pacienteId === pacienteId && analise.geracaoId === geracao.id) setAnaliseHistorica(analise)
+    } catch {
+      setErro('Não foi possível abrir esta versão histórica da análise.')
     }
   }
 
@@ -130,10 +142,11 @@ export function PaginaProntuario() {
           aoRegenerar={regenerarAnalise}
           regenerando={regenerando}
           aoAbrirFonte={setFonteAberta}
+          analiseHistorica={analiseHistorica}
         />
         <FonteRegistroClinico pacienteId={pacienteId} registroId={fonteAberta} aoFechar={() => setFonteAberta(null)} />
         <div className="painel">
-          <HistoricoGeracoes geracoes={geracoes} />
+          <HistoricoGeracoes geracoes={geracoes} aoAbrir={abrirHistorico} />
         </div>
       </div>
     </section>

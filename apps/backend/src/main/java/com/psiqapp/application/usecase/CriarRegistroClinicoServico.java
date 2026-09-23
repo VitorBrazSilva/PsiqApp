@@ -60,7 +60,7 @@ public class CriarRegistroClinicoServico {
                 reserva.sequenciaRequest(), agora, EstadoGeracaoAnalise.QUEUED,
                 estatisticas.totalRegistros(), estatisticas.totalOriginais(),
                 estatisticas.totalComplementos(), estatisticas.ultimoRegistroId(),
-                modo(estatisticas.totalOriginais())));
+                modo(estatisticas.totalOriginais()), null));
         return new Resultado(registro, geracao);
     }
 

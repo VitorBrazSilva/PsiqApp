@@ -8,6 +8,7 @@ interface Props {
   aoRegenerar: () => void
   regenerando: boolean
   aoAbrirFonte: (registroId: string) => void
+  analiseHistorica?: AnaliseClinica | null
 }
 
 function SecaoAnalise({ titulo, vazio, itens, aoAbrirFonte }: { titulo: string, vazio: string, itens: ItemAnalise[], aoAbrirFonte: (registroId: string) => void }) {
@@ -46,7 +47,7 @@ function ConteudoAnalise({ analise, aoAbrirFonte }: { analise: AnaliseClinica, a
   )
 }
 
-export function PainelAnaliseAtual({ estado, carregando, erro, aoRegenerar, regenerando, aoAbrirFonte }: Props) {
+export function PainelAnaliseAtual({ estado, carregando, erro, aoRegenerar, regenerando, aoAbrirFonte, analiseHistorica }: Props) {
   const ativa = estado?.geracaoAtiva
   const falha = estado?.ultimaGeracao?.estado === 'FALHA'
   return (
@@ -62,8 +63,8 @@ export function PainelAnaliseAtual({ estado, carregando, erro, aoRegenerar, rege
       {ativa && <p className="estado">Atualização em andamento: {ativa.estado}. O prontuário continua disponível.</p>}
       {falha && <p role="status" className="erro">A última geração falhou. A análise válida anterior permanece exibida quando existe.</p>}
       {!estado?.podeRegenerar && estado?.motivo && <p className="estado">{estado.motivo}</p>}
-      {estado?.analiseAtual
-        ? <ConteudoAnalise analise={estado.analiseAtual} aoAbrirFonte={aoAbrirFonte} />
+      {(analiseHistorica ?? estado?.analiseAtual)
+        ? <ConteudoAnalise analise={(analiseHistorica ?? estado?.analiseAtual)!} aoAbrirFonte={aoAbrirFonte} />
         : !carregando && <p className="estado">Ainda não há análise válida para este paciente.</p>}
     </section>
   )
