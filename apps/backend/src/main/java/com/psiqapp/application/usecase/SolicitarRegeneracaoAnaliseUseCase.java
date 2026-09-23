@@ -54,7 +54,7 @@ public class SolicitarRegeneracaoAnaliseUseCase {
                             reserva.sequenciaRequest(), relogio.instant(), EstadoGeracaoAnalise.QUEUED,
                             estatisticas.totalRegistros(), estatisticas.totalOriginais(),
                             estatisticas.totalComplementos(), estatisticas.ultimoRegistroId(),
-                            estatisticas.totalOriginais() <= 1 ? ModoAnalise.RESUMO : ModoAnalise.LONGITUDINAL));
+                            estatisticas.totalOriginais() <= 1 ? ModoAnalise.RESUMO : ModoAnalise.LONGITUDINAL, null));
                     idempotencia.registrar("ANALYSIS_REGENERATION", pacienteId, chave, payload,
                             "ANALYSIS_GENERATION", geracao.id(), 202);
                     return new Resultado(geracao);

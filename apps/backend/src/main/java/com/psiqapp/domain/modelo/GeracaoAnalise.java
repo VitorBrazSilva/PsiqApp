@@ -16,4 +16,5 @@ public record GeracaoAnalise(
         int totalOriginais,
         int totalComplementos,
         UUID ultimoRegistroClinicoId,
-        ModoAnalise modo) {}
+        ModoAnalise modo,
+        UUID analiseId) {}
