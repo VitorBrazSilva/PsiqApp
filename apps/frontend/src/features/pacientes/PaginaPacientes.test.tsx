@@ -41,6 +41,7 @@ describe('PaginaPacientes', () => {
     const usuario = userEvent.setup()
     render(<MemoryRouter><PaginaPacientes /></MemoryRouter>)
     await screen.findByText('Nenhum paciente encontrado para esta busca.')
+    await usuario.click(screen.getByRole('button', { name: /Novo paciente/ }))
     await usuario.click(screen.getByRole('button', { name: 'Salvar paciente' }))
 
     expect(screen.getByText('Informe o nome.')).toBeVisible()
@@ -59,6 +60,7 @@ describe('PaginaPacientes', () => {
     const usuario = userEvent.setup()
     render(<MemoryRouter><PaginaPacientes /></MemoryRouter>)
     await screen.findByText('Nenhum paciente encontrado para esta busca.')
+    await usuario.click(screen.getByRole('button', { name: /Novo paciente/ }))
 
     await usuario.type(screen.getByLabelText('Nome'), paciente.nome)
     await usuario.type(screen.getByLabelText('CPF'), '529.982.247-25')

@@ -51,6 +51,10 @@ Aplicar a direção visual A aos fluxos de Pacientes, Agenda e Prontuário, mant
 - Agenda preserva filtros, estados, metadados e regras de transição.
 - Fluxos passam por teclado e funcionam nas quatro larguras de aceite.
 
+## Status desta execução
+
+Concluída. O cadastro explícito foi coberto pelo E2E, o backend e worker fake foram validados no Compose, e screenshots reais foram inspecionados em 375, 768, 1024 e 1440 px.
+
 ## Testes obrigatórios
 
 - [ ] Unitários: validações, labels, estados vazios/erro/loading, ordenação, vínculos e preservação de rascunho.

@@ -6,54 +6,9 @@ import { servicoPacientes, type Paciente } from '../pacientes/servicoPacientes'
 import { Paginacao } from '../../shared/componentes/Paginacao'
 
 export function PaginaAgenda() {
-  const [consultas, setConsultas] = useState<Consulta[]>([])
-  const [pacientes, setPacientes] = useState<Paciente[]>([])
-  const [carregando, setCarregando] = useState(true)
-  const [erro, setErro] = useState('')
-  const [pacienteFiltro, setPacienteFiltro] = useState('')
-  const [de, setDe] = useState('')
-  const [ate, setAte] = useState('')
-  const [pagina, setPagina] = useState({ pagina: 0, tamanho: 50, total: 0 })
-
-  useEffect(() => {
-    const controle = new AbortController()
-    const filtros = { pacienteId: pacienteFiltro || undefined, de: de || undefined, ate: ate || undefined, pagina: pagina.pagina, tamanho: 50 }
-    servicoConsultas.listar(Object.values(filtros).some(Boolean) ? filtros : {}, controle.signal)
-      .then(resposta => { setConsultas(resposta.itens); setPagina({ pagina: resposta.pagina, tamanho: resposta.tamanho, total: resposta.total }); setErro('') })
-      .catch(falha => { if (falha instanceof DOMException) return; setErro('Não foi possível carregar a agenda.') })
-      .finally(() => { if (!controle.signal.aborted) setCarregando(false) })
-    return () => controle.abort()
-  }, [pacienteFiltro, de, ate, pagina.pagina])
-
-  useEffect(() => {
-    const controle = new AbortController()
-    servicoPacientes.buscar('', controle.signal, 100)
-      .then(pagina => setPacientes(Array.isArray(pagina.itens) ? pagina.itens : []))
-      .catch(() => setPacientes([]))
-    return () => controle.abort()
-  }, [])
-
-  function substituir(consulta: Consulta) {
-    setConsultas(atuais => atuais.map(item => item.id === consulta.id ? consulta : item))
-  }
-
-  return (
-    <section className="pagina-dupla">
-      <div className="painel">
-        <div className="cabecalho-pagina"><div><p className="etiqueta">ROTINA DO CONSULTÓRIO</p><h1>Agenda</h1><p className="subtitulo">Acompanhe consultas e mantenha cada transição registrada.</p></div><span className="contador">{consultas.length} consultas</span></div>
-        {erro && <p role="alert" className="erro">{erro}</p>}
-        <div className="filtros-agenda" aria-label="Filtros da agenda">
-          <label><span>Filtrar por paciente</span><select aria-label="Filtro da agenda" value={pacienteFiltro} onChange={e => { setPagina(atual => ({ ...atual, pagina: 0 })); setPacienteFiltro(e.target.value) }}><option value="">Todos os pacientes</option>{pacientes.map(paciente => <option key={paciente.id} value={paciente.id}>{paciente.nome}</option>)}</select></label>
-          <label>De<input type="date" value={de} onChange={e => { setPagina(atual => ({ ...atual, pagina: 0 })); setDe(e.target.value) }} /></label>
-          <label>Até<input type="date" value={ate} onChange={e => { setPagina(atual => ({ ...atual, pagina: 0 })); setAte(e.target.value) }} /></label>
-        </div>
-        <ListaConsultas consultas={consultas} carregando={carregando} aoAtualizar={substituir}
-          nomesPacientes={Object.fromEntries(pacientes.map(paciente => [paciente.id, paciente.nome]))} />
-        <Paginacao {...pagina} aoMudar={novaPagina => { setCarregando(true); setPagina(atual => ({ ...atual, pagina: novaPagina })) }} />
-      </div>
-      <div className="painel">
-        <FormularioConsulta aoCriar={consulta => setConsultas(atuais => [consulta, ...atuais])} />
-      </div>
-    </section>
-  )
+  const [consultas, setConsultas] = useState<Consulta[]>([]), [pacientes, setPacientes] = useState<Paciente[]>([]), [carregando, setCarregando] = useState(true), [erro, setErro] = useState(''), [pacienteFiltro, setPacienteFiltro] = useState(''), [de, setDe] = useState(''), [ate, setAte] = useState(''), [pagina, setPagina] = useState({ pagina: 0, tamanho: 50, total: 0 })
+  useEffect(() => { const c = new AbortController(); const filtros = { pacienteId: pacienteFiltro || undefined, de: de || undefined, ate: ate || undefined, pagina: pagina.pagina, tamanho: 50 }; servicoConsultas.listar(filtros, c.signal).then(r => { setConsultas(r.itens); setPagina({ pagina: r.pagina, tamanho: r.tamanho, total: r.total }); setErro('') }).catch(e => { if (!(e instanceof DOMException)) setErro('Não foi possível carregar a agenda.') }).finally(() => { if (!c.signal.aborted) setCarregando(false) }); return () => c.abort() }, [pacienteFiltro, de, ate, pagina.pagina])
+  useEffect(() => { const c = new AbortController(); servicoPacientes.buscar('', c.signal, 100).then(r => setPacientes(r.itens)).catch(() => setPacientes([])); return () => c.abort() }, [])
+  const reset = () => setPagina(p => ({ ...p, pagina: 0 }))
+  return <section className="agenda-page"><div className="page-heading"><div><h1>Agenda</h1><p className="section-intro">Acompanhe consultas e mantenha cada transição registrada.</p></div><span className="contador">{pagina.total} consultas</span></div><div className="section-panel"><div className="records-heading"><h2>Consultas</h2></div>{erro && <p role="alert" className="erro">{erro}</p>}<div className="filtros-agenda" aria-label="Filtros da agenda"><label>Filtrar paciente<select aria-label="Filtro da agenda" value={pacienteFiltro} onChange={e => { reset(); setPacienteFiltro(e.target.value) }}><option value="">Todos os pacientes</option>{pacientes.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}</select></label><label>De<input type="date" value={de} onChange={e => { reset(); setDe(e.target.value) }} /></label><label>Até<input type="date" value={ate} onChange={e => { reset(); setAte(e.target.value) }} /></label></div><ListaConsultas consultas={consultas} carregando={carregando} aoAtualizar={c => setConsultas(items => items.map(item => item.id === c.id ? c : item))} nomesPacientes={Object.fromEntries(pacientes.map(p => [p.id, p.nome]))} /><Paginacao {...pagina} aoMudar={p => setPagina(atual => ({ ...atual, pagina: p }))} /></div><div className="section-panel agenda-form"><FormularioConsulta aoCriar={c => setConsultas(items => [c, ...items])} /></div></section>
 }
