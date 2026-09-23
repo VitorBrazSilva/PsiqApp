@@ -23,3 +23,10 @@ APROVADO.
 ## Rastreabilidade
 
 Atendidos TS-007 a TS-011 e TS-013 a TS-015 no escopo implementado, com preservação das regras de isolamento, append-only e apoio à leitura clínica.
+
+## Reexecução corretiva — 2026-09-23
+
+- Aplicada a direção visual A aos estados do painel, itens de análise, natureza do conteúdo, evidências e histórico de gerações.
+- Preservado o nome acessível `Abrir fonte` e adicionada a ação visível `Ver fonte completa`.
+- Validados 5 cenários E2E com backend real e provider fake, incluindo isolamento entre pacientes, falha/limitação da IA e fonte da evidência.
+- Backend local validado como saudável após reparo metadata-only do checksum Flyway V004; nenhum dado foi removido.

@@ -136,3 +136,23 @@ button { background: #285c47; min-height: 44px; }
 .pagina-prontuario { display: grid; grid-template-columns: minmax(0,1fr) 318px; gap: 28px; align-items: start; }.pagina-prontuario > .painel:first-child { grid-column: 1 / -1; }.pagina-prontuario > .grade-prontuario { grid-column: 1 / -1; }.pagina-prontuario > section.painel { grid-column: 1; }.pagina-prontuario > div:last-child { grid-column: 2; grid-row: 3; }.pagina-prontuario > .painel:first-child h1 { font-size: 29px; }.pagina-prontuario > .painel:first-child .dados { max-width: 720px; }.pagina-prontuario .analise { background: #f1f6f0; border-color: #d7e3d4; }.pagina-prontuario .timeline-clinica { margin-top: 0; }.pagina-prontuario .registro { background: #fff; border-radius: 10px; padding: 21px 23px 15px; }.pagina-prontuario .registro p { line-height: 1.8; }.pagina-prontuario .metadados { color: #62716a; }.pagina-prontuario > div:last-child .painel { background: #f1f6f0; border-color: #d7e3d4; }
 @media (max-width: 950px) { .pagina-prontuario { display: flex; flex-direction: column; }.pagina-prontuario > .painel,.pagina-prontuario > section.painel,.pagina-prontuario > div:last-child,.pagina-prontuario > .grade-prontuario { width: 100%; }.pagina-prontuario .grade-prontuario { grid-template-columns: 1fr; } }
 @media (max-width: 740px) { .review-bar { padding: 10px 15px; }.review-about { display: none; }.app-shell { display: block; }.sidebar { padding: 18px 18px 12px; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 16px; }.workspace-label,.sidebar-note,.account { display: none; }.primary-nav { width: 100%; display: flex; gap: 6px; }.primary-nav a { justify-content: center; flex: 1; padding: 8px 10px; font-size: 12px; }.topbar { padding: 10px 18px; min-height: 60px; }.topbar-tools .search-button { display: none; }.app-body main { padding: 20px 18px 30px; }.page-heading { flex-wrap: wrap; gap: 15px; }.page-heading .primary { width: 100%; }.section-panel { padding: 21px; }.patients-page .list-toolbar { align-items: stretch; flex-direction: column; gap: 9px; }.patient-result { padding: 17px 12px; gap: 10px; }.patient-open { display: none; }.page-footer { padding: 0 18px 20px; flex-direction: column; gap: 4px; } }
+
+/* IA: leitura derivada permanece separada da fonte clínica. */
+.analise .registro-cabecalho { padding-bottom: 16px; border-bottom: 1px solid #d7e3d4; }
+.analise .registro-cabecalho h2 { margin: 0; color: #244c36; font-size: 21px; }
+.analise-acao { background: #3d765c; }
+.analise-secao { margin-top: 24px; }
+.analise-secao-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.analise-secao-cabecalho h3 { margin: 0; color: #355844; font-size: 15px; }
+.analise-contador { color: #527864; background: #eaf1eb; border-radius: 999px; padding: 3px 9px; font-size: 11px; white-space: nowrap; }
+.analise-metadados { display: flex; flex-wrap: wrap; gap: 7px 14px; margin: 18px 0; color: #62716a; font-size: 11px; }
+.analise-modo { color: #285c47; font-weight: 700; }
+.analise-status { margin: 16px 0; padding: 11px 13px; border-radius: 7px; font-size: 13px; }
+.status-ativa { color: #285c47; background: #eaf1eb; }.status-falha { color: #7b3b24; background: #fff1e8; }
+.status-ponto { display: inline-block; width: 7px; height: 7px; margin-right: 8px; border-radius: 50%; background: #5f9b70; }
+.item-analise { border-left: 3px solid #b8d2bc !important; padding: 16px !important; }
+.item-analise-texto { margin: 0 0 10px; line-height: 1.7; color: #24382f; }
+.natureza { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 650; }
+.natureza-relato { background: #edf3ee; color: #456b50; }.natureza-interpretacao { background: #f2edf7; color: #684e78; }
+.evidencia-link { min-height: 36px; color: #285c47; font-weight: 700; }.evidencia-link span { margin-left: 4px; }
+.historico-item { align-items: center !important; border-left: 3px solid #c4d5c7 !important; }.geracao-estado { font-size: 12px; letter-spacing: .03em; }.estado-concluida { color: #285c47; }.estado-falha { color: #9a4a2d; }
