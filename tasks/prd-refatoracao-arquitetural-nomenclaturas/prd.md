@@ -1,5 +1,7 @@
 # PRD — Refatoração arquitetural e padronização de nomenclaturas
 
+> Situação conferida em 23/09/2026: as tasks 01–08 têm encerramento registrado e o feature review registra `READY`. A revisão atual encontrou diferenças entre a padronização especificada e a implementação, além de riscos na migração de bases existentes. Consulte a [revisão documental](../../docs/REVISAO-DOCUMENTAL.md) e o estado implementado em [TECHNICAL.md](../../docs/TECHNICAL.md). Este PRD mantém os requisitos e critérios de aceite; seu texto não comprova que todos foram atendidos.
+
 ## 1. Visão geral
 
 O PsiqApp deverá passar por uma refatoração arquitetural transversal para padronizar as nomenclaturas do sistema e melhorar a separação de responsabilidades entre domínio, aplicação, contratos, serviços, adaptadores e componentes frontend.

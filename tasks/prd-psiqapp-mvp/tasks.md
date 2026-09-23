@@ -14,6 +14,9 @@ Este índice organiza a implementação do MVP em tasks pequenas, coesas e adequ
 - [x] 08 `backend-api-contract-validation`
 - [x] 09 `frontend-patient-appointment`
 - [x] 10 `frontend-clinical-analysis`
+- [ ] 11 `qa-integration` — implementação e evidências parciais; gate final `NOT READY`.
+
+Revisão documental de 23/09/2026: os bloqueios iniciais de JDK/backend estão resolvidos conforme `bugs.md` e a atualização de 16/09 em `qa-report.md`. Permanecem critérios de validação integrada sem evidência final; ver [revisão documental](../../docs/REVISAO-DOCUMENTAL.md). A aprovação posterior da refatoração não encerra esta task.
 
 ## Sequência Recomendada
 

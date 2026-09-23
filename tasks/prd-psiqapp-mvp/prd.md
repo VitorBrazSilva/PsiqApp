@@ -1,5 +1,7 @@
 # PRD - PsiqApp MVP
 
+> Situação conferida em 23/09/2026: os fluxos das tasks 01–10 estão implementados; a validação integrada da task 11 permanece pendente e o gate registrado é `NOT READY`. Este PRD preserva os requisitos de produto. Os identificadores técnicos originais, como `clinicalDateTime` e `createdAt`, correspondem hoje a `dataHoraClinica` e `criadoEm`; consulte os contratos atuais em [TECHNICAL.md](../../docs/TECHNICAL.md), o comportamento em [BUSINESS.md](../../docs/BUSINESS.md) e as pendências na [revisão documental](../../docs/REVISAO-DOCUMENTAL.md).
+
 ## 1. Visao geral
 
 O PsiqApp MVP e um sistema de apoio ao atendimento psiquiatrico para um medico psiquiatra que atende em consultorio proprio. O produto centraliza pacientes, consultas e registros de evolucao clinica em um prontuario organizado e utiliza inteligencia artificial como apoio para produzir uma leitura longitudinal do historico clinico registrado pelo proprio medico.

@@ -2,23 +2,19 @@
 
 ## 1. Estado técnico atual
 
-O repositório está na implementação incremental do MVP. Existem PRD, spec-review aprovado, TechSpec aprovada, Rules do projeto, infraestrutura local de PostgreSQL via Docker Compose, backend com APIs de pacientes, consultas e registros clínicos, frontend com fluxos funcionais de pacientes/consultas, configuração e CI por área.
+Revisado em 23/09/2026 contra o código, as migrations, os contratos HTTP, o frontend, o CI e os artefatos das duas features.
 
-O backend possui a fundação da aplicação e os fluxos de pacientes/consultas da Task 04, registros clínicos da Task 05, núcleo persistente de análises da Task 06 e worker assíncrono da Task 07: domínio, casos de uso, adapters JPA/JDBC, migrations, idempotência, endpoints REST, persistência append-only de pareceres/complementos, criação transacional de `analysis_generation` em estado `QUEUED`, consulta de estado/histórico/análise, regeneração manual, lease/retry e finalização transacional de análises. O frontend possui SPA navegável, aviso persistente, cliente HTTP testado e telas funcionais de pacientes, agenda, prontuário, registros clínicos, linha do tempo, análise atual, evidências, histórico de gerações, polling e regeneração manual consumindo a API real.
+O monorepo contém backend Spring Boot, frontend React, PostgreSQL, worker assíncrono configurável e execução completa via Docker Compose. Estão implementados cadastro/busca de pacientes, agenda/status de consultas, pareceres e complementos append-only, linha do tempo, geração automática, análise atual, evidências, histórico de gerações e regeneração manual.
 
-Esta documentação descreve a arquitetura técnica aprovada para implementação do MVP e registra explicitamente os limites do estado atual. Quando as tasks forem implementadas, este documento deve ser atualizado para refletir o código real, removendo ou ajustando qualquer detalhe que deixe de ser verdadeiro.
+**Implementação e aprovação têm estados diferentes:** as tasks 01–10 do MVP estão concluídas no índice, mas a task 11 de QA integrado continua pendente e o feature review registra `NOT READY`. A refatoração registra `READY`; a revisão atual encontrou divergências entre essa aprovação e o código, especialmente no upgrade de dados, na minimização do contexto de IA e na conclusão da nomenclatura. Veja a [revisão documental](REVISAO-DOCUMENTAL.md).
 
-Fontes técnicas principais:
+Este documento descreve a implementação presente e identifica seus limites. As especificações mantêm os requisitos e decisões de origem:
 
-- `tasks/prd-psiqapp-mvp/techspec.md`;
-- `tasks/prd-psiqapp-mvp/prd.md`;
-- `.agents/rules/architecture-boundaries.md`;
-- `.agents/rules/product-invariants.md`;
-- `.agents/rules/clinical-data-privacy.md`;
-- `.agents/rules/clinical-ai-safety.md`;
-- `.agents/rules/testing-quality.md`.
+- [PRD e artefatos do MVP](../tasks/prd-psiqapp-mvp/prd.md);
+- [PRD da refatoração](../tasks/prd-refatoracao-arquitetural-nomenclaturas/prd.md) e [TechSpec](../tasks/prd-refatoracao-arquitetural-nomenclaturas/techspec.md);
+- Rules de [arquitetura](../.agents/rules/architecture-boundaries.md), [produto](../.agents/rules/product-invariants.md), [privacidade](../.agents/rules/clinical-data-privacy.md), [segurança clínica](../.agents/rules/clinical-ai-safety.md) e [qualidade](../.agents/rules/testing-quality.md).
 
-## 2. Stack aprovada
+## 2. Stack configurada no repositório
 
 | Área | Decisão |
 |---|---|
@@ -28,11 +24,11 @@ Fontes técnicas principais:
 | Roteamento frontend | React Router 8.3.1 declarativo. |
 | Comunicação frontend | `fetch` nativo por cliente HTTP centralizado. |
 | Banco | PostgreSQL 18.6 local. |
-| Migrations | Flyway 11.20.3; migrations de pacientes/consultas/idempotência, registros clínicos/gerações iniciais e núcleo persistente de análises/evidências/tentativas. |
+| Migrations | Flyway 11.20.3; V001–V003 criam o schema inicial; V004 aplica a padronização de nomenclaturas. |
 | Persistência backend | Spring Data JPA/Hibernate no adapter de persistência. |
 | IA | OpenAI atrás de port, SDK oficial Java 4.63.3, Responses API, Structured Outputs e provider fake determinístico para testes/local. |
 | Modelo inicial | `OPENAI_MODEL=gpt-5.6-terra`, configurado por ambiente. |
-| Execução local | PostgreSQL via Docker Compose; backend e frontend executados diretamente na máquina. |
+| Execução local | Compose com PostgreSQL, backend e frontend; também é possível executar backend e Vite diretamente na máquina. |
 | Testes backend | JUnit 5, Spring Boot Test, Mockito, ArchUnit e Testcontainers PostgreSQL. |
 | Testes frontend | Vitest 5.0.0, Testing Library React 16.3.3 e jsdom 30.0.1; ESLint 10.10.0. |
 | E2E | Playwright. |
@@ -40,49 +36,44 @@ Fontes técnicas principais:
 
 Infraestrutura local já definida: `infra/compose.yaml` usa `postgres:18.6`, volume Docker nomeado `psiqapp-postgres-data`, healthcheck com `pg_isready` e publicação apenas em `127.0.0.1:5432`.
 
-O frontend fixa dependências diretas no `package.json` e a árvore completa no `package-lock.json`; `.nvmrc` fixa o Node. TypeScript 6.0.3 está na faixa suportada pelo typescript-eslint 8.70.0 (`<6.1.0`); TypeScript 7 não integra esta combinação. O backend usa Maven Wrapper 3.9.16, Flyway 11.20.3, OpenAI Java SDK 4.63.3 e o driver JDBC gerenciado pelo BOM do Spring Boot.
+O frontend registra dependências no `package.json` e resolve a árvore completa no `package-lock.json`; Playwright usa a faixa `^1.63.0`, enquanto as demais dependências diretas usam versões exatas. `.nvmrc` fixa o Node. Estas são as versões configuradas no projeto, não uma recomendação de versões mais recentes. O backend usa Maven Wrapper 3.9.16, Flyway 11.20.3, OpenAI Java SDK 4.63.3 e o driver JDBC gerenciado pelo BOM do Spring Boot.
 
-## 3. Estrutura do monorepo
-
-Estrutura aprovada para implementação:
+## 3. Estrutura do monorepo e nomenclatura
 
 ```text
 apps/
-  backend/
-  frontend/
-infra/
-  compose.yaml
+  backend/          # Spring Boot, Dockerfile, Maven Wrapper
+  frontend/         # React/Vite, Dockerfile, Nginx, Playwright
+infra/compose.yaml
+docs/
 tasks/
   prd-psiqapp-mvp/
-.agents/
-  rules/
+  prd-refatoracao-arquitetural-nomenclaturas/
+.agents/rules/
 ```
 
-`apps/backend` contém o Spring Boot com arquitetura hexagonal, health/readiness e APIs de pacientes/consultas/registros clínicos/análises, com contrato REST `/api/v1` validado por testes integrados e OpenAPI local; `apps/frontend` contém o bootstrap React/Vite.
-
-Backend previsto:
+Estrutura efetiva do backend:
 
 ```text
 apps/backend/src/main/java/com/psiqapp/
 ├── domain/
-│   ├── model/
-│   ├── service/
+│   ├── modelo/
+│   ├── validation/
 │   └── exception/
 ├── application/
-│   ├── port/
-│   │   ├── in/
-│   │   └── out/
+│   ├── port/in/    # apenas package-info; controllers usam use cases concretos
+│   ├── port/out/
+│   ├── servico/
 │   └── usecase/
 ├── adapter/
-│   ├── in/
-│   │   └── web/
+│   ├── in/web/
 │   └── out/
 │       ├── persistence/
 │       └── ai/
 └── config/
 ```
 
-Frontend implementado com módulos de negócio em nomenclatura canônica:
+Frontend:
 
 ```text
 apps/frontend/src/
@@ -93,37 +84,42 @@ apps/frontend/src/
 │   ├── registros-clinicos/
 │   └── analises/
 └── shared/
+    ├── api/
+    ├── componentes/
+    ├── formularios/
+    └── idempotencia/
 ```
 
 Responsabilidades:
 
-- `domain`: regras e modelos de negócio sem dependência de Spring, JPA, PostgreSQL ou OpenAI.
-- `application`: casos de uso e ports.
-- `adapter/in/web`: controllers, DTOs, validação estrutural HTTP e Problem Details.
-- `adapter/out/persistence`: entidades JPA, repositórios Spring Data, mapeadores e implementação de ports de persistência.
-- `adapter/out/ai`: integração com OpenAI por trás do `ClinicalAnalysisProviderPort`.
-- `config`: composição das dependências.
+- `domain`: modelos, normalização, validações e exceções de negócio.
+- `application/usecase`: orquestrações, incluindo `CriarParecerUseCase`, `CriarComplementoUseCase` e o serviço comum `CriarRegistroClinicoServico`.
+- `application/servico`: `SnapshotAnaliseAssembler`, `AnaliseResponseValidator` e `CatalogoSegurancaClinica`.
+- `application/port/out`: contratos de persistência, transação e `ProvedorAnaliseClinicaPort`.
+- `adapter/in/web`: controllers, DTOs Request/Response, `FiltroRequestId` e `HttpErrorHandler`.
+- `adapter/out/persistence`: entidades JPA, repositórios Spring Data e adapters JPA/JDBC. `AdapterRegistroClinicoJpa` ainda reúne persistência, timeline e estatísticas; `AdapterAnaliseClinicaJdbc` persiste análise e evidências.
+- `adapter/out/ai`: providers fake e OpenAI.
+- `config`: composição Spring, relógio e scheduler do worker.
 
-A direção de dependência é `adaptador -> aplicacao -> dominio` (os pacotes de código usam os nomes portugueses da Task 02). Domain e Application não conhecem JPA, SDK da OpenAI, controllers ou DTOs HTTP.
+A direção principal é `adapter/config -> application -> domain`. ArchUnit verifica dependências de frameworks/adapters; `IdempotenciaServico` ainda importa Jackson na aplicação. A convenção pretendida combina conceitos de negócio em português e papéis arquiteturais em inglês, mas a padronização é parcial: existem `domain/modelo`, `application/servico`, `EntidadePacienteJpa`, `ClienteApi`, aliases antigos de enums e acessores de análise em inglês. Esses nomes são os existentes, não equivalentes inventados a partir da TechSpec.
 
-O bootstrap inclui `FiltroRequestId` e `TratadorDeErrosHttp` na fronteira web. Erros usam Problem Details seguro com `code`, `fieldErrors` quando aplicável e `requestId`. O `Clock` de produção é `java.time.Clock.systemUTC()` e pode ser substituído por um relógio fixo nos testes.
+## 4. Fluxo de dados e execução local
 
-## 4. Fluxo de dados geral
-
-Fluxo aprovado:
+Há duas formas de execução:
 
 ```text
-React SPA em 127.0.0.1:5173
-  -> proxy Vite /api
-  -> Spring Boot em 127.0.0.1:8080
-  -> controllers/DTOs
-  -> casos de uso
-  -> ports de saída
-  -> adapters de persistência ou IA
-  -> PostgreSQL em 127.0.0.1:5432 ou OpenAI externo
+Desenvolvimento:
+  navegador -> Vite 127.0.0.1:5173 -> proxy /api
+            -> Spring Boot 127.0.0.1:8080 -> PostgreSQL 127.0.0.1:5432
+
+Compose completo:
+  navegador -> 127.0.0.1:5173 -> Nginx no container frontend
+            -> proxy /api -> backend:8080 -> postgres:5432
 ```
 
-O worker de IA roda no próprio backend. Não há broker externo, microservice separado, cloud, Kubernetes, RabbitMQ, Kafka, SQS, Pub/Sub, RAG, embeddings ou banco vetorial no MVP.
+O Compose define dependências de healthcheck: banco antes do backend e backend antes do frontend. Os serviços publicados no host usam `127.0.0.1`; o backend escuta em `0.0.0.0` somente dentro do container. Nginx entrega o build da SPA, mantém o prefixo `/api` no proxy e resolve rotas frontend com fallback para `index.html`.
+
+Controllers convertem DTOs e chamam casos de uso, que acessam persistência por ports. O worker roda no mesmo backend e acessa o provider por `ProvedorAnaliseClinicaPort`. Não há broker externo, microservice separado, RAG ou banco vetorial. Os comandos operacionais estão no [README](../README.md).
 
 ## 5. Fronteiras arquiteturais
 
@@ -140,314 +136,84 @@ Regra central:
 
 ### Adapter de IA isolado
 
-O domínio e os casos de uso dependem de um port, não do SDK do provider. A implementação OpenAI fica restrita ao adapter `OpenAiClinicalAnalysisAdapter`.
+O domínio e os casos de uso dependem de um port, não do SDK do provider. A implementação OpenAI fica restrita ao adapter `OpenAiAnaliseClinicaAdapter`.
 
 Isso permite trocar modelo ou provider no futuro sem alterar regras de domínio, desde que o novo provider respeite o contrato de análise, evidências, segurança clínica e minimização de dados.
 
 ### Transações
 
-A aplicação usará um único `TransactionRunnerPort` em `application/port/out`, implementado no adapter de persistência com `TransactionTemplate`.
+A aplicação usa um `TransactionRunnerPort` em `application/port/out`, implementado no adapter de persistência com `TransactionTemplate`.
 
-Uso previsto:
+Uso implementado:
 
 - blocos atômicos de cadastro e criação de geração;
 - reivindicação de geração pelo worker;
-- finalização atômica de análise, evidências e estado `COMPLETED`;
+- finalização atômica de análise, evidências e estado `CONCLUIDA`;
 - nunca envolvendo chamada externa de IA.
 
 ## 6. Modelo de dados técnico
 
-Todas as tabelas usam `id uuid primary key` gerado pela aplicação quando aplicável. Tabelas históricas usam `created_at timestamptz not null`. FKs devem usar `ON DELETE RESTRICT` ou equivalente sem cascatas destrutivas.
+O schema de produto contém oito tabelas após V004, além do histórico do Flyway. IDs de entidades são UUIDs; instantes usam `timestamptz`; nascimento usa `date`. As FKs usam exclusão restritiva.
 
-### Visão geral das tabelas
+| Tabela | Campos principais atuais | Responsabilidade |
+|---|---|---|
+| `paciente` | `id`, `nome`, `nome_busca`, `cpf`, `data_nascimento`, `telefone`, `email`, `queixa_inicial`, `revisao_clinica`, `sequencia_requisicao`, `criado_em` | Cadastro, busca e contadores por paciente. |
+| `consulta` | `id`, `paciente_id`, `agendada_para`, `status`, `observacoes`, `criada_em`, `status_alterado_em` | Agenda e transições finais de status. |
+| `registro_clinico` | `id`, `paciente_id`, `tipo`, `parecer_original_id`, `consulta_id`, `data_hora_clinica`, `criado_em`, `texto`, `humor`, `medicamentos`, `revision` | Pareceres e complementos append-only. A coluna ainda se chama `revision`. |
+| `geracao_analise` | `id`, `paciente_id`, `gatilho`, `registro_disparador_id`, `revisao_snapshot`, `sequencia_requisicao`, `solicitada_em`, `estado`, `total_registros`, `total_pareceres`, `total_complementos`, `ultimo_registro_clinico_id`, `contagem_tentativas`, `proxima_tentativa_em`, `token_reserva`, `reserva_expira_em`, `concluida_em`, `codigo_falha`, `modo` | Fila persistente, snapshot, reserva e estado. |
+| `analise_clinica` | `id`, `geracao_id`, `paciente_id`, `gerada_em`, `modo`, `conteudo_validado`, `versao_regras_seguranca`, `criada_em` | Análise validada, com conteúdo JSONB e uma análise por geração. |
+| `evidencia_analise` | `id`, `analise_id`, `paciente_id`, `secao`, `indice_item`, `registro_id`, `campo`, `citacao`, `criada_em` | Evidências normalizadas por item da análise. |
+| `tentativa_geracao_analise` | `id`, `geracao_id`, `numero_tentativa`, `iniciada_em`, `finalizada_em`, `resultado`, `codigo_erro`, `duracao_ms`, `requisicao_provedor_id`, `tokens_entrada`, `tokens_saida` | Auditoria técnica gravada ao finalizar uma tentativa. |
+| `idempotencia` | `id`, `operacao_escopo`, `paciente_id`, `key`, `hash_payload`, `tipo_recurso`, `recurso_id`, `status_original`, `criada_em` | Repetição segura. A coluna da chave ainda se chama `key`. |
 
-| Tabela | Papel |
+Não existe tabela de heartbeat do worker. A geração não armazena versões de prompt/schema/modelo; a análise armazena `versao_regras_seguranca`. Não se deve inferir essa auditoria adicional a partir da TechSpec original.
+
+### Enumerações e contratos de domínio
+
+| Conceito | Valores serializados atuais |
 |---|---|
-| `patient` | Cadastro do paciente e contadores transacionais por paciente. |
-| `appointment` | Agenda interna e status de consultas. |
-| `clinical_record` | Pareceres originais e complementos, fonte clínica de verdade. |
-| `analysis_generation` | Fila persistente e estado operacional de cada geração de IA. |
-| `analysis_attempt` | Auditoria de cada tentativa técnica de uma geração, gravada pelo worker. |
-| `clinical_analysis` | Análise validada e preservada historicamente, publicada pelo worker após validação determinística. |
-| `analysis_evidence` | Evidências literais que ligam itens da análise aos registros clínicos. |
-| `idempotency_record` | Controle de repetição segura de criações e regeneração manual. |
-| `worker_heartbeat` | Sinalização operacional do worker, sem conteúdo clínico. |
+| Status de consulta | `AGENDADA`, `REALIZADA`, `CANCELADA`, `FALTA` |
+| Tipo de registro | `PARECER`, `COMPLEMENTO` |
+| Estado da geração | `ENFILEIRADA`, `EM_EXECUCAO`, `AGUARDANDO_RETENTATIVA`, `CONCLUIDA`, `FALHA` |
+| Gatilho | `AUTOMATICA`, `MANUAL` |
+| Modo de análise | `RESUMO`, `LONGITUDINAL` |
+| Seção da evidência | `LINHA_DO_TEMPO`, `PADROES`, `PONTOS_DE_ATENCAO` |
+| Campo da evidência | `TEXTO`, `HUMOR`, `MEDICAMENTOS` |
+| Natureza da observação | `RELATO`, `INTERPRETACAO` |
 
-### `patient`
+Os enums ainda expõem alguns aliases Java antigos por campos estáticos; os valores retornados por `name()` são os portugueses. `tentativa_geracao_analise.resultado` continua usando strings técnicas `SUCCESS`, `RETRY_WAIT` e `FAILED`.
 
-Representa o paciente cadastrado e guarda contadores usados para serialização por paciente.
+### Idempotência e concorrência
 
-Campos relevantes:
+Criação de paciente, consulta, parecer, complemento e regeneração manual exigem UUID no header `Idempotency-Key`. O backend calcula SHA-256 do payload validado serializado por Jackson. Mesma operação/paciente/chave e mesmo hash retornam o recurso original; hash diferente retorna 409.
 
-| Campo | Significado |
-|---|---|
-| `id` | Identificador técnico do paciente. |
-| `name` | Nome preservado para exibição. |
-| `search_name` | Nome normalizado para busca sem acentos e sem diferença de caixa. |
-| `cpf` | CPF normalizado e único. |
-| `birth_date` | Data de nascimento como `date`, sem fuso. |
-| `phone` | Telefone validado e normalizado. |
-| `email` | E-mail validado estruturalmente. |
-| `initial_complaint` | Queixa inicial opcional. |
-| `clinical_revision` | Revisão monotônica por paciente para congelar snapshots clínicos. |
-| `request_sequence` | Sequência monotônica por paciente para ordenar solicitações de análise. |
-| `created_at` | Momento de criação do cadastro. |
+`IdempotenciaServico` serializa requisições de mesmo escopo com locks em memória no processo. A operação e o registro de idempotência são persistidos na mesma transação, com índice único no banco. As sequências clínicas usam lock na linha do paciente. Essa implementação corresponde ao backend único do MVP; não estabelece coordenação distribuída entre múltiplas instâncias.
 
-Invariantes:
+### Migrations
 
-- `cpf` é único.
-- `clinical_revision` e `request_sequence` são atualizados sob `SELECT FOR UPDATE` na linha do paciente.
-- A busca usa `search_name`, mas a exibição usa `name`.
+- V001: pacientes, consultas e idempotência.
+- V002: registros clínicos, gerações, revisões e proteções append-only dos registros.
+- V003: análises, evidências, tentativas e proteções append-only adicionais.
+- V004: renomeação das oito tabelas e de parte das colunas/índices, conversão de enums e tentativa de conversão do JSONB histórico.
 
-### `appointment`
+V001–V003 permanecem como histórico. V004 é executada também na criação de uma base nova. Há pendências no upgrade de uma base V003 com análises/evidências: atualizações colidem com triggers append-only ativos, os valores antigos de `campo` não são convertidos e a conversão interna do JSONB só trata `linhaDoTempo`. A [revisão documental](REVISAO-DOCUMENTAL.md) detalha os pontos; passagem de migrations em banco vazio não comprova preservação de uma base populada.
 
-Representa uma consulta da agenda interna.
+## 7. Índices, constraints e proteção dos dados
 
-Campos relevantes:
+Índices existentes após V004 incluem:
 
-| Campo | Significado |
-|---|---|
-| `id` | Identificador técnico da consulta. |
-| `patient_id` | Paciente dono da consulta. |
-| `scheduled_at` | Data/hora da consulta em `timestamptz`. |
-| `status` | `AGENDADA`, `REALIZADA`, `CANCELADA` ou `FALTA`. |
-| `notes` | Observações opcionais de consulta. |
-| `created_at` | Momento de criação. |
-| `status_changed_at` | Momento da mudança de status, quando houver. |
+- `paciente(nome_busca, id)`;
+- `consulta(paciente_id, agendada_para, id)` e `consulta(agendada_para, id)`;
+- `registro_clinico(paciente_id, data_hora_clinica DESC, criado_em DESC, id DESC)` e `(paciente_id, revision)`;
+- `geracao_analise(estado, proxima_tentativa_em, solicitada_em, id)`, `(paciente_id, estado)` e `(paciente_id, revisao_snapshot, sequencia_requisicao)`;
+- `analise_clinica(paciente_id, gerada_em DESC, id DESC)`;
+- evidências por `analise_id` e por `registro_id`.
 
-Invariantes:
+Constraints garantem CPF único, revisão única por paciente, sequência de geração única por paciente, geração automática única por registro disparador, análise única por geração e tentativa única por geração/número. FKs compostas preservam os vínculos por paciente entre registros, consultas, gerações, análises e evidências.
 
-- toda consulta pertence a um paciente;
-- status inicial é `AGENDADA`;
-- `REALIZADA`, `CANCELADA` e `FALTA` são finais no MVP;
-- observações de consulta não entram no snapshot da IA.
+Há checks de tipos, estados, modos, seções e campos, além de referência obrigatória do complemento ao parecer original. Um trigger verifica se o original referenciado é um `PARECER` do mesmo paciente. Triggers `BEFORE UPDATE/DELETE` impedem mutação de registros clínicos, análises e evidências. Parte dos nomes de constraints, funções e triggers permanece em inglês após V004.
 
-### `clinical_record`
-
-Representa a fonte clínica de verdade: parecer original ou complemento.
-
-Campos relevantes:
-
-| Campo | Significado |
-|---|---|
-| `id` | Identificador técnico do registro clínico. |
-| `patient_id` | Paciente dono do registro. |
-| `type` | `ORIGINAL` para parecer ou `COMPLEMENT` para complemento. |
-| `original_id` | Parecer original referenciado por um complemento. |
-| `appointment_id` | Consulta associada, quando houver. |
-| `clinical_datetime` | Data/hora clínica usada na linha do tempo e na IA. |
-| `created_at` | Data/hora real de criação no sistema. |
-| `text` | Texto clínico obrigatório. |
-| `mood` | Estado/humor opcional. |
-| `medications` | Medicações em uso como texto livre opcional. |
-| `revision` | Revisão clínica monotônica do paciente. |
-
-Invariantes:
-
-- `type` aceita apenas `ORIGINAL` ou `COMPLEMENT`;
-- `ORIGINAL` não possui `original_id`;
-- `COMPLEMENT` exige `original_id`;
-- `original_id` deve apontar para um `ORIGINAL` do mesmo paciente;
-- complemento de complemento é inválido;
-- `UNIQUE(patient_id, revision)` garante revisão única por paciente;
-- `clinical_record` é append-only: UPDATE/DELETE devem ser rejeitados por backend e trigger PostgreSQL;
-- `appointment_id`, quando usado, deve respeitar o mesmo paciente.
-
-### `analysis_generation`
-
-Representa uma solicitação de análise e funciona como fila persistente do worker.
-
-Campos relevantes:
-
-| Campo | Significado |
-|---|---|
-| `id` | Identificador da geração. |
-| `patient_id` | Paciente analisado. |
-| `trigger` | `AUTO` para novo registro clínico ou `MANUAL` para regeneração solicitada. |
-| `trigger_record_id` | Registro que disparou geração automática, quando aplicável. |
-| `snapshot_revision` | Corte congelado da revisão clínica do paciente. |
-| `request_sequence` | Sequência da solicitação no paciente. |
-| `requested_at` | Momento da solicitação. |
-| `state` | Estado operacional da geração. |
-| contagens do snapshot | Total de registros, originais e complementos calculados pelo backend. |
-| `last_clinical_record_id` | Último registro clínico considerado segundo a ordem clínica. |
-| `attempt_count` | Quantidade de tentativas técnicas já adquiridas. |
-| `next_attempt_at` | Quando a geração em retry volta a ser elegível. |
-| `lease_token` | Token de reserva do worker. |
-| `lease_expires_at` | Validade da reserva. |
-| `completed_at` | Momento de conclusão terminal. |
-| `failure_code` | Código de falha quando terminar como `FAILED`. |
-| versões/modelo/mode | Auditoria de modelo, prompt, schema, regras e modo. |
-
-Estados:
-
-| Estado | Uso técnico |
-|---|---|
-| `QUEUED` | Aguardando processamento. |
-| `RUNNING` | Tentativa reservada por worker. |
-| `RETRY_WAIT` | Aguardando novo horário elegível após falha transitória. |
-| `COMPLETED` | Análise validada e persistida. |
-| `FAILED` | Geração encerrada sem análise válida. |
-
-Invariantes:
-
-- `COMPLETED` e `FAILED` são terminais;
-- `QUEUED`, `RUNNING` e `RETRY_WAIT` bloqueiam regeneração manual para o paciente;
-- `UNIQUE(patient_id, request_sequence)`;
-- geração automática deve ser única por registro disparador;
-- estado operacional pode mudar durante processamento;
-- snapshot, contagens e metadados históricos não podem ser reescritos fora das transições previstas.
-
-### `analysis_attempt`
-
-Registra auditoria técnica de cada tentativa de uma geração.
-
-Campos relevantes:
-
-| Campo | Significado |
-|---|---|
-| `id` | Identificador da tentativa. |
-| `generation_id` | Geração relacionada. |
-| `attempt_number` | Número da tentativa dentro da geração. |
-| `started_at` | Início da tentativa. |
-| `finished_at` | Fim da tentativa, quando houver. |
-| `outcome` | Resultado técnico. |
-| `error_code` | Código de erro quando aplicável. |
-| `duration_ms` | Duração observada. |
-| tokens/request id | Metadados do provider quando disponíveis. |
-
-Invariantes:
-
-- tentativa é única por geração e número;
-- não inventar tokens, request id ou duração quando indisponíveis;
-- não persistir corpo clínico rejeitado, prontuário completo ou secrets.
-
-### `clinical_analysis`
-
-Armazena uma análise validada.
-
-Campos relevantes:
-
-| Campo | Significado |
-|---|---|
-| `id` | Identificador da análise. |
-| `generation_id` | Geração que produziu a análise; relação única. |
-| `patient_id` | Paciente da análise. |
-| `generated_at` | Momento em que foi gerada/persistida. |
-| `mode` | `SUMMARY_ONLY` ou `LONGITUDINAL`. |
-| `validated_payload` | JSON validado com timeline, padrões, pontos de atenção e limitações. |
-| `safety_rules_version` | Versão das regras determinísticas de segurança usadas. |
-
-Invariantes:
-
-- análise é append-only;
-- nova análise nunca sobrescreve análise anterior;
-- `generation_id` é único;
-- análise deve pertencer ao mesmo paciente da geração;
-- payload só é persistido depois de validação estrutural, evidencial, de isolamento e segurança.
-
-### `analysis_evidence`
-
-Normaliza as evidências da análise para rastreabilidade.
-
-Campos relevantes:
-
-| Campo | Significado |
-|---|---|
-| `id` | Identificador da evidência. |
-| `analysis_id` | Análise relacionada. |
-| `patient_id` | Paciente da evidência. |
-| `section` | Seção da análise: timeline, patterns ou attentionPoints. |
-| `item_index` | Índice do item dentro da seção. |
-| `record_id` | Registro clínico usado como fonte. |
-| `field` | Campo citado: `text`, `mood` ou `medications`. |
-| `quote` | Trecho literal validado. |
-| `created_at` | Momento de persistência da evidência. |
-
-Invariantes:
-
-- evidência deve pertencer ao mesmo paciente da análise;
-- `record_id` deve pertencer ao mesmo paciente;
-- registro citado deve estar dentro do snapshot da geração;
-- `field` só pode ser campo permitido;
-- `quote` deve existir literalmente no campo citado, permitindo apenas normalização de whitespace/quebras de linha para comparação;
-- evidências são append-only.
-
-### `idempotency_record`
-
-Evita duplicação quando uma criação é reenviada após timeout, perda de resposta HTTP ou retry do cliente.
-
-Campos relevantes:
-
-| Campo | Significado |
-|---|---|
-| `id` | Identificador técnico do registro de idempotência. |
-| `scope_operation` | Operação protegida. |
-| `patient_id` | Escopo do paciente quando aplicável. |
-| `key` | UUID recebido no header `Idempotency-Key`. |
-| `payload_hash` | Hash SHA-256 do payload validado canônico. |
-| `resource_type` | Tipo do recurso criado ou solicitado. |
-| `resource_id` | Identificador do recurso original. |
-| `original_status` | Status HTTP original. |
-| `created_at` | Momento do registro. |
-
-Operações protegidas:
-
-- criação de paciente;
-- criação de consulta;
-- criação de parecer original;
-- criação de complemento;
-- regeneração manual de análise.
-
-Invariantes:
-
-- mesma chave, escopo e payload retornam o resultado original;
-- mesma chave e payload diferente retornam conflito `409`;
-- idempotência é persistida atomicamente com a operação;
-- repetir criação de registro clínico não cria novo registro nem nova geração automática;
-- não guardar conteúdo clínico redundante sem necessidade definida.
-
-### `worker_heartbeat`
-
-Registra estado operacional do worker.
-
-Campos:
-
-| Campo | Significado |
-|---|---|
-| `worker_id` | Identificador do worker. |
-| `last_seen_at` | Última sinalização. |
-| `state` | Estado operacional resumido. |
-
-Não deve conter conteúdo clínico.
-
-## 7. Índices e constraints principais
-
-Índices aprovados:
-
-- `patient(search_name, id)`;
-- `appointment(patient_id, scheduled_at, id)`;
-- `appointment(scheduled_at, id)`;
-- `clinical_record(patient_id, clinical_datetime, created_at, id)`;
-- `clinical_record(patient_id, revision)`;
-- `analysis_generation(state, next_attempt_at, requested_at, id)`;
-- `analysis_generation(patient_id, state)`;
-- `analysis_generation(patient_id, snapshot_revision, request_sequence)`;
-- evidências por `analysis_id`;
-- evidências por `record_id`.
-
-Constraints e triggers:
-
-- CHECK de `clinical_record.type`;
-- CHECK de presença/ausência de `original_id` conforme tipo;
-- FK composta `(patient_id, original_id)` para `(patient_id, id)` em `clinical_record`;
-- trigger garantindo que `original_id` aponte para `ORIGINAL`;
-- vínculos entre consulta/registro e geração/análise incluindo `patient_id`;
-- trigger `BEFORE UPDATE/DELETE` rejeitando alteração/exclusão de `clinical_record`, `clinical_analysis`, `analysis_evidence` e demais tabelas históricas;
-- exceção para mudanças operacionais previstas em `analysis_generation`;
-- exceção para fechamento de `analysis_attempt` nos campos previstos;
-- trigger de evidência verificando `record.revision <= generation.snapshot_revision`;
-- exclusões restritivas, sem cascatas destrutivas.
+Não há trigger que compare a revisão da evidência com o corte do snapshot. Essa proteção é feita no fluxo da aplicação: o assembler consulta apenas os registros dentro do corte, e o validador resolve evidências exclusivamente por aliases desse conjunto. Estados finais de consultas são protegidos pelo caso de uso; o CHECK do banco restringe os valores permitidos.
 
 ## 8. Snapshot, revisão e análise atual
 
@@ -456,13 +222,13 @@ Na camada interna de aplicação, a montagem do contexto clínico é responsabil
 Cada paciente possui uma revisão clínica monotônica. Ao criar parecer ou complemento:
 
 1. o caso de uso bloqueia a linha do paciente com `SELECT FOR UPDATE`;
-2. incrementa `clinical_revision`;
+2. incrementa `revisao_clinica`;
 3. grava o registro clínico com a revisão atribuída;
-4. cria a geração automática com `snapshot_revision` igual ao corte atual;
-5. incrementa `request_sequence`;
+4. cria a geração automática com `revisao_snapshot` igual ao corte atual;
+5. incrementa `sequencia_requisicao`;
 6. grava tudo na mesma transação.
 
-O snapshot de uma geração é o conjunto de registros do mesmo paciente com `revision <= snapshot_revision`.
+O snapshot de uma geração é o conjunto de registros do mesmo paciente com `revision <= revisao_snapshot`.
 
 Regras:
 
@@ -470,13 +236,13 @@ Regras:
 - parecer retroativo recebe revisão nova no momento do cadastro;
 - snapshot antigo continua reconstituível porque registros clínicos são append-only;
 - paginação da UI não limita o snapshot enviado à IA;
-- a IA recebe o snapshot em ordem clínica por `clinical_datetime`, `created_at` e ID.
+- a IA recebe o snapshot em ordem clínica por `data_hora_clinica`, `criado_em` e ID.
 
 A análise atual é selecionada assim:
 
 1. considerar apenas análises válidas;
-2. escolher a maior `snapshot_revision`;
-3. em empate, escolher a maior `request_sequence`;
+2. escolher a maior `revisao_snapshot`;
+3. em empate, escolher a maior `sequencia_requisicao`;
 4. ignorar a ordem de conclusão.
 
 Uma geração antiga que termina depois não substitui uma análise baseada em snapshot mais recente.
@@ -490,17 +256,17 @@ O worker processa gerações de IA fora do fluxo de salvamento clínico. Ele usa
 ### Ciclo de vida
 
 1. Um parecer ou complemento é salvo.
-2. Na mesma transação, o sistema cria uma `analysis_generation`.
+2. Na mesma transação, o sistema cria uma `geracao_analise`.
 3. Após commit, o worker encontra gerações elegíveis.
-4. O worker reivindica a geração elegível mais antiga por `requested_at ASC, id ASC`.
+4. O worker reivindica a geração elegível mais antiga por `solicitada_em ASC, id ASC`.
 5. A reivindicação usa `FOR UPDATE SKIP LOCKED` em transação curta.
-6. O worker muda o estado para `RUNNING`, grava `lease_token`, `lease_expires_at` e incrementa tentativa.
+6. O worker muda o estado para `EM_EXECUCAO`, grava `token_reserva`, `reserva_expira_em` e incrementa tentativa.
 7. A transação é encerrada.
 8. O worker monta o snapshot, chama a IA e valida a resposta fora da transação.
-9. Na finalização, grava análise, evidências e estado `COMPLETED` em uma única transação.
+9. Na finalização, grava análise, evidências e estado `CONCLUIDA` em uma única transação.
 10. A finalização só é aceita se geração, estado, token e lease ainda forem válidos.
 
-### Configuração operacional aprovada
+### Configuração operacional
 
 | Item | Valor inicial |
 |---|---|
@@ -508,9 +274,9 @@ O worker processa gerações de IA fora do fluxo de salvamento clínico. Ele usa
 | Concorrência | Uma geração processada por vez. |
 | Polling do worker | 2 segundos. |
 | Timeout por chamada de IA | 120 segundos. |
-| Orçamento por tentativa | 180 segundos. |
+| Orçamento por tentativa | 180 segundos configurados e repassados ao provider; não há deadline global adicional aplicado pelo worker. |
 | TTL de reserva | 240 segundos. |
-| Renovação automática de lease | Não implementar no MVP. |
+| Renovação automática de lease | Não implementada. |
 | Tentativas por geração | Até 3, contando a primeira. |
 | Backoff | Aproximadamente 5s antes da segunda tentativa e 20s antes da terceira, com jitter. |
 
@@ -518,176 +284,122 @@ O worker processa gerações de IA fora do fluxo de salvamento clínico. Ele usa
 
 | Estado | Significado técnico | Estado público | Bloqueia regeneração manual |
 |---|---|---|---|
-| `QUEUED` | Aguardando execução. | Em geração. | Sim. |
-| `RUNNING` | Reservada por worker. | Em geração. | Sim. |
-| `RETRY_WAIT` | Aguardando próxima tentativa. | Em geração. | Sim. |
-| `COMPLETED` | Análise validada e persistida. | Concluída. | Não, salvo outra geração ativa. |
-| `FAILED` | Encerrada sem análise válida. | Falha. | Não, salvo outra geração ativa. |
+| `ENFILEIRADA` | Aguardando execução. | Em geração. | Sim. |
+| `EM_EXECUCAO` | Reservada por worker. | Em geração. | Sim. |
+| `AGUARDANDO_RETENTATIVA` | Aguardando próxima tentativa. | Em geração. | Sim. |
+| `CONCLUIDA` | Análise validada e persistida. | Concluída. | Não, salvo outra geração ativa. |
+| `FALHA` | Encerrada sem análise válida. | Falha. | Não, salvo outra geração ativa. |
 
-### Retry
+### Retry e recuperação
 
-Falhas transitórias elegíveis para retry:
+O adapter OpenAI classifica falhas de conexão, erros transitórios do SDK, HTTP 429 e HTTP 5xx para retentativa. Credenciais ausentes, configuração inválida, outros erros HTTP e resposta vazia são tratados como permanentes. O SDK é configurado com `maxRetries(0)`; a política de retentativa fica no worker.
 
-- timeout;
-- falha de conexão;
-- HTTP 429;
-- HTTP 5xx.
+O worker também repete `INVALID_RESPONSE_QUOTE` (citação não literal), respeitando o limite de tentativas. Outras falhas de validação encerram a geração. Essa exceção para citações difere da política geral de não repetir respostas inválidas descrita na TechSpec original do MVP. Nenhuma análise parcial é publicada. O backend respeita `Retry-After` numérico quando disponível; caso contrário, aplica backoff com jitter.
 
-Falhas que encerram a geração sem retry técnico automático:
-
-- credenciais ou configuração inválida;
-- contexto excedido;
-- saída truncada ou limite de saída excedido;
-- resposta inválida;
-- resposta insegura;
-- resposta incompatível com o contrato.
-
-Retry técnico mantém o mesmo snapshot. Retry manual cria uma nova geração, se permitido pelas regras de negócio.
+Retentativa técnica mantém o snapshot; regeneração manual cria outra geração. Reservas expiradas podem ser recuperadas enquanto a contagem estiver abaixo do máximo. O código atual não encerra automaticamente uma geração cuja última reserva expire já no limite de tentativas; esse cenário permanece uma lacuna de recuperação.
 
 ## 10. Integração com IA
 
-### Entrada enviada ao provider
+### Contexto montado e minimização
 
-Enviar somente os dados necessários do snapshot:
+`SnapshotAnaliseAssembler` consulta todos os registros do paciente com `revision <= revisao_snapshot`, ordenados clinicamente, atribui aliases temporários `R1`, `R2` etc. e mantém o vínculo com os IDs internos para validar evidências. Complementos apontam para o alias do parecer original. Dados cadastrais, observações de consultas e análises anteriores não são buscados para compor esse contexto.
 
-- alias temporário do registro;
-- tipo `ORIGINAL` ou `COMPLEMENT`;
-- referência temporária ao original, quando for complemento;
-- `clinicalDateTime`;
-- texto clínico;
-- humor;
-- medicações.
+O requisito é enviar ao provider apenas alias, tipo, referência ao original, data/hora clínica, texto, humor e medicamentos. **A implementação ainda diverge:** `OpenAiAnaliseClinicaAdapter.montarPayload` serializa `snapshot.registros()` diretamente; cada `RegistroSnapshot` inclui `id` e `revisao`. Assim, UUIDs internos dos registros também entram no payload. O envelope usa `model`, `mode`, `snapshotRevision` e `records`. A correção dessa minimização permanece pendente.
 
-Não enviar:
+### Saída estruturada e persistida
 
-- nome do paciente;
-- CPF;
-- data de nascimento;
-- telefone;
-- e-mail;
-- queixa inicial cadastral;
-- observações de consulta;
-- IDs internos;
-- análises anteriores;
-- dados de outro paciente;
-- secrets ou configuração interna.
-
-O backend mantém o mapeamento entre aliases temporários e registros reais para validar evidências.
-
-### Saída esperada
-
-Contrato estrutural:
+O schema usado pelo adapter é derivado de `AnaliseResponseValidator.Response`:
 
 ```json
 {
-  "timeline": [
+  "linhaDoTempo": [
     {
-      "text": "string",
-      "nature": "REPORTED",
-      "evidence": [
-        { "recordAlias": "string", "field": "text", "quote": "string" }
+      "texto": "string",
+      "natureza": "RELATO",
+      "evidencias": [
+        { "apelidoRegistro": "R1", "campo": "TEXTO", "citacao": "trecho literal da fonte" }
       ]
     }
   ],
-  "patterns": [],
-  "attentionPoints": [],
-  "limitations": ["string"]
+  "padroes": [],
+  "pontosDeAtencao": [],
+  "limitacoes": ["string"]
 }
 ```
 
-`nature` aceita:
+`natureza` aceita `RELATO` e `INTERPRETACAO`. O validador converte os campos de evidência para `TEXTO`, `HUMOR` e `MEDICAMENTOS`; ainda aceita os equivalentes ingleses, sem distinção de caixa. Depois da validação, cada evidência recebe `registroId` resolvido pelo backend. A API e o JSONB novo usam os campos portugueses acima, incluindo esse identificador interno para navegação da fonte.
 
-- `REPORTED`: conteúdo explicitamente registrado;
-- `INTERPRETATION`: leitura/interpretação da IA sustentada por evidência.
+O prompt textual do adapter OpenAI ainda menciona chaves inglesas e `SUMMARY_ONLY`, enquanto o schema e o modo usam nomes portugueses. Essa inconsistência não aparece ao validar apenas o provider fake e precisa ser corrigida no adapter.
 
-`field` aceita apenas:
+### Modos e validação
 
-- `text`;
-- `mood`;
-- `medications`.
-
-`timeline`, `patterns` e `attentionPoints` exigem evidência válida por item. `limitations` não exige evidência.
-
-### Modos de análise
-
-| Modo | Condição | Regras |
+| Modo | Condição | Comportamento implementado |
 |---|---|---|
-| Sem geração | Zero pareceres originais. | Não há fonte mínima para análise. |
-| `SUMMARY_ONLY` | Exatamente um parecer original. | Pode organizar/resumir, mas `patterns` deve ficar vazio e deve haver limitação explícita de insuficiência longitudinal. |
-| `LONGITUDINAL` | Dois ou mais pareceres originais. | Pode produzir leitura longitudinal usando todos os registros do snapshot. |
+| Sem geração manual | Zero pareceres originais. | Regeneração rejeitada por falta de fonte mínima. |
+| `RESUMO` | Um parecer original. | Rejeita padrões não vazios e acrescenta limitação fixa de insuficiência longitudinal quando ausente. |
+| `LONGITUDINAL` | Dois ou mais pareceres originais. | Permite análise do histórico completo do snapshot. |
 
 Complementos entram no snapshot, mas não aumentam a contagem de pareceres originais.
 
-### Validação antes da persistência
+O validador exige texto, natureza e evidência por item; verifica alias pertencente ao snapshot, campo permitido e citação contida literalmente na fonte, com normalização de whitespace. O catálogo `CatalogoSegurancaClinica`, versão `clinical-safety-v1`, rejeita expressões proibidas por comparação textual sem acentos e sem diferença de caixa.
 
-Mesmo com Structured Outputs, o backend valida:
+Essas verificações são determinísticas e limitadas. Não comprovam ausência de toda inferência clínica indevida, invenção ou tendência no texto livre. A decisão clínica continua com o médico. Falhas rejeitam a resposta inteira; citações inválidas podem ter retentativa conforme a seção 9.
 
-- schema esperado;
-- existência do alias no snapshot;
-- pertencimento ao mesmo paciente;
-- campo permitido;
-- citação literal existente no campo;
-- registro dentro do corte `snapshot_revision`;
-- regras de segurança clínica;
-- ausência de diagnóstico, prescrição, conduta terapêutica e invenção de informação;
-- ausência de tendência indevida em `SUMMARY_ONLY`.
+### Limites e auditoria
 
-A comparação de citação pode normalizar whitespace e quebras de linha apenas para comparação. Não há fuzzy matching, equivalência semântica, remoção de acentos ou reescrita de conteúdo clínico.
-
-Política do MVP: rejeição integral. Se parte relevante falhar, a geração vira `FAILED` e nenhuma análise parcial é publicada.
+O adapter configura timeout por chamada e registra tokens de entrada/saída quando devolvidos pelo provider. Não há contagem prévia de tokens, limite explícito de saída nem recorte automático de contexto implementado. O orçamento por tentativa é um parâmetro, sem imposição de deadline global. A versão do catálogo de segurança é persistida na análise; versões de prompt/schema/modelo não são persistidas na geração.
 
 ## 11. API HTTP
 
-Base: `/api/v1`.
+Base: `/api/v1`. O contrato usa REST/JSON, DTOs separados das entidades JPA e CPF mascarado. OpenAPI é servido em `/api/v1/openapi`.
 
-Contratos:
-
-- REST/JSON;
-- OpenAPI para documentação;
-- DTOs separados do domínio;
-- entidades JPA nunca expostas;
-- datas conforme a política temporal;
-- erros em Problem Details.
-- respostas de paciente expõem CPF mascarado, preservando o CPF completo apenas no armazenamento/validação internos.
-
-Rotas propostas:
-
-| Método e rota | Resultado |
+| Método e rota relativa à base | Resultado |
 |---|---|
-| `POST /patients` | Cria paciente. Retorna 201. Exige `Idempotency-Key`. |
-| `GET /patients?q&page&size` | Busca/lista pacientes paginados. |
-| `GET /patients/{id}` | Retorna dados cadastrais. |
-| `POST /patients/{id}/appointments` | Cria consulta `AGENDADA`. Retorna 201. Exige `Idempotency-Key`. |
-| `GET /appointments?from&to&patientId&page&size` | Lista agenda por intervalo. |
-| `POST /appointments/{id}/status` | Executa transição final de status. Retorna 200. |
-| `GET /patients/{id}/clinical-records?page&size` | Retorna timeline descendente. |
-| `POST /patients/{id}/clinical-records` | Cria parecer original. Retorna 201 e `generationId`. Exige `Idempotency-Key`. |
-| `POST /patients/{id}/clinical-records/{originalId}/complements` | Cria complemento. Retorna 201 e `generationId`. Exige `Idempotency-Key`. |
-| `GET /patients/{id}/clinical-records/{recordId}` | Retorna fonte/evidência. |
-| `POST /patients/{id}/analysis-generations` | Solicita regeneração manual. Retorna 202. Exige `Idempotency-Key`. |
-| `GET /patients/{id}/analysis-state` | Retorna análise atual, última geração, geração ativa e permissão/motivo de regeneração. |
-| `GET /patients/{id}/analysis-generations?page&size` | Retorna histórico paginado de gerações. |
-| `GET /patients/{id}/analyses/{analysisId}` | Retorna análise histórica validada do paciente. |
-| `GET /health/readiness` | Health local sem IA. |
+| `POST /pacientes` | 201; cria paciente; exige `Idempotency-Key`. |
+| `GET /pacientes?nome&pagina&tamanho` | Busca/listagem paginada. |
+| `GET /pacientes/{id}` | Dados cadastrais. |
+| `POST /pacientes/{pacienteId}/consultas` | 201; cria consulta `AGENDADA`; exige `Idempotency-Key`. |
+| `GET /consultas?de&ate&pacienteId&pagina&tamanho` | Agenda por intervalo/paciente. |
+| `POST /consultas/{id}/status` | 200; transição para status final. |
+| `GET /pacientes/{pacienteId}/registros-clinicos?pagina&tamanho` | Linha do tempo descendente. |
+| `POST /pacientes/{pacienteId}/registros-clinicos` | 201; parecer e geração; exige `Idempotency-Key`. |
+| `POST /pacientes/{pacienteId}/registros-clinicos/{parecerOriginalId}/complementos` | 201; complemento e geração; exige `Idempotency-Key`. |
+| `GET /pacientes/{pacienteId}/registros-clinicos/{registroId}` | Fonte clínica/evidência. |
+| `POST /pacientes/{pacienteId}/geracoes-analise` | 202; regeneração manual; exige `Idempotency-Key`. |
+| `GET /pacientes/{pacienteId}/estado-analise` | Análise atual, gerações e permissão de regeneração. |
+| `GET /pacientes/{pacienteId}/geracoes-analise?pagina&tamanho` | Histórico de gerações. |
+| `GET /pacientes/{pacienteId}/analises/{analiseId}` | Conteúdo de análise histórica. |
+| `GET /health` e `GET /health/readiness` | Health sem dados internos nem dependência de IA. |
 
-DTOs citados na TechSpec:
+As rotas inglesas de produto não são mantidas como aliases. Headers técnicos e chaves reservadas de Problem Details permanecem nos padrões originais.
 
-- `PatientCreateRequest`: `name`, `cpf`, `birthDate`, `phone`, `email`, `initialComplaint`;
-- `PacienteResposta`: dados cadastrais com `cpf` mascarado;
-- `CriarRegistroClinicoRequisicao`: `texto`, `humor`, `medicamentos`, `dataHoraClinica`, `consultaId`;
-- `CriarRegistroClinicoResposta`: `registro`, `generationId` e `geracao` em estado inicial `QUEUED`;
-- complemento recebe `originalId` na rota;
-- `AnalysisStateResponse`: `currentAnalysis`, `latestGeneration`, `activeGeneration`, `canRegenerate`, `reason` e cobertura.
+DTOs efetivos:
+
+| DTO | Campos |
+|---|---|
+| `CriarPacienteRequest` | `nome`, `cpf`, `dataNascimento`, `telefone`, `email`, `queixaInicial`. |
+| `PacienteResponse` | `id`, dados cadastrais, `cpf` mascarado e `criadoEm`. |
+| `CriarConsultaRequest` | `agendadaPara`, `observacoes`. |
+| `ConsultaResponse` | `id`, `pacienteId`, `agendadaPara`, `status`, `observacoes`, `criadaEm`, `statusAlteradoEm`. |
+| `CriarRegistroClinicoRequest` | `texto`, `humor`, `medicamentos`, `dataHoraClinica`, `consultaId`. O complemento rejeita `consultaId` preenchido. |
+| `RegistroClinicoResponse` | `id`, `pacienteId`, `tipo`, `parecerOriginalId`, `consultaId`, `dataHoraClinica`, `criadoEm`, `texto`, `humor`, `medicamentos`, `revisao`. |
+| `CriarRegistroClinicoResponse` | `registro`, `geracaoId`, `geracao` inicialmente `ENFILEIRADA`. |
+| `GeracaoAnaliseResponse` | `id`, `pacienteId`, `estado`, `revisaoSnapshot`, `sequenciaRequest`, `solicitadaEm`, `totalRegistros`, `totalOriginais`, `totalComplementos`, `ultimoRegistroClinicoId`, `modo`. |
+| `EstadoAnaliseResponse` | `analiseAtual`, `ultimaGeracao`, `geracaoAtiva`, `podeRegenerar`, `motivo`. |
+| `AnaliseResponse` | `id`, `geracaoId`, `pacienteId`, `geradaEm`, `modo`, `linhaDoTempo`, `padroes`, `pontosDeAtencao`, `limitacoes`. |
+| `PaginaResponse<T>` | `itens`, `pagina`, `tamanho`, `total`. |
+
+As contagens/corte do snapshot estão em `GeracaoAnaliseResponse`. Esse DTO ainda não expõe código de falha, número de tentativas, instante de conclusão ou ID da análise resultante; o histórico da interface exibe os metadados disponíveis.
 
 ## 12. Erros, paginação e datas
 
 ### Problem Details
 
-Erros HTTP devem usar Problem Details com:
+Erros HTTP usam `application/problem+json`, preservando `type`, `title`, `status`, `detail` e `instance`, com extensões próprias:
 
-- `code`;
-- `fieldErrors`, quando aplicável;
-- `requestId`.
+- `codigo`;
+- `errosDeCampo`, quando aplicável, com `campo` e `mensagem`;
+- `idRequisicao`.
 
 Não ecoar:
 
@@ -705,6 +417,7 @@ Categorias:
 | 404 | Recurso inexistente no contexto consultado. |
 | 409 | Conflito de negócio ou idempotência. |
 | 503 | Indisponibilidade técnica temporária. |
+| 500 | Falha inesperada, com mensagem genérica. |
 
 Falhas da IA após aceite da solicitação aparecem como estado da geração, não como erro HTTP retroativo.
 
@@ -712,9 +425,9 @@ Falhas da IA após aceite da solicitação aparecem como estado da geração, n�
 
 Padrão:
 
-- `page` começa em 0;
-- `size` padrão é 25;
-- `size` máximo é 100;
+- `pagina` começa em 0;
+- `tamanho` padrão é 25;
+- `tamanho` máximo é 100;
 - ordenação estável com desempate por ID.
 
 A paginação da UI nunca limita o snapshot completo usado pela IA.
@@ -729,8 +442,8 @@ Política aprovada:
 - responder instantes em UTC;
 - exibir na interface em `America/Sao_Paulo`;
 - nascimento usa `DATE`/`LocalDate`;
-- `createdAt` é gerado pelo servidor;
-- `clinicalDateTime` permanece separado de `createdAt`;
+- `criadoEm` é gerado pelo servidor;
+- `dataHoraClinica` permanece separado de `criadoEm`;
 - usar `java.time.Clock` injetável para testes.
 
 ## 13. Validações cadastrais e busca
@@ -753,7 +466,7 @@ Busca:
 - por substring de nome;
 - sem distinção de maiúsculas/minúsculas;
 - sem distinção de acentos;
-- usando `search_name`;
+- usando `nome_busca`;
 - consulta parametrizada;
 - curingas escapados;
 - ordenação por nome normalizado e ID;
@@ -768,12 +481,13 @@ Capacidades implementadas:
 - Pacientes possuem formulário de cadastro, busca por nome, lista com abertura do prontuário, validação client-side de campos obrigatórios, CPF, e-mail, telefone e nascimento, além de tratamento visual de Problem Details e erros de campo.
 - Agenda e prontuário possuem criação de consultas com `Idempotency-Key`, listagem de consultas, exibição de paciente/data/hora/status, estados carregando/vazio/erro e atualização de status final (`REALIZADA`, `CANCELADA`, `FALTA`). No prontuário, a criação usa sempre o paciente da rota atual.
 - Prontuário clínico possui formulários de parecer original e complemento com `Idempotency-Key`, data/hora clínica, texto obrigatório, humor e medicações opcionais. A linha do tempo exibe originais e complementos com metadados e referência ao parecer original.
-- Análise clínica possui painel de análise atual, limitações persistentes, seções de timeline resumida, padrões e pontos de atenção, mensagens fixas para seções vazias, evidências clicáveis para abrir a fonte do registro clínico, histórico de gerações e regeneração manual quando `canRegenerate` permite.
+- Análise clínica possui painel de análise atual, limitações persistentes, seções de timeline resumida, padrões e pontos de atenção, mensagens fixas para seções vazias, evidências clicáveis para abrir a fonte do registro clínico, histórico de gerações e regeneração manual quando `podeRegenerar` permite.
+- O histórico da UI lista metadados de gerações; não há ação para abrir o conteúdo de uma análise histórica nessa lista. O endpoint histórico existe no backend.
 - Polling de análise ocorre a cada 3 segundos somente enquanto houver geração ativa e a aba estiver visível; ao retornar à aba, consulta imediatamente. O hook evita requisições sobrepostas, descarta respostas de paciente anterior e não sobrescreve formulários clínicos em edição.
 - Aviso de uso exclusivo de dados fictícios no layout comum, sem dispensa e com posicionamento sticky; CSS responsivo simples, navegação semântica e foco visível.
 - `ClienteApi.requisitar<T>` usa base relativa `/api/v1`, JSON, `Accept` comum, `Idempotency-Key` opcional e `AbortSignal`. Não mantém cache de paciente, não faz retry automático e usa `cache: no-store`.
 - O chamador cria a chave UUID com `chaveDeIdempotencia()` uma vez por operação e mantém a mesma chave e corpo ao repetir um envio. No backend, criação de pacientes, consultas, pareceres, complementos e regeneração manual persiste idempotência.
-- `ErroApi` contém status HTTP e metadados de Problem Details (`code`, `requestId` UUID e `fieldErrors` com formato restrito). Mensagens locais substituem texto remoto; `title`, `detail`, `instance`, mensagens de campo e valores rejeitados não são retidos. O cliente trata falha de transporte, JSON inválido e sucesso 204.
+- `ErroApi` contém status HTTP e metadados de Problem Details (`codigo`, `idRequisicao` UUID e `errosDeCampo` com mensagens locais). Mensagens locais substituem texto remoto; `title`, `detail`, `instance`, mensagens de campo e valores rejeitados não são retidos. O cliente trata falha de transporte, JSON inválido e sucesso 204.
 - A configuração de desenvolvimento fixa 127.0.0.1:5173, `strictPort` e proxy `/api` para 127.0.0.1:8080. Nenhum secret ou acesso a provider é necessário para iniciar a SPA.
 
 Não usar Redux, framework CSS pesado ou biblioteca de cache/estado de servidor no MVP.
@@ -787,7 +501,7 @@ O MVP roda localmente e sem autenticação:
 - backend em `127.0.0.1:8080`;
 - frontend em `127.0.0.1:5173`;
 - PostgreSQL em `127.0.0.1:5432` via `infra/compose.yaml`;
-- Vite faz proxy de `/api` para o backend;
+- Vite faz proxy de `/api` no desenvolvimento; no Compose completo, Nginx encaminha `/api` para `backend:8080`;
 - não habilitar CORS amplo;
 - backend e banco não devem ser publicados em interfaces externas por padrão.
 
@@ -812,13 +526,8 @@ Backend lê por ambiente:
 - credenciais do PostgreSQL;
 - `OPENAI_API_KEY`;
 - `OPENAI_MODEL`;
-- parâmetros de worker;
-- timeout;
-- orçamento;
-- TTL;
-- retry;
-- limites;
-- URLs locais.
+- parâmetros de worker, timeout, orçamento, TTL e retry;
+- endereços e portas locais.
 
 Variáveis do worker de análise:
 
@@ -832,109 +541,52 @@ Variáveis do worker de análise:
 - `PSIQAPP_ANALISE_BACKOFF_INITIAL`, padrão `5s`;
 - `PSIQAPP_ANALISE_BACKOFF_FINAL`, padrão `20s`.
 
+O Compose repassa explicitamente as variáveis de habilitação/provider e OpenAI; os demais parâmetros do worker usam os defaults da aplicação, pois não estão repassados em `backend.environment`. Para alterá-los dentro do container, é necessário configurar esse repasse.
+
 Frontend recebe apenas configuração pública. Nunca expor `OPENAI_API_KEY`, credenciais de banco ou secrets no bundle, logs, Problem Details, fixtures, testes ou documentação.
 
 Versionar somente `.env.example` com placeholders. Arquivos reais de ambiente ficam fora do Git. O Compose local deve ser executado com `--env-file .env` após criação local desse arquivo a partir do template.
 
 ## 16. Observabilidade
 
-Logs estruturados devem usar allowlist:
+`logback-spring.xml` emite JSON com allowlist de `timestamp`, `level`, `requestId`, `status`, `duracaoMs` e `codigo`. Mensagem, argumentos, exceção e MDC completo não são serializados. `FiltroRequestId` propaga o header `X-Request-Id` e registra metadados operacionais da requisição.
 
-- `requestId`;
-- identificador de geração;
-- estado;
-- tentativa;
-- duração;
-- códigos de resultado;
-- contagens agregadas.
+O logger operacional usa nível INFO e o root usa WARN. O INFO emitido pelo scheduler não é uma trilha estruturada completa de geração/tentativa nessa configuração. A auditoria de tentativas é persistida em `tentativa_geracao_analise`.
 
-Não registrar:
+Logs não devem expor conteúdo clínico, respostas integrais da IA, CPF completo, credenciais ou secrets. Há testes de formato/privacidade de logs e erros; a varredura operacional integrada requerida pela task 11 ainda precisa de evidência final.
 
-- conteúdo integral de pareceres;
-- prontuário completo;
-- resposta integral da IA;
-- CPF completo sem necessidade operacional explícita;
-- bodies HTTP clínicos;
-- secrets;
-- credenciais;
-- dados clínicos sensíveis em mensagens de erro.
-
-Actuator expõe somente health/readiness local no MVP. Não há plataforma externa de observabilidade aprovada.
+Actuator expõe apenas health/readiness, sem detalhes; OpenAPI é um endpoint separado. Não há plataforma externa de observabilidade nem heartbeat persistente implementado.
 
 ## 17. Testes e qualidade
 
-Backend:
+O backend usa JUnit 5, Spring Boot Test, Mockito, ArchUnit e Testcontainers PostgreSQL. `mvnw verify` executa testes unitários/contexto e os `*IT` de APIs, banco, registros, análises e worker. Os testes cobrem contratos, append-only, snapshot, evidências, isolamento, idempotência e falhas/retentativas em camadas específicas.
 
-- JUnit 5;
-- Spring Boot Test;
-- Mockito;
-- Testcontainers PostgreSQL;
-- cobertura de migrations, constraints, triggers, locks, `SKIP LOCKED`, idempotência e contratos HTTP `/api/v1`, incluindo OpenAPI, Problem Details, paginação, datas UTC e privacidade.
+O frontend usa Vitest/Testing Library para cliente HTTP, formulários, fluxos e polling. Playwright possui cinco cenários em dois arquivos: cadastro/busca, criação de consulta, parecer/complemento/evidência, isolamento de registros e análise com histórico insuficiente após reload. As fixtures usam a API local; não há interceptação de rede que substitua o backend nessa suíte. O nome `isolamento-e-falha-ia.spec.ts` não significa que já exista cenário de falha do provider no arquivo.
 
-Frontend:
+### CI configurado
 
-- Vitest;
-- Testing Library;
-- timers controlados para polling;
-- testes de cliente HTTP, Problem Details e idempotência.
+`.github/workflows/validacao.yml` contém:
 
-E2E:
+- `backend`: Java 21 e `./mvnw --batch-mode --no-transfer-progress verify` com Testcontainers;
+- `frontend`: Node de `.nvmrc`, `npm ci`, typecheck, lint, Vitest e build;
+- `e2e-integrado`: valida Compose, instala Chromium, sobe PostgreSQL/backend com worker habilitado e provider fake, executa Playwright via Vite e desmonta o ambiente ao final.
 
-- Playwright para principais fluxos.
+### Evidências e seus limites
 
-CI:
+O QA da refatoração registra 45 testes backend, 35 frontend e cinco E2E aprovados. Esses números são evidências históricas daquele relatório, não uma execução realizada nesta revisão documental.
 
-- job backend em `.github/workflows/validacao.yml`, executando `./mvnw verify` com Java 21;
-- job frontend em `.github/workflows/validacao.yml`, com Node fixado por `.nvmrc`, `npm ci`, typecheck, lint, testes Vitest e build;
-- job integrado E2E em `.github/workflows/validacao.yml`, validando o Compose e executando E2E quando o script existir;
-- sem job separado apenas para Compose.
+O gate do MVP continua pendente: faltam evidências finais de falha/timeout/retry no fluxo E2E, isolamento integrado completo, varredura operacional de logs e volume de RNF-008. O teste `BackendBootstrapIT` aplica quatro migrations em banco vazio; não foi encontrado teste versionado que prepare uma base V003 populada e valide seu upgrade para V004. O relatório da refatoração não substitui essa cobertura específica.
 
-Cenários críticos:
+Testes comuns usam fake/mock e dados fictícios; não precisam de OpenAI real. Testes contra provider externo exigem autorização explícita.
 
-- persistência clínica mesmo com IA indisponível;
-- append-only de pareceres;
-- complemento preservando original;
-- append-only de análises;
-- análise anterior não sobrescrita;
-- IA nunca usando outra análise como fonte;
-- complemento como fonte e evidência;
-- isolamento entre pacientes;
-- zero, um e dois ou mais pareceres originais;
-- ausência de falsa tendência em `SUMMARY_ONLY`;
-- timeout, erro, resposta inválida e schema inválido do provider;
-- retry controlado;
-- evidência apontando para registro existente;
-- ausência de diagnóstico, prescrição, recomendação de dose e invenção de informação;
-- falha da IA sem perda ou alteração de dados clínicos.
+## 18. Situação das features
 
-Testes automatizados do bootstrap não dependem de provider externo; Testcontainers usa PostgreSQL 18.6 localmente. Provider OpenAI deve ser mock/fake nos testes comuns. Testes reais contra provider exigem autorização explícita.
+| Feature | Implementação e registro de entrega | Pendências |
+|---|---|---|
+| `prd-psiqapp-mvp` | Tasks 01–10 marcadas como concluídas; fluxos backend/frontend presentes. | Task 11 parcial; feature review `NOT READY`, QA e clinical safety sem aprovação final. Os bloqueios antigos de JDK/backend estão resolvidos nos próprios artefatos. |
+| `prd-refatoracao-arquitetural-nomenclaturas` | Tasks 01–08 com encerramento registrado; feature review `READY`; rotas, JSON público, tabelas e enums principais atualizados. | A inspeção atual encontrou padronização incompleta, riscos de upgrade e divergências do adapter de IA. Não há nova aprovação desses pontos. |
 
-## 18. Sequenciamento de implementação
-
-Sequência de tasks aprovada:
-
-1. `infra-bootstrap`;
-2. `backend-bootstrap`;
-3. `frontend-bootstrap`;
-4. `backend-patient-appointment`;
-5. `backend-clinical-records`;
-6. `backend-analysis-core`;
-7. `backend-analysis-worker`;
-8. `backend-api-contract-validation`;
-9. `frontend-patient-appointment`;
-10. `frontend-clinical-analysis`;
-11. `qa-integration`.
-
-Dependências principais:
-
-- `infra-bootstrap` habilita backend; o bootstrap frontend é independente do banco/backend;
-- `backend-clinical-records` depende de backend, infra e patient/appointment;
-- `backend-analysis-core` depende de backend, infra e clinical records;
-- `backend-analysis-worker` depende de clinical records, analysis core e infra;
-- `backend-api-contract-validation` depende de patient/appointment, clinical records, analysis core e worker e já estabiliza o contrato backend consumido pelas próximas tasks de frontend;
-- `frontend-patient-appointment` depende de frontend bootstrap, backend patient/appointment e contract validation;
-- `frontend-clinical-analysis` depende de frontend bootstrap, clinical records, worker e contract validation;
-- `qa-integration` depende dos fluxos completos.
+A [revisão documental](REVISAO-DOCUMENTAL.md) relaciona achados, fontes e ações necessárias. Os PRDs e TechSpecs preservam requisitos de origem; este documento descreve o código atual. A aprovação da refatoração não encerra automaticamente o gate do MVP.
 
 ## 19. Limites técnicos do MVP
 
@@ -944,7 +596,6 @@ Não implementar no MVP sem nova decisão:
 - acesso remoto;
 - cloud;
 - Kubernetes;
-- backend/frontend containerizados;
 - broker externo;
 - microservices;
 - RAG;
@@ -958,14 +609,16 @@ Não implementar no MVP sem nova decisão:
 - logs com conteúdo clínico;
 - uso de dados reais.
 
-## 20. Pontos pendentes para bootstrap/tasks
+## 20. Pendências técnicas e de validação
 
-Ainda precisam ser definidos durante implementação:
+As pendências atuais não são criar o bootstrap, definir todas as migrations ou implementar os fluxos principais; esses artefatos já existem. Permanecem:
 
-- SQL final das migrations;
-- limites concretos de entrada/saída e contagem de tokens;
-- catálogo versionado de padrões textuais de segurança;
-- mensagens finais de UX;
-- envelopes finais de resposta/paginação;
-- política concreta para requisições concorrentes de idempotência;
-- comandos de execução dos fluxos funcionais futuros; os checks dos bootstraps já estão no README.
+- corrigir e demonstrar upgrade V003 → V004 com registros, gerações, análises e evidências existentes, preservando todas as seções e naturezas do JSONB;
+- concluir a nomenclatura interna e avaliar as separações de responsabilidades ainda divergentes da TechSpec;
+- remover IDs internos do contexto enviado ao provider e alinhar prompt ao schema/modo em português;
+- definir/aplicar limites de contexto e saída, deadline global da tentativa e completar auditoria de versões quando exigida;
+- tratar expiração da última reserva no limite de tentativas, sem deixar geração ativa indefinidamente;
+- completar a validação integrada da task 11: falha/timeout/retry de IA, isolamento, logs, volume e avaliação observacional do uso;
+- reconciliar os gates históricos com novas evidências antes de declarar o MVP aprovado.
+
+Catálogo de segurança, envelopes HTTP, mensagens de UI, SQL e política de idempotência já possuem implementações concretas descritas neste documento. Seus limites devem ser considerados em futuras alterações. Os detalhes desta revisão estão em [REVISAO-DOCUMENTAL.md](REVISAO-DOCUMENTAL.md).

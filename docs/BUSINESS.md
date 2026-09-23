@@ -8,7 +8,9 @@ O objetivo principal é reduzir o esforço de releitura manual do prontuário an
 
 **Capacidade atual:** o backend já permite cadastrar, buscar e visualizar pacientes fictícios por API, criar consultas associadas a pacientes, listar agenda, atualizar consultas agendadas para estados finais, criar pareceres originais e complementos, consultar a linha do tempo clínica, criar a solicitação persistente de geração automática, consultar estado e histórico de gerações, consultar análises validadas persistidas, solicitar regeneração manual quando permitido e processar gerações por worker assíncrono configurável. O provider local padrão é fake e determinístico; o adapter OpenAI pode ser habilitado por ambiente. No frontend, já é possível cadastrar pacientes, buscar por nome, abrir o prontuário, visualizar dados do paciente, criar consultas, consultar a agenda global ou por paciente, atualizar status finais, registrar pareceres e complementos, consultar a linha do tempo clínica, ver análise atual, limitações, evidências, histórico de gerações, estados de IA e solicitar regeneração manual quando permitida pela API. Um aviso permanece visível em todas as páginas: usar somente dados fictícios e não inserir dados reais de pacientes.
 
-As capacidades e regras de domínio descritas abaixo combinam o que já está disponível no backend com o restante do MVP aprovado para implementação futura. As fontes normativas permanecem o PRD e as Rules.
+**Estado de entrega (revisão de 23/09/2026):** os fluxos funcionais das tasks 01–10 do MVP estão implementados. A task 11, de validação integrada, permanece pendente de aprovação: o gate da feature principal está registrado como `NOT READY`. A refatoração de nomenclaturas possui gate `READY` registrado, mas isso não encerra as pendências do MVP. A [revisão documental](REVISAO-DOCUMENTAL.md) registra as divergências encontradas entre relatórios, especificações e código.
+
+Este documento descreve as capacidades implementadas e as regras de negócio que elas devem respeitar. Os requisitos continuam definidos no [PRD do MVP](../tasks/prd-psiqapp-mvp/prd.md) e nas Rules. A [refatoração](../tasks/prd-refatoracao-arquitetural-nomenclaturas/prd.md) alterou nomes e contratos técnicos; não definiu novos fluxos de produto.
 
 ## 2. Contexto de uso
 
@@ -45,11 +47,11 @@ Antes de qualquer uso com pacientes reais, o produto precisará de decisões e i
 | Análise atual | Análise válida baseada no snapshot clínico mais recente; não é escolhida pela ordem em que a IA terminou. |
 | Geração | Processo de produção de uma análise de IA, podendo estar em geração, concluído ou falho. |
 
-## 4. Capacidades de pacientes e consultas disponíveis no backend
+## 4. Pacientes e consultas
 
 ### Cadastro e localização de pacientes
 
-O backend permite cadastrar pacientes com nome, CPF, data de nascimento, telefone, e-mail e queixa inicial opcional. Nome, CPF, data de nascimento, telefone e e-mail são obrigatórios.
+O sistema permite cadastrar pacientes pela interface e pela API, com nome, CPF, data de nascimento, telefone, e-mail e queixa inicial opcional. Nome, CPF, data de nascimento, telefone e e-mail são obrigatórios.
 
 Regras funcionais:
 
@@ -64,7 +66,7 @@ Regras funcionais:
 
 ### Consultas e agenda
 
-O backend permite criar consultas associadas a pacientes. Toda consulta precisa de paciente, data e hora. Observações são opcionais.
+O sistema permite criar consultas associadas a pacientes pela interface e pela API. Toda consulta precisa de paciente, data e hora. Observações são opcionais.
 
 Status de consulta no MVP:
 
@@ -85,7 +87,7 @@ Regras funcionais:
 - O MVP não permite alterar diretamente uma consulta de um estado final para outro estado final.
 - Observações de consulta não entram como fonte clínica da IA.
 
-## 5. Capacidades de registros clínicos disponíveis no backend
+## 5. Registros clínicos e prontuário
 
 ### Registros clínicos
 
@@ -137,7 +139,7 @@ Ordenação funcional:
 
 Um registro retroativo aparece na posição correspondente à sua data/hora clínica, mas sua data/hora real de criação continua preservada para auditoria.
 
-## 6. Análise de IA no backend
+## 6. Análise de IA
 
 ### Papel da IA
 
@@ -181,7 +183,7 @@ A análise de IA é organizada em quatro áreas:
 | Pontos de atenção | Aspectos que merecem revisão ou acompanhamento pelo médico. |
 | Limitações | Limites, lacunas e insuficiências do histórico analisado. |
 
-Padrões observados e pontos de atenção devem possuir evidências. Evidências indicam registros clínicos originais ou complementos que sustentam a observação.
+Cada item da linha do tempo resumida, dos padrões e dos pontos de atenção exige evidência. As evidências indicam registros clínicos originais ou complementos que sustentam a observação; limitações não exigem evidência.
 
 ### Suficiência de histórico
 
@@ -211,6 +213,10 @@ Quando uma geração falha:
 ### Regeneração manual
 
 O backend permite solicitar uma nova geração manual quando existe pelo menos um parecer original e não há outra geração ativa para o paciente. A solicitação é idempotente: repetir a mesma operação com a mesma chave não cria gerações duplicadas.
+
+### Histórico disponível
+
+A interface mostra o histórico de gerações com estado, data de solicitação, revisão do snapshot e contagens. A API também permite consultar o conteúdo de uma análise histórica pelo seu identificador. A interface atual não oferece abertura do conteúdo de análises anteriores a partir da lista de gerações.
 
 ## 7. Fluxos principais
 
@@ -359,13 +365,22 @@ Indicadores de validação:
 - capacidade de rastrear observações da IA até os registros originais;
 - comportamento com volumes de validação entre 100 e 500 pacientes, 20 a 100 registros por paciente e casos longos com 200 ou mais registros.
 
+### Situação da validação
+
+Esses indicadores não são resultados já medidos. O [QA do MVP](../tasks/prd-psiqapp-mvp/qa-report.md) registra uma rodada integrada em 16/09/2026 com backend e cinco cenários E2E aprovados, mas mantém pendências de falha/timeout/retry de IA no fluxo integrado, volume representativo e varredura operacional de logs. O [feature review](../tasks/prd-psiqapp-mvp/feature-review.md) também exige completar a evidência de isolamento integrado. Os bloqueios iniciais de Java/backend constam como resolvidos em `bugs.md`.
+
+Os testes posteriores da refatoração não demonstram, por si só, o encerramento desses critérios. A revisão do código também identificou pendências na migração de dados existentes e na minimização do payload do adapter OpenAI, detalhadas na [revisão documental](REVISAO-DOCUMENTAL.md). As restrições de dados fictícios e de decisão clínica pelo médico continuam aplicáveis.
+
 ## 11. Fontes canônicas
 
-Este documento foi criado a partir de:
+Este documento foi conferido com a implementação em `apps/backend` e `apps/frontend` e com:
 
 - `tasks/prd-psiqapp-mvp/prd.md`;
 - `tasks/prd-psiqapp-mvp/spec-review.md`;
 - `tasks/prd-psiqapp-mvp/techspec.md`;
+- `tasks/prd-psiqapp-mvp/tasks.md`, `qa-report.md`, `feature-review.md` e `bugs.md`;
+- `tasks/prd-refatoracao-arquitetural-nomenclaturas/prd.md`, `techspec.md`, `tasks.md` e relatórios finais;
+- `docs/TECHNICAL.md`, para contratos e limites técnicos atuais;
 - `.agents/rules/product-invariants.md`;
 - `.agents/rules/clinical-data-privacy.md`;
 - `.agents/rules/clinical-ai-safety.md`;

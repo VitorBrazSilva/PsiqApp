@@ -1,6 +1,8 @@
 # Tasks — Refatoração arquitetural e padronização de nomenclaturas
 
-Status da Task 8.0: CONCLUÍDA.
+Status registrado da Task 8.0: CONCLUÍDA, conforme `08_task-review.md`, `qa-report.md` e `feature-review.md`.
+
+Revisão documental de 23/09/2026: o checkbox abaixo foi alinhado ao encerramento registrado. A revisão atual encontrou divergências de nomenclatura e riscos de upgrade não refletidos naquele gate; ver [revisão documental](../../docs/REVISAO-DOCUMENTAL.md). O encerramento histórico não equivale a uma nova aprovação desses pontos.
 
 - [x] 1.0 Inventário e matriz de nomenclatura — RF-001, RF-002, RF-003, RF-004, RF-007, RF-008; RNF-004, RNF-005; TS-001, TS-011
 - [x] 2.0 Fronteiras e nomenclatura do backend — RF-001, RF-002, RF-005, RF-007, RF-008; RNF-003, RNF-004; TS-002, TS-003
@@ -9,4 +11,4 @@ Status da Task 8.0: CONCLUÍDA.
 - [x] 5.0 API HTTP e contratos de erro — RF-003, RF-006, RF-007, RF-008; RNF-001, RNF-004, RNF-006; TS-005, TS-010, TS-011
 - [x] 6.0 Frontend e consumidores internos — RF-001, RF-003, RF-005, RF-007, RF-008; RNF-001, RNF-004; TS-004, TS-005, TS-011
 - [x] 7.0 Documentação, configuração e CI — RF-007, RF-008; RNF-004, RNF-005, RNF-006; TS-011, TS-012
-- [ ] 8.0 Validação integrada e rastreabilidade final — RF-006, RF-007, RF-008; RNF-001 a RNF-006; TS-009, TS-010, TS-011, TS-012
+- [x] 8.0 Validação integrada e rastreabilidade final — RF-006, RF-007, RF-008; RNF-001 a RNF-006; TS-009, TS-010, TS-011, TS-012
