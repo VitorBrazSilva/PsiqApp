@@ -5,6 +5,7 @@ export interface OpcoesRequisicao {
   corpo?: unknown
   chaveDeIdempotencia?: string
   signal?: AbortSignal
+  retornarMetadados?: boolean
 }
 
 export class ClienteApi {
@@ -42,7 +43,13 @@ export class ClienteApi {
     }
     if (resposta.status === 204) return undefined as T
     try {
-      return await resposta.json() as T
+      const dados = await resposta.json() as T
+      if (opcoes.retornarMetadados) return { dados, metadados: {
+        status: resposta.status,
+        idRequisicao: resposta.headers.get('X-Request-Id') ?? undefined,
+        location: resposta.headers.get('Location') ?? undefined,
+      } } as T
+      return dados
     } catch {
       if (opcoes.signal?.aborted) throw new DOMException('Solicitação cancelada.', 'AbortError')
       throw new ErroApi(resposta.status, 'RESPOSTA_INVALIDA')

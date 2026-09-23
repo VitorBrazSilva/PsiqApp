@@ -1,5 +1,6 @@
 import { ClienteApi } from '../../shared/api/clienteApi'
 import { chaveDeIdempotencia } from '../../shared/idempotencia/chaveDeIdempotencia'
+import type { Pagina } from '../../shared/api/contratos'
 
 const api = new ClienteApi()
 
@@ -14,12 +15,7 @@ export interface Paciente {
   criadoEm: string
 }
 
-export interface Pagina<T> {
-  itens: T[]
-  pagina: number
-  tamanho: number
-  total: number
-}
+export type { Pagina } from '../../shared/api/contratos'
 
 export interface CriarPaciente {
   nome: string
@@ -31,8 +27,8 @@ export interface CriarPaciente {
 }
 
 export const servicoPacientes = {
-  buscar(q: string, signal?: AbortSignal, size = 25) {
-    const params = new URLSearchParams({ pagina: '0', tamanho: String(size) })
+  buscar(q: string, signal?: AbortSignal, size = 25, pagina = 0) {
+    const params = new URLSearchParams({ pagina: String(pagina), tamanho: String(size) })
     if (q.trim()) params.set('nome', q.trim())
     return api.requisitar<Pagina<Paciente>>(`/pacientes?${params}`, { signal })
   },
