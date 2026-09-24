@@ -28,9 +28,10 @@ export function PaginaProntuario() {
   const [parecerAberto, setParecerAberto] = useState(false)
   const [consultaAberta, setConsultaAberta] = useState(false)
   const [analiseHistorica, setAnaliseHistorica] = useState<AnaliseClinica | null>(null)
-  const [secao, setSecao] = useState<'historico' | 'analise' | 'consultas' | 'dados'>(() => secaoDaUrl(parametros.get('secao')))
+  const secao = secaoDaUrl(parametros.get('secao'))
   const [paginaRegistros, setPaginaRegistros] = useState({ pagina: 0, tamanho: 100, total: 0 })
   const { estado, carregando: carregandoAnalise, erro: erroAnalise, recarregar } = usePollingAnalise(pacienteId ?? null)
+
   useEffect(() => {
     if (!parecerAberto && !consultaAberta) return
     const fecharComEscape = (evento: KeyboardEvent) => {
@@ -85,8 +86,7 @@ export function PaginaProntuario() {
   }
 
   function mudarSecao(novaSecao: 'historico' | 'analise' | 'consultas' | 'dados') {
-    setSecao(novaSecao)
-    setParametros(atual => { atual.set('secao', novaSecao); return atual }, { replace: true })
+    setParametros(atual => { atual.set('secao', novaSecao); return atual })
   }
 
   return (
@@ -94,13 +94,13 @@ export function PaginaProntuario() {
       <header className="patient-heading">
         <span className="patient-avatar" aria-hidden="true">{paciente?.nome.split(/\s+/).slice(0, 2).map(parte => parte[0]).join('').toUpperCase()}</span>
         <div className="patient-name"><h1>{paciente?.nome}</h1><p className="patient-subtitle"><span>{formatarIdade(paciente?.dataNascimento ?? '')} anos</span><span>{registros.filter(registro => !registros.find(original => original.id === registro.parecerOriginalId)).length} pareceres originais</span></p></div>
-        <div className="heading-actions"><button className="botao-secundario" type="button" onClick={() => setConsultaAberta(true)}>Agendar consulta</button><button className="primary" type="button" onClick={() => setParecerAberto(true)}>+&nbsp; Novo parecer</button></div>
+        <div className="heading-actions"><button className="secondary" type="button" onClick={() => setConsultaAberta(true)}>Agendar consulta</button><button className="primary" type="button" onClick={() => setParecerAberto(true)}>+&nbsp; Novo parecer</button></div>
       </header>
       <nav className="patient-tabs" aria-label="Seções do prontuário">
-        <button type="button" className={secao === 'historico' ? 'active' : ''} onClick={() => mudarSecao('historico')}>Histórico clínico <span className="count">{registros.length}</span></button>
-        <button type="button" className={secao === 'analise' ? 'active' : ''} onClick={() => mudarSecao('analise')}>Análise de IA</button>
-        <button type="button" className={secao === 'consultas' ? 'active' : ''} onClick={() => mudarSecao('consultas')}>Consultas <span className="count">{consultas.length}</span></button>
-        <button type="button" className={secao === 'dados' ? 'active' : ''} onClick={() => mudarSecao('dados')}>Dados pessoais</button>
+        <button type="button" className={secao === 'historico' ? 'active' : ''} aria-current={secao === 'historico' ? 'page' : undefined} onClick={() => mudarSecao('historico')}>Histórico clínico <span className="count">{registros.length}</span></button>
+        <button type="button" className={secao === 'analise' ? 'active' : ''} aria-current={secao === 'analise' ? 'page' : undefined} onClick={() => mudarSecao('analise')}>Análise de IA</button>
+        <button type="button" className={secao === 'consultas' ? 'active' : ''} aria-current={secao === 'consultas' ? 'page' : undefined} onClick={() => mudarSecao('consultas')}>Consultas <span className="count">{consultas.length}</span></button>
+        <button type="button" className={secao === 'dados' ? 'active' : ''} aria-current={secao === 'dados' ? 'page' : undefined} onClick={() => mudarSecao('dados')}>Dados pessoais</button>
       </nav>
       <div className="painel contexto-paciente">
         {erro && <p role="alert" className="erro">{erro}</p>}
@@ -125,7 +125,7 @@ export function PaginaProntuario() {
       </div>
 
       <section className="painel historico-clinico-painel">
-        <h2>Histórico clínico</h2>
+        <div className="records-heading"><h2>Histórico clínico</h2><span className="muted">Mais recentes primeiro</span></div>
         <LinhaDoTempoClinica
           pacienteId={pacienteId}
           registros={registros}
