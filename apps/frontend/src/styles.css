@@ -74,7 +74,7 @@ button.secundario, .secundario { background: #e0edeb; color: #155e63; }
 }
 
 /* Direção A: foco clínico */
-:root { font-family: "Segoe UI", system-ui, sans-serif; color: #24382f; background: #f7f9f7; line-height: 1.55; }
+:root { font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif; color: #24382f; background: #f7f9f7; line-height: 1.55; }
 body { background: #f7f9f7; }
 .aplicacao-shell { min-height: calc(100vh - 42px); display: grid; grid-template-columns: 232px minmax(0, 1fr); grid-template-rows: 1fr auto; }
 .cabecalho { grid-row: 1 / 3; max-width: none; margin: 0; padding: 2rem 1rem; background: #285c47; color: #f5fbf6; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 2.5rem; }
@@ -326,7 +326,7 @@ body { font-size: 13px; }
 .brand-mark { width: 32px; height: 35px; font-size: initial; color: #285c47; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .primary-nav a.active { font-weight: 650; }
 .nav-count { min-width: 21px; min-height: 21px; margin-left: auto; padding: 0 6px; display: inline-grid; place-items: center; border-radius: 999px; background: #eaf1eb; color: #62716a; font-size: 11px; font-weight: 500; line-height: 1; }
-.primary-nav .nav-count { min-width: 21px; min-height: 21px; padding: 0 7px; border: 0; border-radius: 4px; background: #d1dfd0 !important; color: #718078; font-size: 11px; font-weight: 700; }
+.primary-nav .nav-count { min-width: 21px; min-height: 21px; padding: 0 7px; border: 0; border-radius: 4px; background: #d1dfd0 !important; color: #718078; font-size: 11px; font-weight: 500; }
 .patient-result { color: inherit; text-decoration: none; }
 .patient-result:hover { background: #eaf1eb; }
 .patient-result .patient-open { font-size: 12px; font-weight: 500; text-decoration: none; }
@@ -346,6 +346,45 @@ body { font-size: 13px; }
 .patients-page .list-toolbar .muted small { font-size: 12px; }
 .patient-result strong { font-size: 14px; font-weight: 600; }
 .patient-result small { font-size: 12px; font-weight: 400; }
+.primary-nav .nav-count { font-weight: 700; }
+.sidebar-divider { height: 1px; margin: 38px 12px 0; background: #d3ddd3; }
+.dialog-paciente .dialog-header h2 { font-size: 20px; font-weight: 650; letter-spacing: -.35px; }
+.dialog-paciente .dialog-body { font-size: 15px; line-height: 1.55; }
+.dialog-paciente .dialog-body label { font-size: 13px; font-weight: 600; color: #24382f; }
+.dialog-paciente .registration-note { margin: 0 0 22px; padding: 10px 13px; border: 1px solid #e4d8ba; border-radius: 6px; background: #faf3e2; color: #6b531c; font-size: 12px; font-weight: 400; }
+.dialog-paciente .validation-summary { border: 1px solid #d5a399; border-radius: 7px; background: #fff5f1; color: #8c3325; padding: 14px 17px; font-size: 13px; }
+.dialog-paciente .validation-summary ul { margin: 8px 0 0; padding-left: 20px; font-size: 14px; }
+.dialog-paciente .validation-summary li + li { margin-top: 12px; }
+.dialog-paciente .validation-summary a { color: #8c3325; }
+.dialog-paciente .erro-campo { display: block; margin: 0; color: #973628; font-size: 12px; }
+.dialog-paciente .registration-field { display: grid; gap: 7px; min-width: 0; }
+.dialog-paciente .formulario input[aria-invalid="true"] { border-color: #a83b27; }
+.dialog-paciente .formulario input,
+.dialog-paciente .formulario textarea,
+.dialog-paciente .formulario select { padding: 11px 12px; border-radius: 7px; font-size: 15px; }
+.dialog-paciente .form-actions button { min-height: 42px; padding: 9px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; }
+.dialog-paciente .form-actions .secondary { background: #fff; color: #24382f; border: 1px solid #dde5df; }
+.dialog-paciente .form-actions .secondary:hover { background: #eaf1eb; border-color: #99aea0; }
+.dialog-paciente .form-actions .primary { border: 1px solid #285c47; }
+.dialog-paciente .form-actions .primary:hover { background: #194a36; border-color: #194a36; }
+.dialog-paciente .formulario input:focus,
+.dialog-paciente .formulario textarea:focus,
+.dialog-paciente .formulario select:focus { background: #fff; border-color: #98a69d; color: #24382f; outline: 3px solid #285c47; outline-offset: 4px; }
+.dialog-paciente .icon-button { width: 42px; min-width: 42px; min-height: 42px; padding: 0; border: 1px solid transparent; border-radius: 7px; background: transparent; font-size: 15px; font-weight: 400; }
+.dialog-paciente .icon-button:hover { background: #eaf1eb; }
+.dialog-paciente .icon-button svg { width: 19px; height: 19px; }
+.icon-button svg { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.dialog-evidencias .icon-button,
+.dialog-fonte .icon-button,
+.dialog-parecer .icon-button { background: transparent; }
+.dialog-evidencias .icon-button:hover,
+.dialog-fonte .icon-button:hover,
+.dialog-parecer .icon-button:hover { background: #eaf1eb; }
+.dialog-evidencias .icon-button svg,
+.dialog-fonte .icon-button svg,
+.dialog-parecer .icon-button svg { width: 19px; height: 19px; }
+.primary:hover { background: #194a36; }
+.secondary:hover { background: #eaf1eb; border-color: #99aea0; }
 @media (max-width: 740px) {
   .nav-count { min-width: 19px; min-height: 19px; }
   .patient-result .patient-open-icon { display: none; }

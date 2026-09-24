@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router'
 import { servicoPacientes } from '../features/pacientes/servicoPacientes'
-import { AvisoDadosFicticios } from '../shared/componentes/AvisoDadosFicticios'
 import { Rotas } from './rotas'
 
 function Icon({ type }: { type: 'people' | 'calendar' }) {
@@ -59,7 +58,7 @@ export function Aplicacao() {
           <NavLink to="/agenda"><Icon type="calendar" />Agenda</NavLink>
           <NavLink className="sr-only" to="/prontuario">Prontuário</NavLink>
         </nav>
-        <div className="sidebar-note"><strong>Ambiente de demonstração</strong><span>Explore com dados fictícios.<br />As alterações duram apenas até recarregar a página.</span></div>
+        <div className="sidebar-divider" aria-hidden="true" />
         <div className="account"><span className="account-avatar">MD</span><span><strong>Médico demonstrativo</strong><small>Consultório particular</small></span></div>
       </div>
       <div className="app-body">
@@ -67,7 +66,6 @@ export function Aplicacao() {
           <div className="breadcrumb">{agenda || prontuario ? <NavLink to="/pacientes">Pacientes</NavLink> : <span>Pacientes</span>}<span aria-hidden="true">›</span><span>{contexto}</span></div>
           <div className="topbar-tools">
             <button className="search-button" type="button" onClick={focarBusca}><SearchIcon /><span>Encontrar paciente</span></button>
-            <AvisoDadosFicticios />
           </div>
         </header>
         <main id="conteudo" tabIndex={-1}><Rotas /></main>

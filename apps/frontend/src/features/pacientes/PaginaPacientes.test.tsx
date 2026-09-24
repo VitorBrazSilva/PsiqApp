@@ -44,8 +44,22 @@ describe('PaginaPacientes', () => {
     await usuario.click(screen.getByRole('button', { name: /Novo paciente/ }))
     await usuario.click(screen.getByRole('button', { name: 'Salvar paciente' }))
 
-    expect(screen.getByText('Informe o nome.')).toBeVisible()
-    expect(screen.getByText('Informe um CPF valido.')).toBeVisible()
+    const resumo = screen.getByRole('alert')
+    expect(resumo).toHaveAttribute('id', 'registration-errors')
+    expect(resumo).toHaveTextContent('Revise os campos indicados.')
+    expect(resumo.querySelectorAll('a')).toHaveLength(5)
+    expect(screen.getAllByText('Informe o nome do paciente.')).toHaveLength(2)
+    expect(screen.getAllByText('Informe um CPF válido.')).toHaveLength(2)
+    for (const id of ['patient-nome', 'patient-cpf', 'patient-nascimento', 'patient-telefone', 'patient-email']) {
+      const campo = document.getElementById(id)!
+      expect(campo).toHaveAttribute('aria-invalid', 'true')
+      expect(campo.closest('.registration-field')).toContainElement(document.getElementById(`${id}-error`))
+    }
+    expect(document.activeElement).toBe(resumo)
+    await usuario.click(screen.getByRole('link', { name: 'Informe um CPF válido.' }))
+    expect(document.activeElement).toBe(screen.getByLabelText('CPF'))
+    await usuario.click(screen.getByRole('button', { name: 'Voltar à lista' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
@@ -69,10 +83,10 @@ describe('PaginaPacientes', () => {
     await usuario.type(screen.getByLabelText('E-mail'), paciente.email)
     await usuario.click(screen.getByRole('button', { name: 'Salvar paciente' }))
 
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('conflito'))
+    await waitFor(() => expect(screen.getByText(/conflito/)).toBeVisible())
     const [, opcoes] = fetchMock.mock.calls[1]
     expect(fetchMock.mock.calls[1][0]).toBe('/api/v1/pacientes')
     expect(new Headers(opcoes?.headers).get('Idempotency-Key')).toMatch(/[0-9a-f-]{36}/)
-    expect(screen.getByText('Valor invalido.')).toBeVisible()
+    expect(screen.getAllByText('Valor invalido.')).toHaveLength(2)
   })
 })

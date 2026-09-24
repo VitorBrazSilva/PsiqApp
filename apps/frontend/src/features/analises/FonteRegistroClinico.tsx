@@ -48,7 +48,7 @@ export function FonteRegistroClinico({ pacienteId, pacienteNome, fonte, aoFechar
     <dialog open className="dialog-fonte" aria-labelledby="titulo-fonte" onKeyDown={evento => { if (evento.key === 'Escape') { evento.preventDefault(); aoFechar() } }}>
       <div className="dialog-header">
         <h2 id="titulo-fonte">Registro de origem</h2>
-        <button type="button" className="icon-button" aria-label="Fechar fonte da evidência" onClick={aoFechar}>×</button>
+        <button type="button" className="icon-button" aria-label="Fechar fonte da evidência" onClick={aoFechar}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button>
       </div>
       <div className="dialog-body">
         <button type="button" className="text-button" onClick={aoFechar}>Voltar às evidências desta observação</button>

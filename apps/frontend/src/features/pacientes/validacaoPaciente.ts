@@ -14,13 +14,13 @@ export function validarCpf(cpf: string) {
 
 export function validarPaciente(dados: CriarPaciente) {
   const erros: Record<string, string> = {}
-  if (!dados.nome.trim()) erros.nome = 'Informe o nome.'
-  if (!validarCpf(dados.cpf)) erros.cpf = 'Informe um CPF valido.'
+  if (!dados.nome.trim()) erros.nome = 'Informe o nome do paciente.'
+  if (!validarCpf(dados.cpf)) erros.cpf = 'Informe um CPF válido.'
   if (!dados.dataNascimento) erros.dataNascimento = 'Informe a data de nascimento.'
-  else if (new Date(`${dados.dataNascimento}T00:00:00`) > new Date()) erros.dataNascimento = 'Nascimento não pode estar no futuro.'
-  if (!/^\S+@\S+\.\S+$/.test(dados.email.trim())) erros.email = 'Informe um e-mail valido.'
+  else if (new Date(`${dados.dataNascimento}T00:00:00`) > new Date()) erros.dataNascimento = 'A data de nascimento não pode estar no futuro.'
+  if (!/^\S+@\S+\.\S+$/.test(dados.email.trim())) erros.email = 'Informe um e-mail válido.'
   const telefone = dados.telefone.replace(/\D/g, '')
   const telefoneNacional = telefone.startsWith('55') ? telefone.slice(2) : telefone
-  if (!(telefoneNacional.length === 10 || telefoneNacional.length === 11)) erros.telefone = 'Informe telefone brasileiro com DDD.'
+  if (!(telefoneNacional.length === 10 || telefoneNacional.length === 11)) erros.telefone = 'Informe um telefone com DDD.'
   return erros
 }
