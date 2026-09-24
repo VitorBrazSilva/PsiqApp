@@ -36,22 +36,24 @@ export function FormularioPaciente({ aoCriar }: { aoCriar: (paciente: Paciente) 
 
   return (
     <form className="formulario" onSubmit={enviar} noValidate>
-      <h2>Cadastrar paciente</h2>
+      <div className="demo-note">Use apenas dados fictícios. Este cadastro é uma simulação local.</div>
+      <div className="registration-intro"><p>Os dados abaixo identificam o paciente e seu prontuário.</p><button type="button" className="link-botao" onClick={() => setDados({ nome: 'Helena Duarte', cpf: '529.982.247-25', dataNascimento: '1992-03-18', telefone: '(11) 90000-0000', email: 'helena.ficticia@example.test', queixaInicial: 'Dificuldade para dormir e mudanças na rotina.' })}>Preencher exemplo fictício</button></div>
       {erroGeral && <p role="alert" className="erro">{erroGeral}</p>}
-      <label>Nome<input value={dados.nome} onChange={e => atualizar('nome', e.target.value)} /></label>
-      {erros.nome && <span className="erro-campo">{erros.nome}</span>}
+      <label htmlFor="patient-nome" aria-label="Nome">Nome completo<input id="patient-nome" name="nome" autoComplete="name" autoFocus value={dados.nome} onChange={e => atualizar('nome', e.target.value)} aria-invalid={!!erros.nome} aria-describedby="patient-nome-error" /></label>
+      {erros.nome && <span id="patient-nome-error" className="erro-campo">{erros.nome}</span>}
       <div className="grade-form">
-        <label>CPF<input value={dados.cpf} onChange={e => atualizar('cpf', e.target.value)} /></label>
-        <label>Nascimento<input type="date" value={dados.dataNascimento} onChange={e => atualizar('dataNascimento', e.target.value)} /></label>
+        <label htmlFor="patient-cpf">CPF<input id="patient-cpf" inputMode="numeric" autoComplete="off" placeholder="000.000.000-00" value={dados.cpf} onChange={e => atualizar('cpf', e.target.value)} aria-invalid={!!erros.cpf} aria-describedby="patient-cpf-error" /></label>
+        <label htmlFor="patient-nascimento" aria-label="Nascimento">Data de nascimento<input id="patient-nascimento" type="date" autoComplete="bday" value={dados.dataNascimento} onChange={e => atualizar('dataNascimento', e.target.value)} aria-invalid={!!erros.dataNascimento} aria-describedby="patient-nascimento-error" /></label>
       </div>
-      {(erros.cpf || erros.dataNascimento) && <span className="erro-campo">{erros.cpf ?? erros.dataNascimento}</span>}
+      {erros.cpf && <span id="patient-cpf-error" className="erro-campo">{erros.cpf}</span>}{erros.dataNascimento && <span id="patient-nascimento-error" className="erro-campo">{erros.dataNascimento}</span>}
       <div className="grade-form">
-        <label>Telefone<input value={dados.telefone} onChange={e => atualizar('telefone', e.target.value)} /></label>
-        <label>E-mail<input value={dados.email} onChange={e => atualizar('email', e.target.value)} /></label>
+        <label htmlFor="patient-telefone" aria-label="Telefone">Telefone com DDD<input id="patient-telefone" type="tel" autoComplete="tel" placeholder="(11) 90000-0000" value={dados.telefone} onChange={e => atualizar('telefone', e.target.value)} aria-invalid={!!erros.telefone} aria-describedby="patient-telefone-error" /></label>
+        <label htmlFor="patient-email">E-mail<input id="patient-email" type="email" autoComplete="email" spellCheck={false} placeholder="paciente@example.test" value={dados.email} onChange={e => atualizar('email', e.target.value)} aria-invalid={!!erros.email} aria-describedby="patient-email-error" /></label>
       </div>
-      {(erros.telefone || erros.email) && <span className="erro-campo">{erros.telefone ?? erros.email}</span>}
-      <label>Queixa inicial<textarea value={dados.queixaInicial ?? ''} onChange={e => atualizar('queixaInicial', e.target.value)} /></label>
-      <button disabled={salvando}>{salvando ? 'Salvando...' : 'Salvar paciente'}</button>
+      {erros.telefone && <span id="patient-telefone-error" className="erro-campo">{erros.telefone}</span>}{erros.email && <span id="patient-email-error" className="erro-campo">{erros.email}</span>}
+      <label htmlFor="patient-queixa">Queixa inicial <span className="hint">Opcional</span><textarea id="patient-queixa" className="short-textarea" placeholder="Descreva o motivo inicial do acompanhamento…" value={dados.queixaInicial ?? ''} onChange={e => atualizar('queixaInicial', e.target.value)} /></label>
+      <p className="hint">Nome, CPF, nascimento, telefone e e-mail são obrigatórios.</p>
+      <div className="form-actions"><button type="button" className="secondary" onClick={() => setDados(inicial)}>Voltar à lista</button><button aria-label="Salvar paciente" className="primary" disabled={salvando}>{salvando ? 'Salvando...' : 'Cadastrar e abrir prontuário'}</button></div>
     </form>
   )
 }

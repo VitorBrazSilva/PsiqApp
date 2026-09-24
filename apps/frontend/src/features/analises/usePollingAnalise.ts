@@ -13,7 +13,7 @@ export function usePollingAnalise(pacienteId: string | null) {
   useEffect(() => { pacienteAtual.current = pacienteId }, [pacienteId])
 
   const carregar = useCallback(async (signal?: AbortSignal) => {
-    if (!pacienteId || requisicaoEmCurso.current) return
+    if (!pacienteId) return
     requisicaoEmCurso.current = true
     try {
       const [novoEstado, paginaGeracoes] = await Promise.all([

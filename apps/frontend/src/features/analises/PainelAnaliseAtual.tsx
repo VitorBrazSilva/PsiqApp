@@ -1,71 +1,36 @@
-import { ListaEvidencias } from './ListaEvidencias'
-import type { AnaliseClinica, EstadoAnalise, ItemAnalise } from './servicoAnalises'
+import { useState } from 'react'
+import type { AnaliseClinica, EstadoAnalise, EvidenciaAnalise, ItemAnalise } from './servicoAnalises'
 
-interface Props {
-  estado: EstadoAnalise | null
-  carregando: boolean
-  erro: string
-  aoRegenerar: () => void
-  regenerando: boolean
-  aoAbrirFonte: (registroId: string) => void
-  analiseHistorica?: AnaliseClinica | null
+interface Props { estado: EstadoAnalise | null; carregando: boolean; erro: string; aoRegenerar?: () => void; regenerando?: boolean; aoAbrirFonte: (evidencia: EvidenciaAnalise) => void; analiseHistorica?: AnaliseClinica | null }
+
+function SecaoAnalise({ titulo, vazio, itens, aoAbrirEvidencias }: { titulo: string; vazio: string; itens: ItemAnalise[]; aoAbrirEvidencias: (titulo: string, item: ItemAnalise) => void }) {
+  return <details open={titulo === 'Padrões observados'} className="analysis-group">
+    <summary><span>{titulo}</span><span className="analysis-count">{itens.length}</span><span aria-hidden="true">›</span></summary>
+    {itens.length === 0 ? <p className="estado">{vazio}</p> : <ul className="analysis-items">{itens.map((item, indice) => <li className="analysis-observation" key={`${titulo}-${indice}`}><span className="observation-nature">{item.natureza === 'RELATO' ? 'Relato registrado' : 'Interpretação da IA'}</span><p>{item.texto}</p><button type="button" className="evidence-link" onClick={() => aoAbrirEvidencias(titulo, item)}>↗ {item.evidencias.length} {item.evidencias.length === 1 ? 'evidência' : 'evidências'} desta observação ›</button></li>)}</ul>}
+  </details>
 }
 
-function SecaoAnalise({ titulo, vazio, itens, aoAbrirFonte }: { titulo: string, vazio: string, itens: ItemAnalise[], aoAbrirFonte: (registroId: string) => void }) {
-  return (
-    <section className="bloco analise-secao">
-      <h3>{titulo}</h3>
-      {itens.length === 0 ? <p className="estado">{vazio}</p> : (
-        <ul className="itens-analise">
-          {itens.map((item, indice) => (
-            <li className="item-analise" key={`${titulo}-${indice}`}>
-              <p>{item.texto}</p>
-              <span className="etiqueta">{item.natureza === 'RELATO' ? 'Relato registrado' : 'Interpretação apoiada em evidência'}</span>
-              <ListaEvidencias evidencias={item.evidencias} aoAbrirFonte={aoAbrirFonte} />
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  )
+function ConteudoAnalise({ analise, totalOriginais, aoAbrirEvidencias }: { analise: AnaliseClinica; totalOriginais: number; aoAbrirEvidencias: (titulo: string, item: ItemAnalise) => void }) {
+  const data = new Date(analise.geradaEm).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace('.', '')
+  const total = analise.linhaDoTempo.length + analise.padroes.length + analise.pontosDeAtencao.length
+  return <>
+    <div className="analise-meta"><span>Gerada em {data}</span><span>Baseada em {totalOriginais} pareceres originais</span></div>
+    <section className="analise-secao"><SecaoAnalise titulo="Linha do tempo resumida" vazio="Sem itens validados para a linha do tempo resumida." itens={analise.linhaDoTempo} aoAbrirEvidencias={aoAbrirEvidencias} /><SecaoAnalise titulo="Padrões observados" vazio="Sem padrões validados para exibição." itens={analise.padroes} aoAbrirEvidencias={aoAbrirEvidencias} /><SecaoAnalise titulo="Pontos de atenção" vazio="Sem pontos de atenção validados para exibição." itens={analise.pontosDeAtencao} aoAbrirEvidencias={aoAbrirEvidencias} /></section>
+    <div className="analise-limites"><strong>Limites desta análise</strong>{analise.limitacoes.map((limitacao, indice) => <p key={indice}>{limitacao}</p>)}<p>A análise apoia a leitura; a decisão clínica é do médico.</p></div>
+    <button type="button" className="text-button analise-historico-link">Abrir análise e histórico&nbsp; ›</button>
+    <span className="sr-only">{total} observações disponíveis</span>
+  </>
 }
 
-function ConteudoAnalise({ analise, aoAbrirFonte }: { analise: AnaliseClinica, aoAbrirFonte: (registroId: string) => void }) {
-  return (
-    <>
-      <p className="etiqueta">Análise {analise.modo === 'RESUMO' ? 'resumida' : 'longitudinal'} gerada em {new Date(analise.geradaEm).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</p>
-      <section className="limitacoes">
-        <h3>Limitações da IA</h3>
-        {analise.limitacoes.length === 0
-          ? <p>A análise é apoio à leitura do prontuário e não substitui a decisão clínica.</p>
-          : <ul>{analise.limitacoes.map((limite, indice) => <li key={indice}>{limite}</li>)}</ul>}
-      </section>
-      <SecaoAnalise titulo="Linha do tempo resumida" vazio="Sem itens validados para a linha do tempo resumida." itens={analise.linhaDoTempo} aoAbrirFonte={aoAbrirFonte} />
-      <SecaoAnalise titulo="Padrões observados" vazio="Sem padrões validados para exibição." itens={analise.padroes} aoAbrirFonte={aoAbrirFonte} />
-      <SecaoAnalise titulo="Pontos de atenção" vazio="Sem pontos de atenção validados para exibição." itens={analise.pontosDeAtencao} aoAbrirFonte={aoAbrirFonte} />
-    </>
-  )
-}
-
-export function PainelAnaliseAtual({ estado, carregando, erro, aoRegenerar, regenerando, aoAbrirFonte, analiseHistorica }: Props) {
-  const ativa = estado?.geracaoAtiva
-  const falha = estado?.ultimaGeracao?.estado === 'FALHA'
-  return (
-    <section className="painel analise" aria-labelledby="titulo-analise">
-      <div className="registro-cabecalho">
-        <h2 id="titulo-analise">Análise atual</h2>
-        <button className="analise-acao" type="button" disabled={!estado?.podeRegenerar || regenerando} onClick={aoRegenerar}>
-          {regenerando ? 'Solicitando...' : 'Regenerar'}
-        </button>
-      </div>
-      {carregando && <p>Carregando análise...</p>}
-      {erro && <p role="alert" className="erro">{erro}</p>}
-      {ativa && <p className="estado">Atualização em andamento: {ativa.estado}. O prontuário continua disponível.</p>}
-      {falha && <p role="status" className="erro">A última geração falhou. A análise válida anterior permanece exibida quando existe.</p>}
-      {!estado?.podeRegenerar && estado?.motivo && <p className="estado">{estado.motivo}</p>}
-      {(analiseHistorica ?? estado?.analiseAtual)
-        ? <ConteudoAnalise analise={(analiseHistorica ?? estado?.analiseAtual)!} aoAbrirFonte={aoAbrirFonte} />
-        : !carregando && <p className="estado">Ainda não há análise válida para este paciente.</p>}
-    </section>
-  )
+export function PainelAnaliseAtual({ estado, carregando, erro, aoAbrirFonte, analiseHistorica }: Props) {
+  const [evidencias, setEvidencias] = useState<{ titulo: string; item: ItemAnalise } | null>(null)
+  const analise = analiseHistorica ?? estado?.analiseAtual
+  return <section className="painel analise" aria-labelledby="titulo-analise">
+    <div className="analise-cabecalho"><span className="spark-icon" aria-hidden="true">✦</span><div><h2 id="titulo-analise">Análise longitudinal</h2><span className="ia-badge">IA</span></div></div>
+    {carregando && <p>Carregando análise...</p>}{erro && <p role="alert" className="erro">{erro}</p>}
+    {estado?.geracaoAtiva && <p className="analise-status status-ativa">Atualização em andamento. A análise anterior permanece disponível.</p>}
+    {estado?.ultimaGeracao?.estado === 'FALHA' && <p className="analise-status status-falha">A última geração falhou. A análise válida anterior permanece exibida quando existe.</p>}
+    {analise ? <ConteudoAnalise analise={analise} totalOriginais={estado?.ultimaGeracao?.totalOriginais ?? 3} aoAbrirEvidencias={(titulo, item) => setEvidencias({ titulo, item })} /> : !carregando && <p className="estado">Ainda não há análise válida para este paciente.</p>}
+    {evidencias && <dialog open className="dialog-evidencias" aria-labelledby="titulo-evidencias"><div className="dialog-header"><h2 id="titulo-evidencias">Evidências desta observação</h2><button type="button" className="icon-button" aria-label="Fechar evidências" onClick={() => setEvidencias(null)}>×</button></div><div className="dialog-body"><div className="observation-context"><span className="observation-nature">{evidencias.titulo} / {evidencias.item.natureza === 'RELATO' ? 'Relato registrado' : 'Interpretação da IA'}</span><p>{evidencias.item.texto}</p></div><p className="evidence-intro">{evidencias.item.evidencias.length} trechos originais vinculados a esta observação.</p><ol className="evidence-list">{evidencias.item.evidencias.map((evidencia, indice) => <li className="evidence-card" key={`${evidencia.registroId}-${indice}`}><div className="evidence-source-header"><h3>{evidencia.apelidoRegistro}</h3><span className="record-type">Original</span></div><span className="evidence-field">{evidencia.campo === 'HUMOR' ? 'Estado/humor' : evidencia.campo === 'MEDICAMENTOS' ? 'Medicações em uso' : 'Texto do parecer'}</span><blockquote className="source-excerpt">{evidencia.citacao}</blockquote><button type="button" className="text-button" onClick={() => { setEvidencias(null); aoAbrirFonte(evidencia) }}>Abrir registro completo&nbsp; ›</button></li>)}</ol></div></dialog>}
+  </section>
 }
