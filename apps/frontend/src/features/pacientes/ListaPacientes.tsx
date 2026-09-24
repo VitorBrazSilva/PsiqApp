@@ -8,8 +8,9 @@ export function ListaPacientes({ pacientes, carregando }: { pacientes: Paciente[
   return <ul className="lista lista-pacientes">{pacientes.map(paciente => <li key={paciente.id}>
     <Link aria-label="Abrir prontuário" className="patient-result" to={`/prontuario/${paciente.id}`}>
       <span className="patient-avatar" aria-hidden="true">{paciente.nome.split(/\s+/).slice(0, 2).map(parte => parte[0]).join('').toUpperCase()}</span>
-      <span><strong>{paciente.nome}</strong><small>{idade(paciente.dataNascimento)} anos / Paciente fictício</small></span>
-      <span className="patient-open">Abrir prontuário&nbsp; ›</span>
+      <span><strong>{paciente.nome}</strong><small>{idade(paciente.dataNascimento)} anos / {paciente.email}</small></span>
+      <span className="patient-open">Abrir prontuário</span>
+      <svg className="patient-open-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
     </Link>
   </li>)}</ul>
 }
