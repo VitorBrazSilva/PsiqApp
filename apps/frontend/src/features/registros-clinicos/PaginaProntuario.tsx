@@ -5,6 +5,7 @@ import { FonteRegistroClinico, type FonteSelecionada } from '../analises/FonteRe
 import { PainelAnaliseAtual } from '../analises/PainelAnaliseAtual'
 import { type AnaliseClinica, type EvidenciaAnalise } from '../analises/servicoAnalises'
 import { usePollingAnalise } from '../analises/usePollingAnalise'
+import { servicoAnalises } from '../analises/servicoAnalises'
 import { FormularioConsulta } from '../consultas/FormularioConsulta'
 import { ListaConsultas } from '../consultas/ListaConsultas'
 import { servicoConsultas, type Consulta } from '../consultas/servicoConsultas'
@@ -34,9 +35,11 @@ export function PaginaProntuario() {
   const [parecerAberto, setParecerAberto] = useState(false)
   const [consultaAberta, setConsultaAberta] = useState(false)
   const [analiseHistorica, setAnaliseHistorica] = useState<AnaliseClinica | null>(null)
+  const [erroHistoricoAnalise, setErroHistoricoAnalise] = useState('')
+  const [solicitandoAnalise, setSolicitandoAnalise] = useState(false)
   const secao = secaoDaUrl(parametros.get('secao'))
   const [paginaRegistros, setPaginaRegistros] = useState({ pagina: 0, tamanho: 100, total: 0 })
-  const { estado, carregando: carregandoAnalise, erro: erroAnalise, recarregar } = usePollingAnalise(pacienteId ?? null)
+  const { estado, geracoes, carregando: carregandoAnalise, erro: erroAnalise, recarregar } = usePollingAnalise(pacienteId ?? null)
 
   useEffect(() => {
     if (!parecerAberto && !consultaAberta) return
@@ -128,6 +131,30 @@ export function PaginaProntuario() {
     setParametros(atual => { atual.set('secao', novaSecao); return atual })
   }
 
+  async function selecionarAnaliseHistorica(analiseId: string) {
+    if (!analiseId) { setAnaliseHistorica(null); setErroHistoricoAnalise(''); return }
+    try {
+      const historica = await servicoAnalises.obterHistorica(pacienteId!, analiseId)
+      if (historica.pacienteId === pacienteId) { setAnaliseHistorica(historica); setErroHistoricoAnalise('') }
+    } catch {
+      setErroHistoricoAnalise('Não foi possível carregar esta versão da análise.')
+    }
+  }
+
+  async function solicitarNovaAnalise() {
+    if (!pacienteId || solicitandoAnalise || !estado?.podeRegenerar) return
+    setSolicitandoAnalise(true)
+    setErroHistoricoAnalise('')
+    try {
+      await servicoAnalises.regenerar(pacienteId)
+      await recarregar()
+    } catch {
+      setErroHistoricoAnalise('Não foi possível solicitar uma nova análise agora.')
+    } finally {
+      setSolicitandoAnalise(false)
+    }
+  }
+
   async function abrirRegistroNoHistorico(registroId: string) {
     setFonteAberta(null)
     setRetornoEvidencias(null)
@@ -201,10 +228,15 @@ export function PaginaProntuario() {
         <PainelAnaliseAtual
           pacienteId={pacienteId}
           estado={estado}
+          geracoes={geracoes}
           carregando={carregandoAnalise}
           erro={erroAnalise}
+          erroHistorico={erroHistoricoAnalise}
+          aoRegenerar={() => { void solicitarNovaAnalise() }}
+          regenerando={solicitandoAnalise}
           aoAbrirFonte={(evidencia: EvidenciaAnalise, aoVoltar: () => void) => { setFonteAberta(evidencia); setRetornoEvidencias(() => aoVoltar) }}
           aoAbrirAnalise={() => mudarSecao('analise')}
+          aoSelecionarHistorica={id => { void selecionarAnaliseHistorica(id) }}
           visaoCompleta={secao === 'analise'}
           analiseHistorica={analiseHistorica}
         />

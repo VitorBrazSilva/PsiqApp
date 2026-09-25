@@ -23,6 +23,10 @@ function json(body: unknown, init?: ResponseInit) {
   return Response.json(body, init)
 }
 
+const analiseAnteriorId = '88888888-8888-4888-8888-888888888888'
+const geracaoAnterior = { ...geracao, id: '99999999-9999-4999-8999-999999999999', analiseId: analiseAnteriorId, solicitadaEm: '2026-05-01T15:02:00Z', estado: 'CONCLUIDA' }
+const analiseAnterior = { ...analiseSummary, id: analiseAnteriorId, geracaoId: geracaoAnterior.id, geradaEm: '2026-05-01T15:03:00Z', linhaDoTempo: [{ ...analiseSummary.linhaDoTempo[0], texto: 'Versao historica preservada.' }] }
+
 function renderProntuario(id = pacienteA.id) {
   return render(
     <MemoryRouter initialEntries={[`/prontuario/${id}`]}>
@@ -182,6 +186,27 @@ describe('PaginaProntuario', () => {
     await usuario.click(screen.getByText('Linha do tempo resumida'))
     expect(screen.getByText('Resumo validado sem tendência.')).toBeVisible()
     expect(screen.getByLabelText('Texto do parecer')).toHaveValue('rascunho preservado')
+  })
+
+  it('opens preserved AI analysis versions and returns to current version', async () => {
+    const usuario = userEvent.setup()
+    fetchMock.mockImplementation(async url => {
+      if (url === `/api/v1/pacientes/${pacienteA.id}`) return json(pacienteA)
+      if (url === `/api/v1/consultas?pagina=0&tamanho=50&pacienteId=${pacienteA.id}`) return json(paginaVazia)
+      if (url === `/api/v1/pacientes/${pacienteA.id}/registros-clinicos?pagina=0&tamanho=100`) return json({ ...paginaVazia, itens: [registroOriginal], total: 1 })
+      if (url === `/api/v1/pacientes/${pacienteA.id}/estado-analise`) return json({ analiseAtual: analiseSummary, ultimaGeracao: { ...geracao, estado: 'CONCLUIDA', analiseId: analiseSummary.id }, geracaoAtiva: null, podeRegenerar: true, motivo: null })
+      if (url === `/api/v1/pacientes/${pacienteA.id}/geracoes-analise?pagina=0&tamanho=25`) return json({ ...paginaVazia, itens: [{ ...geracao, estado: 'CONCLUIDA', analiseId: analiseSummary.id }, geracaoAnterior], total: 2 })
+      if (url === `/api/v1/pacientes/${pacienteA.id}/analises/${analiseAnteriorId}`) return json(analiseAnterior)
+      return json(paginaVazia)
+    })
+    render(<MemoryRouter initialEntries={[`/prontuario/${pacienteA.id}?secao=analise`]}><Routes><Route path="/prontuario/:pacienteId" element={<PaginaProntuario />} /></Routes></MemoryRouter>)
+    await usuario.click(await screen.findByRole('button', { name: /Ver hist/ }))
+    expect(await screen.findByRole('dialog', { name: /Hist/ })).toBeVisible()
+    await usuario.click(screen.getByRole('button', { name: /Abrir vers/ }))
+    expect(await screen.findByText('Versao historica preservada.')).toBeVisible()
+    expect(fetchMock).toHaveBeenCalledWith(`/api/v1/pacientes/${pacienteA.id}/analises/${analiseAnteriorId}`, expect.any(Object))
+    await usuario.click(screen.getByRole('button', { name: /Voltar/ }))
+    expect(await screen.findByText(/Resumo validado sem tend/)).toBeVisible()
   })
 
   it('faz polling somente com geracao ativa e pausa com aba oculta', async () => {
