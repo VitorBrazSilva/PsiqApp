@@ -139,6 +139,7 @@ export function PaginaProntuario() {
 
       <div className="analise-coluna">
         <PainelAnaliseAtual
+          pacienteId={pacienteId}
           estado={estado}
           carregando={carregandoAnalise}
           erro={erroAnalise}

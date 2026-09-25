@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import type { AnaliseClinica, EstadoAnalise, EvidenciaAnalise, ItemAnalise } from './servicoAnalises'
+import { formatarDataHora } from '../registros-clinicos/datasClinicas'
+import { servicoRegistrosClinicos, type RegistroClinico } from '../registros-clinicos/servicoRegistrosClinicos'
 
-interface Props { estado: EstadoAnalise | null; carregando: boolean; erro: string; aoRegenerar?: () => void; regenerando?: boolean; aoAbrirFonte: (evidencia: EvidenciaAnalise) => void; aoAbrirAnalise: () => void; analiseHistorica?: AnaliseClinica | null; visaoCompleta?: boolean }
+interface Props { pacienteId: string; estado: EstadoAnalise | null; carregando: boolean; erro: string; aoRegenerar?: () => void; regenerando?: boolean; aoAbrirFonte: (evidencia: EvidenciaAnalise) => void; aoAbrirAnalise: () => void; analiseHistorica?: AnaliseClinica | null; visaoCompleta?: boolean }
 
 type IconeNome = 'file' | 'trend' | 'eye' | 'arrow' | 'link'
 
@@ -34,8 +36,9 @@ function ConteudoAnalise({ analise, totalOriginais, aoAbrirEvidencias, aoAbrirAn
   </>
 }
 
-export function PainelAnaliseAtual({ estado, carregando, erro, aoAbrirFonte, aoAbrirAnalise, analiseHistorica, visaoCompleta = false }: Props) {
+export function PainelAnaliseAtual({ pacienteId, estado, carregando, erro, aoAbrirFonte, aoAbrirAnalise, analiseHistorica, visaoCompleta = false }: Props) {
   const [evidencias, setEvidencias] = useState<{ titulo: string; item: ItemAnalise } | null>(null)
+  const [registrosFonte, setRegistrosFonte] = useState<Record<string, RegistroClinico | null>>({})
   const dialogRef = useRef<HTMLDialogElement>(null)
   const acionadorRef = useRef<HTMLButtonElement | null>(null)
   const analise = analiseHistorica ?? estado?.analiseAtual
@@ -55,6 +58,24 @@ export function PainelAnaliseAtual({ estado, carregando, erro, aoAbrirFonte, aoA
     }
   }, [evidencias])
 
+  useEffect(() => {
+    if (!evidencias) return
+    const faltantes = [...new Set(evidencias.item.evidencias.map(item => item.registroId))]
+      .filter(registroId => !(registroId in registrosFonte))
+    if (!faltantes.length) return
+    let ativo = true
+    const controle = new AbortController()
+    void Promise.all(faltantes.map(async registroId => {
+      try {
+        const registro = await servicoRegistrosClinicos.obter(pacienteId, registroId, controle.signal)
+        if (ativo) setRegistrosFonte(atuais => ({ ...atuais, [registroId]: registro }))
+      } catch (falha) {
+        if (ativo && !(falha instanceof DOMException)) setRegistrosFonte(atuais => ({ ...atuais, [registroId]: null }))
+      }
+    }))
+    return () => { ativo = false; controle.abort() }
+  }, [evidencias, pacienteId, registrosFonte])
+
   function abrirEvidencias(titulo: string, item: ItemAnalise, acionador: HTMLButtonElement) {
     acionadorRef.current = acionador
     setEvidencias({ titulo, item })
@@ -67,7 +88,13 @@ export function PainelAnaliseAtual({ estado, carregando, erro, aoAbrirFonte, aoA
     {estado?.ultimaGeracao?.estado === 'FALHA' && <p className="analise-status status-falha">A última geração falhou. A análise válida anterior permanece exibida quando existe.</p>}
     {analise ? <ConteudoAnalise analise={analise} totalOriginais={estado?.ultimaGeracao?.totalOriginais ?? 0} aoAbrirEvidencias={abrirEvidencias} aoAbrirAnalise={aoAbrirAnalise} visaoCompleta={visaoCompleta} /> : !carregando && <p className="estado">Ainda não há análise válida para este paciente.</p>}
     <dialog ref={dialogRef} className="dialog-evidencias" aria-labelledby="titulo-evidencias" onKeyDown={evento => { if (evento.key === 'Escape') { evento.preventDefault(); setEvidencias(null) } }} onCancel={evento => { evento.preventDefault(); setEvidencias(null) }}>
-      {evidencias && <><div className="dialog-header"><h2 id="titulo-evidencias">Evidências desta observação</h2><button data-fechar-evidencias type="button" className="icon-button" aria-label="Fechar evidências" onClick={() => setEvidencias(null)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div><div className="dialog-body"><div className="observation-context"><span className="observation-nature">{evidencias.titulo} / {evidencias.item.natureza === 'RELATO' ? 'Relato registrado' : 'Interpretação da IA'}</span><p>{evidencias.item.texto}</p></div><p className="evidence-intro">{evidencias.item.evidencias.length} trechos originais vinculados a esta observação.</p><ol className="evidence-list">{evidencias.item.evidencias.map((evidencia, indice) => <li className="evidence-card" key={`${evidencia.registroId}-${indice}`}><div className="evidence-source-header"><h3>{evidencia.apelidoRegistro}</h3><span className="record-type">Original</span></div><span className="evidence-field">{evidencia.campo === 'HUMOR' ? 'Estado/humor' : evidencia.campo === 'MEDICAMENTOS' ? 'Medicações em uso' : 'Texto do parecer'}</span><blockquote className="source-excerpt">{evidencia.citacao}</blockquote><button type="button" className="text-button" onClick={() => { setEvidencias(null); aoAbrirFonte(evidencia) }}>Abrir registro completo&nbsp; ›</button></li>)}</ol></div></>}
+      {evidencias && <><div className="dialog-header"><h2 id="titulo-evidencias">Evidências desta observação</h2><button data-fechar-evidencias type="button" className="icon-button" aria-label="Fechar evidências" onClick={() => setEvidencias(null)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div><div className="dialog-body"><section className="observation-context" aria-label="Observação analisada"><div className="observation-context-header"><span className="observation-nature">{evidencias.titulo}</span><span className="observation-origin">{evidencias.item.natureza === 'RELATO' ? 'Relato registrado' : 'Interpretação da IA'}</span></div><p>{evidencias.item.texto}</p></section><p className="evidence-intro">{evidencias.item.evidencias.length} trechos originais vinculados a esta observação.</p><ol className="evidence-list">{evidencias.item.evidencias.map((evidencia, indice) => {
+        const registro = registrosFonte[evidencia.registroId]
+        const data = registro ? formatarDataHora(registro.dataHoraClinica) : null
+        const registroResolvido = evidencia.registroId in registrosFonte
+        const tipoRegistro = registro?.tipo === 'COMPLEMENTO' || registro?.tipo === 'COMPLEMENT' ? 'Complemento' : 'Original'
+        return <li className="evidence-card" key={`${evidencia.registroId}-${indice}`}><div className="evidence-source-header"><h3>{data ? `Parecer de ${data}` : registroResolvido ? 'Data do parecer indisponível' : 'Carregando data do parecer…'}</h3><span className="record-type">{tipoRegistro}</span></div><span className="evidence-field">{evidencia.campo === 'HUMOR' ? 'Estado/humor' : evidencia.campo === 'MEDICAMENTOS' ? 'Medicações em uso' : 'Texto do parecer'}</span><blockquote className="source-excerpt">{evidencia.citacao}</blockquote><button type="button" className="text-button" onClick={() => { setEvidencias(null); aoAbrirFonte(evidencia) }}>Abrir registro completo&nbsp; ›</button></li>
+      })}</ol></div></>}
     </dialog>
   </section>
 }
