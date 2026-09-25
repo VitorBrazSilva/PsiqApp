@@ -3,7 +3,7 @@ import type { AnaliseClinica, EstadoAnalise, EvidenciaAnalise, ItemAnalise } fro
 import { formatarDataHora } from '../registros-clinicos/datasClinicas'
 import { servicoRegistrosClinicos, type RegistroClinico } from '../registros-clinicos/servicoRegistrosClinicos'
 
-interface Props { pacienteId: string; estado: EstadoAnalise | null; carregando: boolean; erro: string; aoRegenerar?: () => void; regenerando?: boolean; aoAbrirFonte: (evidencia: EvidenciaAnalise) => void; aoAbrirAnalise: () => void; analiseHistorica?: AnaliseClinica | null; visaoCompleta?: boolean }
+interface Props { pacienteId: string; estado: EstadoAnalise | null; carregando: boolean; erro: string; aoRegenerar?: () => void; regenerando?: boolean; aoAbrirFonte: (evidencia: EvidenciaAnalise, aoVoltar: () => void) => void; aoAbrirAnalise: () => void; analiseHistorica?: AnaliseClinica | null; visaoCompleta?: boolean }
 
 type IconeNome = 'file' | 'trend' | 'eye' | 'arrow' | 'link'
 
@@ -93,7 +93,7 @@ export function PainelAnaliseAtual({ pacienteId, estado, carregando, erro, aoAbr
         const data = registro ? formatarDataHora(registro.dataHoraClinica) : null
         const registroResolvido = evidencia.registroId in registrosFonte
         const tipoRegistro = registro?.tipo === 'COMPLEMENTO' || registro?.tipo === 'COMPLEMENT' ? 'Complemento' : 'Original'
-        return <li className="evidence-card" key={`${evidencia.registroId}-${indice}`}><div className="evidence-source-header"><h3>{data ? `Parecer de ${data}` : registroResolvido ? 'Data do parecer indisponível' : 'Carregando data do parecer…'}</h3><span className="record-type">{tipoRegistro}</span></div><span className="evidence-field">{evidencia.campo === 'HUMOR' ? 'Estado/humor' : evidencia.campo === 'MEDICAMENTOS' ? 'Medicações em uso' : 'Texto do parecer'}</span><blockquote className="source-excerpt">{evidencia.citacao}</blockquote><button type="button" className="text-button" onClick={() => { setEvidencias(null); aoAbrirFonte(evidencia) }}>Abrir registro completo&nbsp; ›</button></li>
+        return <li className="evidence-card" key={`${evidencia.registroId}-${indice}`}><div className="evidence-source-header"><h3>{data ? `Parecer de ${data}` : registroResolvido ? 'Data do parecer indisponível' : 'Carregando data do parecer…'}</h3><span className="record-type">{tipoRegistro}</span></div><span className="evidence-field">{evidencia.campo === 'HUMOR' ? 'Estado/humor' : evidencia.campo === 'MEDICAMENTOS' ? 'Medicações em uso' : 'Texto do parecer'}</span><blockquote className="source-excerpt">{evidencia.citacao}</blockquote><button type="button" className="text-button" onClick={() => { const contextoAtual = evidencias; setEvidencias(null); aoAbrirFonte(evidencia, () => setEvidencias(contextoAtual)) }}>Abrir registro completo&nbsp; ›</button></li>
       })}</ol></div></>}
     </dialog>
   </section>

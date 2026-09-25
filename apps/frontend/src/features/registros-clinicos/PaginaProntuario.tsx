@@ -25,6 +25,8 @@ export function PaginaProntuario() {
   const [erro, setErro] = useState('')
   const [originalEmComplemento, setOriginalEmComplemento] = useState<string | null>(null)
   const [fonteAberta, setFonteAberta] = useState<FonteSelecionada | null>(null)
+  const [retornoEvidencias, setRetornoEvidencias] = useState<(() => void) | null>(null)
+  const [registroEmDestaque, setRegistroEmDestaque] = useState<string | null>(null)
   const [parecerAberto, setParecerAberto] = useState(false)
   const [consultaAberta, setConsultaAberta] = useState(false)
   const [analiseHistorica, setAnaliseHistorica] = useState<AnaliseClinica | null>(null)
@@ -66,6 +68,17 @@ export function PaginaProntuario() {
     return () => controle.abort()
   }, [pacienteId, paginaRegistros.pagina])
 
+  useEffect(() => {
+    if (!registroEmDestaque || secao !== 'historico') return
+    const frame = window.requestAnimationFrame(() => {
+      const elemento = document.getElementById(`registro-${registroEmDestaque}`)
+      if (!elemento) return
+      elemento.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
+      elemento.focus({ preventScroll: true })
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [registroEmDestaque, secao, registros])
+
   if (!pacienteId) {
     return (
       <section className="painel">
@@ -87,6 +100,30 @@ export function PaginaProntuario() {
 
   function mudarSecao(novaSecao: 'historico' | 'analise' | 'consultas' | 'dados') {
     setParametros(atual => { atual.set('secao', novaSecao); return atual })
+  }
+
+  async function abrirRegistroNoHistorico(registroId: string) {
+    setFonteAberta(null)
+    setRetornoEvidencias(null)
+    setErro('')
+    setRegistroEmDestaque(registroId)
+    mudarSecao('historico')
+    if (registros.some(registro => registro.id === registroId)) return
+
+    const totalPaginas = Math.max(1, Math.ceil(paginaRegistros.total / paginaRegistros.tamanho))
+    for (let pagina = 0; pagina < totalPaginas; pagina += 1) {
+      try {
+        const resultado = await servicoRegistrosClinicos.listar(pacienteId!, undefined, pagina, paginaRegistros.tamanho)
+        if (!resultado.itens.some(registro => registro.id === registroId)) continue
+        setRegistros(resultado.itens)
+        setPaginaRegistros({ pagina: resultado.pagina, tamanho: resultado.tamanho, total: resultado.total })
+        return
+      } catch {
+        setErro('Não foi possível localizar este parecer no histórico clínico.')
+        return
+      }
+    }
+    setErro('Este parecer não foi encontrado no histórico clínico.')
   }
 
   return (
@@ -129,6 +166,7 @@ export function PaginaProntuario() {
         <LinhaDoTempoClinica
           pacienteId={pacienteId}
           registros={registros}
+          registroEmDestaque={registroEmDestaque}
           originalEmComplemento={originalEmComplemento}
           aoComplementar={setOriginalEmComplemento}
           aoCancelarComplemento={() => setOriginalEmComplemento(null)}
@@ -143,12 +181,12 @@ export function PaginaProntuario() {
           estado={estado}
           carregando={carregandoAnalise}
           erro={erroAnalise}
-          aoAbrirFonte={(evidencia: EvidenciaAnalise) => setFonteAberta(evidencia)}
+          aoAbrirFonte={(evidencia: EvidenciaAnalise, aoVoltar: () => void) => { setFonteAberta(evidencia); setRetornoEvidencias(() => aoVoltar) }}
           aoAbrirAnalise={() => mudarSecao('analise')}
           visaoCompleta={secao === 'analise'}
           analiseHistorica={analiseHistorica}
         />
-        <FonteRegistroClinico pacienteId={pacienteId} pacienteNome={paciente?.nome ?? ''} fonte={fonteAberta} aoFechar={() => setFonteAberta(null)} />
+        <FonteRegistroClinico pacienteId={pacienteId} pacienteNome={paciente?.nome ?? ''} fonte={fonteAberta} aoFechar={() => { setFonteAberta(null); setRetornoEvidencias(null) }} aoVoltar={() => { setFonteAberta(null); retornoEvidencias?.(); setRetornoEvidencias(null) }} aoAbrirNoHistorico={abrirRegistroNoHistorico} />
         {parecerAberto && <dialog open className="dialog-parecer" aria-labelledby="titulo-parecer" onKeyDown={evento => { if (evento.key === 'Escape') { evento.preventDefault(); setParecerAberto(false) } }}><div className="dialog-header"><h2 id="titulo-parecer">Novo parecer</h2><button className="icon-button" type="button" aria-label="Fechar novo parecer" onClick={() => setParecerAberto(false)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div><div className="dialog-body"><FormularioParecer pacienteId={pacienteId} aoCriar={resposta => { registrarCriacao(resposta); setParecerAberto(false) }} /></div></dialog>}
         {consultaAberta && <dialog open className="dialog-parecer" aria-labelledby="titulo-consulta" onKeyDown={evento => { if (evento.key === 'Escape') { evento.preventDefault(); setConsultaAberta(false) } }}><div className="dialog-header"><h2 id="titulo-consulta">Agendar consulta</h2><button className="icon-button" type="button" aria-label="Fechar agendamento" onClick={() => setConsultaAberta(false)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div><div className="dialog-body"><FormularioConsulta pacienteFixoId={pacienteId} aoCriar={consulta => { setConsultas(atuais => [consulta, ...atuais]); setConsultaAberta(false) }} /></div></dialog>}
       </div>

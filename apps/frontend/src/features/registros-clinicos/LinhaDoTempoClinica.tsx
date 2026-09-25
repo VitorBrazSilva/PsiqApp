@@ -11,6 +11,7 @@ interface Props {
   aoComplementar: (registroId: string) => void
   aoCancelarComplemento: () => void
   aoCriarComplemento: (resposta: CriarRegistroClinicoResposta) => void
+  registroEmDestaque?: string | null
 }
 
 function formatarDataTimeline(valor: string) {
@@ -19,13 +20,13 @@ function formatarDataTimeline(valor: string) {
   return `${valorParte('day')} de ${valorParte('month')} de ${valorParte('year')} / ${valorParte('hour')}:${valorParte('minute')}`
 }
 
-export function LinhaDoTempoClinica({ pacienteId, registros, originalEmComplemento, aoComplementar, aoCancelarComplemento, aoCriarComplemento }: Props) {
+export function LinhaDoTempoClinica({ pacienteId, registros, originalEmComplemento, aoComplementar, aoCancelarComplemento, aoCriarComplemento, registroEmDestaque }: Props) {
   if (registros.length === 0) return <EstadoVazio mensagem="Nenhum parecer clínico registrado para este paciente." />
 
   return (
     <ol className="timeline-clinica" aria-label="Registros clínicos, mais recentes primeiro">
       {registros.map(registro => (
-        <li key={registro.id} id={`registro-${registro.id}`} className={`timeline-item ${ehComplemento(registro) ? 'is-complemento' : ''}`}>
+        <li key={registro.id} id={`registro-${registro.id}`} tabIndex={-1} className={`timeline-item ${ehComplemento(registro) ? 'is-complemento' : ''} ${registroEmDestaque === registro.id ? 'is-destaque' : ''}`}>
           <time className="timeline-date" dateTime={registro.dataHoraClinica}>{formatarDataTimeline(registro.dataHoraClinica)}</time>
           <article className="registro">
             <div className="registro-cabecalho">

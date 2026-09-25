@@ -236,6 +236,19 @@ button { background: #285c47; min-height: 44px; }
 .dialog-evidencias { position: fixed; inset: 50% auto auto 50%; transform: translate(-50%, -50%); z-index: 20; width: min(660px, calc(100% - 32px)); max-height: calc(100dvh - 48px); overflow: auto; border: 1px solid #dbe7dc; border-radius: 16px; padding: 0; color: #24382f; background: #fff; box-shadow: 0 25px 90px #14271d30; }
 .dialog-evidencias::backdrop, .dialog-fonte::backdrop { background: #18271f70; }
 .dialog-fonte { position: fixed; inset: 50% auto auto 50%; transform: translate(-50%, -50%); z-index: 20; width: min(660px, calc(100% - 32px)); max-height: calc(100dvh - 48px); overflow: auto; border: 1px solid #dbe7dc; border-radius: 16px; padding: 0; color: #24382f; background: #fff; box-shadow: 0 25px 90px #14271d30; }
+.dialog-fonte .dialog-body { padding: 24px 28px 28px; }
+.dialog-fonte .section-intro { margin: 7px 0 22px; font-size: 13px; }
+.source-full-text { margin: 13px 0 16px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.85; }
+.source-full-text + .details-grid { margin-bottom: 18px; }
+.details-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.details-grid > div { min-width: 0; padding: 14px 16px; border: 1px solid #dbe7dc; border-radius: 8px; background: #f7faf7; }
+.details-grid dt { color: #62716a; font-size: 12px; }
+.details-grid dd { margin: 6px 0 0; overflow-wrap: anywhere; font-size: 14px; line-height: 1.6; }
+.dialog-fonte mark { padding: 1px 2px; background: #f4e5a8; color: #463812; }
+.source-history-link { margin-top: 2px; }
+.timeline-item.is-destaque .registro { outline: 2px solid #285c47; outline-offset: 3px; }
+.timeline-item:focus { outline: none; }
+.timeline-item:focus-visible .registro { outline: 2px solid #285c47; outline-offset: 4px; }
 .dialog-evidencias .dialog-body { padding: 24px 28px 28px; }
 .observation-context { padding: 18px 20px; border: 1px solid #dbe7dc; border-left: 3px solid #285c47; background: #fff; border-radius: 8px; }
 .observation-context-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
@@ -256,7 +269,7 @@ body:has(.dialog-paciente)::before, body:has(.dialog-fonte)::before, body:has(.d
 .dialog-parecer::backdrop { background: #18271f70; }
 .next-appointment { display: flex; align-items: center; gap: 18px; min-height: 80px; margin-bottom: 22px; padding: 16px 20px; border: 1px solid #dbe7dc; border-radius: 12px; background: #fff; }
 .next-appointment > div { display: grid; gap: 4px; flex: 1; }.next-appointment strong { font-size: 14px; }.next-appointment span { color: #62716a; font-size: 12px; }.next-appointment .status-badge { padding: 6px 10px; border-radius: 6px; color: #285c47; background: #eaf1eb; white-space: nowrap; }.next-appointment .text-button { white-space: nowrap; }
-@media (max-width: 740px) { .direction-picker { margin-left: auto; }.direction-picker button { padding: 5px 8px; font-size: 10px; }.registration-intro { display: block; }.registration-intro .link-botao { margin-bottom: 8px; }.dialog-evidencias { width: calc(100% - 32px); }.dialog-evidencias .dialog-body { padding: 20px 18px; } }
+@media (max-width: 740px) { .direction-picker { margin-left: auto; }.direction-picker button { padding: 5px 8px; font-size: 10px; }.registration-intro { display: block; }.registration-intro .link-botao { margin-bottom: 8px; }.dialog-evidencias { width: calc(100% - 32px); }.dialog-evidencias .dialog-body { padding: 20px 18px; }.dialog-fonte .dialog-body { padding: 20px 18px; }.details-grid { grid-template-columns: 1fr; } }
 
 /* Ajustes finais de correspondência com as telas de referência. */
 .review-bar { display: flex !important; min-height: 62px; height: 62px; }

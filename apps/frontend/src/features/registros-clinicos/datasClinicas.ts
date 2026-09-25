@@ -14,3 +14,12 @@ export function formatarDataHora(valor: string) {
     timeZone: 'America/Sao_Paulo',
   }).format(new Date(valor))
 }
+
+export function formatarDataClinica(valor: string) {
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'America/Sao_Paulo',
+  }).format(new Date(valor))
+}
