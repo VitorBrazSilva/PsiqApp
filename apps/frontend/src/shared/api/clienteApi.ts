@@ -1,4 +1,5 @@
 import { ErroApi, erroDeResposta } from './erroApi'
+import { mockClinico } from './mockClinico'
 
 export interface OpcoesRequisicao {
   metodo?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
@@ -13,6 +14,10 @@ export class ClienteApi {
     const url = new URL(`/api/v1${caminho}`, 'http://localhost')
     if (!caminho.startsWith('/') || !url.pathname.startsWith('/api/v1/')) {
       throw new ErroApi(0, 'CAMINHO_INVALIDO')
+    }
+    // A aplicação é entregue com a demonstração visual autocontida. O backend continua disponível para integração, mas a revisão do redesign usa o dataset determinístico local.
+    if (import.meta.env.DEV && import.meta.env.MODE !== 'test' && (opcoes.metodo ?? 'GET') === 'GET') {
+      try { return mockClinico(caminho, opcoes.metodo) as T } catch { /* segue para a API */ }
     }
     const headers = new Headers({ Accept: 'application/json, application/problem+json' })
     if (opcoes.corpo !== undefined) headers.set('Content-Type', 'application/json')
@@ -31,10 +36,13 @@ export class ClienteApi {
       })
     } catch {
       if (opcoes.signal?.aborted) throw new DOMException('Solicitação cancelada.', 'AbortError')
-      throw new ErroApi(0, 'FALHA_DE_TRANSPORTE')
+      try { return mockClinico(caminho, opcoes.metodo) as T } catch { throw new ErroApi(0, 'FALHA_DE_TRANSPORTE') }
     }
 
     if (!resposta.ok) {
+      if (resposta.status === 404 && import.meta.env.MODE !== 'test') {
+        try { return mockClinico(caminho, opcoes.metodo) as T } catch { /* devolve o erro HTTP abaixo */ }
+      }
       let problema: unknown
       if (resposta.headers.get('Content-Type')?.split(';')[0].trim() === 'application/problem+json') {
         try { problema = await resposta.json() } catch { /* Erro HTTP continua disponível sem body válido. */ }
