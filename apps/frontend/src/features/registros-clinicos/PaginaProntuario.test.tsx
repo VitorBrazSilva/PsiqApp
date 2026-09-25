@@ -128,6 +128,20 @@ describe('PaginaProntuario', () => {
     expect(fonte.querySelector('mark')).toHaveTextContent('estável')
   })
 
+  it('mostra ícones nas seções e abre a aba de análise pelo link do painel', async () => {
+    const usuario = userEvent.setup()
+    renderProntuario()
+    expect(await screen.findByText('Análise longitudinal')).toBeVisible()
+    const grupos = document.querySelectorAll<HTMLDetailsElement>('.analise-secao .analysis-group')
+    expect(grupos).toHaveLength(3)
+    expect(document.querySelectorAll('.analysis-group summary .analysis-icon[aria-hidden="true"]')).toHaveLength(3)
+
+    await usuario.click(screen.getByRole('button', { name: /Abrir análise e histórico/ }))
+    expect(screen.getByRole('button', { name: 'Análise de IA' })).toHaveAttribute('aria-current', 'page')
+    expect([...grupos].every(grupo => grupo.open)).toBe(true)
+    expect(screen.queryByRole('button', { name: /Abrir análise e histórico/ })).not.toBeInTheDocument()
+  })
+
   it('mantem analise valida anterior em falha e nao sobrescreve formulario em edicao', async () => {
     const usuario = userEvent.setup()
     fetchMock.mockImplementation(async url => {

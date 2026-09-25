@@ -143,6 +143,8 @@ export function PaginaProntuario() {
           carregando={carregandoAnalise}
           erro={erroAnalise}
           aoAbrirFonte={(evidencia: EvidenciaAnalise) => setFonteAberta(evidencia)}
+          aoAbrirAnalise={() => mudarSecao('analise')}
+          visaoCompleta={secao === 'analise'}
           analiseHistorica={analiseHistorica}
         />
         <FonteRegistroClinico pacienteId={pacienteId} pacienteNome={paciente?.nome ?? ''} fonte={fonteAberta} aoFechar={() => setFonteAberta(null)} />
