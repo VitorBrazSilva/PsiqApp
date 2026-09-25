@@ -1,16 +1,11 @@
 import { EstadoVazio } from '../../shared/componentes/EstadoVazio'
 import { BotaoTexto } from '../../shared/componentes/BotaoTexto'
 import { formatarDataHora } from './datasClinicas'
-import { FormularioComplemento } from './FormularioComplemento'
-import { ehComplemento, type CriarRegistroClinicoResposta, type RegistroClinico } from './servicoRegistrosClinicos'
+import { ehComplemento, type RegistroClinico } from './servicoRegistrosClinicos'
 
 interface Props {
-  pacienteId: string
   registros: RegistroClinico[]
-  originalEmComplemento: string | null
-  aoComplementar: (registroId: string) => void
-  aoCancelarComplemento: () => void
-  aoCriarComplemento: (resposta: CriarRegistroClinicoResposta) => void
+  aoComplementar: (registroId: string, acionador: HTMLButtonElement) => void
   registroEmDestaque?: string | null
 }
 
@@ -20,7 +15,7 @@ function formatarDataTimeline(valor: string) {
   return `${valorParte('day')} de ${valorParte('month')} de ${valorParte('year')} / ${valorParte('hour')}:${valorParte('minute')}`
 }
 
-export function LinhaDoTempoClinica({ pacienteId, registros, originalEmComplemento, aoComplementar, aoCancelarComplemento, aoCriarComplemento, registroEmDestaque }: Props) {
+export function LinhaDoTempoClinica({ registros, aoComplementar, registroEmDestaque }: Props) {
   if (registros.length === 0) return <EstadoVazio mensagem="Nenhum parecer clínico registrado para este paciente." />
 
   return (
@@ -37,10 +32,9 @@ export function LinhaDoTempoClinica({ pacienteId, registros, originalEmComplemen
             {registro.humor && <p className="registro-humor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></svg> Estado/humor: <strong>{registro.humor}</strong></p>}
             <div className="registro-footer">
               <span>Registrado em {formatarDataHora(registro.criadoEm)}</span>
-              {!ehComplemento(registro) && <BotaoTexto aria-label="Adicionar complemento" className="link-complemento" onClick={() => aoComplementar(registro.id)}>Adicionar complemento<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></BotaoTexto>}
+              {!ehComplemento(registro) && <BotaoTexto aria-label="Adicionar complemento" className="link-complemento" onClick={evento => aoComplementar(registro.id, evento.currentTarget)}>Adicionar complemento<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></BotaoTexto>}
             </div>
           </article>
-          {originalEmComplemento === registro.id && <FormularioComplemento pacienteId={pacienteId} originalId={registro.id} aoCancelar={aoCancelarComplemento} aoCriar={aoCriarComplemento} />}
         </li>
       ))}
     </ol>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { EstadoVazio } from '../../shared/componentes/EstadoVazio'
 import { FonteRegistroClinico, type FonteSelecionada } from '../analises/FonteRegistroClinico'
@@ -11,6 +11,7 @@ import { servicoConsultas, type Consulta } from '../consultas/servicoConsultas'
 import { DadosPaciente } from '../pacientes/DadosPaciente'
 import { servicoPacientes, type Paciente } from '../pacientes/servicoPacientes'
 import { FormularioParecer } from './FormularioParecer'
+import { FormularioComplemento } from './FormularioComplemento'
 import { LinhaDoTempoClinica } from './LinhaDoTempoClinica'
 import { servicoRegistrosClinicos, type CriarRegistroClinicoResposta, type RegistroClinico } from './servicoRegistrosClinicos'
 import { Paginacao } from '../../shared/componentes/Paginacao'
@@ -24,6 +25,9 @@ export function PaginaProntuario() {
   const [carregando, setCarregando] = useState(!!pacienteId)
   const [erro, setErro] = useState('')
   const [originalEmComplemento, setOriginalEmComplemento] = useState<string | null>(null)
+  const [complementoAberto, setComplementoAberto] = useState(false)
+  const complementoDialogRef = useRef<HTMLDialogElement>(null)
+  const acionadorComplementoRef = useRef<HTMLButtonElement | null>(null)
   const [fonteAberta, setFonteAberta] = useState<FonteSelecionada | null>(null)
   const [retornoEvidencias, setRetornoEvidencias] = useState<(() => void) | null>(null)
   const [registroEmDestaque, setRegistroEmDestaque] = useState<string | null>(null)
@@ -44,6 +48,21 @@ export function PaginaProntuario() {
     window.addEventListener('keydown', fecharComEscape)
     return () => window.removeEventListener('keydown', fecharComEscape)
   }, [parecerAberto, consultaAberta])
+
+  useEffect(() => {
+    const dialog = complementoDialogRef.current
+    if (!complementoAberto || !dialog) return
+    if (typeof dialog.showModal === 'function') dialog.showModal()
+    else dialog.setAttribute('open', '')
+    dialog.querySelector<HTMLTextAreaElement>('textarea')?.focus()
+    return () => {
+      if (dialog.open) {
+        if (typeof dialog.close === 'function') dialog.close()
+        else dialog.removeAttribute('open')
+      }
+      if (acionadorComplementoRef.current?.isConnected) acionadorComplementoRef.current.focus()
+    }
+  }, [complementoAberto, originalEmComplemento])
 
   useEffect(() => {
     if (!pacienteId) return
@@ -95,7 +114,14 @@ export function PaginaProntuario() {
     setRegistros(atuais => [resposta.registro, ...atuais].sort((a, b) =>
       b.dataHoraClinica.localeCompare(a.dataHoraClinica) || b.criadoEm.localeCompare(a.criadoEm) || b.id.localeCompare(a.id)))
     setOriginalEmComplemento(null)
+    setComplementoAberto(false)
     void recarregar()
+  }
+
+  function abrirComplemento(registroId: string, acionador: HTMLButtonElement) {
+    acionadorComplementoRef.current = acionador
+    setOriginalEmComplemento(registroId)
+    setComplementoAberto(true)
   }
 
   function mudarSecao(novaSecao: 'historico' | 'analise' | 'consultas' | 'dados') {
@@ -164,13 +190,9 @@ export function PaginaProntuario() {
       <section className="painel historico-clinico-painel">
         <div className="records-heading"><h2>Histórico clínico</h2><span className="muted">Mais recentes primeiro</span></div>
         <LinhaDoTempoClinica
-          pacienteId={pacienteId}
           registros={registros}
           registroEmDestaque={registroEmDestaque}
-          originalEmComplemento={originalEmComplemento}
-          aoComplementar={setOriginalEmComplemento}
-          aoCancelarComplemento={() => setOriginalEmComplemento(null)}
-          aoCriarComplemento={registrarCriacao}
+          aoComplementar={abrirComplemento}
         />
         <Paginacao {...paginaRegistros} aoMudar={novaPagina => setPaginaRegistros(atual => ({ ...atual, pagina: novaPagina }))} />
       </section>
@@ -187,6 +209,10 @@ export function PaginaProntuario() {
           analiseHistorica={analiseHistorica}
         />
         <FonteRegistroClinico pacienteId={pacienteId} pacienteNome={paciente?.nome ?? ''} fonte={fonteAberta} aoFechar={() => { setFonteAberta(null); setRetornoEvidencias(null) }} aoVoltar={() => { setFonteAberta(null); retornoEvidencias?.(); setRetornoEvidencias(null) }} aoAbrirNoHistorico={abrirRegistroNoHistorico} />
+        {originalEmComplemento && <dialog ref={complementoDialogRef} className="dialog-complemento" aria-labelledby="titulo-complemento" onKeyDown={evento => { if (evento.key === 'Escape') { evento.preventDefault(); setComplementoAberto(false) } }} onCancel={evento => { evento.preventDefault(); setComplementoAberto(false) }}>
+          <div className="dialog-header"><h2 id="titulo-complemento">Adicionar complemento</h2><button className="icon-button" type="button" aria-label="Fechar complemento" onClick={() => setComplementoAberto(false)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div>
+          <div className="dialog-body"><FormularioComplemento key={originalEmComplemento} pacienteId={pacienteId} originalId={originalEmComplemento} pacienteNome={paciente?.nome ?? ''} dataParecerOriginal={registros.find(registro => registro.id === originalEmComplemento)?.dataHoraClinica ?? ''} aoCancelar={() => setComplementoAberto(false)} aoCriar={registrarCriacao} /></div>
+        </dialog>}
         {parecerAberto && <dialog open className="dialog-parecer" aria-labelledby="titulo-parecer" onKeyDown={evento => { if (evento.key === 'Escape') { evento.preventDefault(); setParecerAberto(false) } }}><div className="dialog-header"><h2 id="titulo-parecer">Novo parecer</h2><button className="icon-button" type="button" aria-label="Fechar novo parecer" onClick={() => setParecerAberto(false)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div><div className="dialog-body"><FormularioParecer pacienteId={pacienteId} aoCriar={resposta => { registrarCriacao(resposta); setParecerAberto(false) }} /></div></dialog>}
         {consultaAberta && <dialog open className="dialog-parecer" aria-labelledby="titulo-consulta" onKeyDown={evento => { if (evento.key === 'Escape') { evento.preventDefault(); setConsultaAberta(false) } }}><div className="dialog-header"><h2 id="titulo-consulta">Agendar consulta</h2><button className="icon-button" type="button" aria-label="Fechar agendamento" onClick={() => setConsultaAberta(false)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div><div className="dialog-body"><FormularioConsulta pacienteFixoId={pacienteId} aoCriar={consulta => { setConsultas(atuais => [consulta, ...atuais]); setConsultaAberta(false) }} /></div></dialog>}
       </div>

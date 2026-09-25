@@ -166,6 +166,9 @@ button { background: #285c47; min-height: 44px; }
 .demo-note { padding: 11px 13px; border: 1px solid #ded3b8; border-radius: 7px; background: #faf3e2; color: #6b531c; font-size: 12px; }
 .registration-intro p { margin: 2px 0 12px; color: #62716a; font-size: 13px; }
 .hint { color: #718078; font-size: 12px; font-weight: 400; }
+.form-context { padding: 12px 15px; border-radius: 7px; background: #eaf1eb; font-size: 13px; line-height: 1.6; }
+.form-context .hint { display: inline-block; margin-top: 2px; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 .short-textarea { min-height: 90px; }
 .form-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 .form-actions .secondary { background: #fff; color: #24382f; border: 1px solid #dde5df; }
@@ -265,11 +268,14 @@ button { background: #285c47; min-height: 44px; }
 .source-excerpt { margin: 10px 0 12px; padding: 12px 13px; border-left: 3px solid #285c47; background: #eaf1eb; font-size: 13px; line-height: 1.6; }
 .fonte-registro { position: fixed; inset: 50% auto auto 50%; transform: translate(-50%, -50%); z-index: 19; width: min(660px, calc(100% - 32px)); max-height: calc(100dvh - 48px); overflow: auto; background: #fff; box-shadow: 0 25px 90px #14271d30; border-radius: 16px; }
 body:has(.dialog-paciente)::before, body:has(.dialog-fonte)::before, body:has(.dialog-parecer)::before { content: ''; position: fixed; inset: 0; z-index: 18; background: #18271f70; }
-.dialog-parecer { position: fixed; inset: 50% auto auto 50%; transform: translate(-50%, -50%); z-index: 20; width: min(660px, calc(100% - 32px)); max-height: calc(100dvh - 48px); overflow: auto; border: 1px solid #dbe7dc; border-radius: 16px; padding: 0; color: #24382f; background: #fff; box-shadow: 0 25px 90px #14271d30; }
-.dialog-parecer::backdrop { background: #18271f70; }
+.dialog-parecer, .dialog-complemento { position: fixed; inset: 50% auto auto 50%; transform: translate(-50%, -50%); z-index: 20; width: min(660px, calc(100% - 32px)); max-height: calc(100dvh - 48px); overflow: auto; border: 1px solid #dbe7dc; border-radius: 16px; padding: 0; color: #24382f; background: #fff; box-shadow: 0 25px 90px #14271d30; }
+.dialog-parecer::backdrop, .dialog-complemento::backdrop { background: #18271f70; }
+.dialog-complemento .complemento-form { margin: 0; padding: 0; border: 0; }
+.dialog-complemento .formulario label { color: #24382f; font-size: 13px; font-weight: 600; }
+.dialog-complemento .formulario .hint { font-weight: 400; }
 .next-appointment { display: flex; align-items: center; gap: 18px; min-height: 80px; margin-bottom: 22px; padding: 16px 20px; border: 1px solid #dbe7dc; border-radius: 12px; background: #fff; }
 .next-appointment > div { display: grid; gap: 4px; flex: 1; }.next-appointment strong { font-size: 14px; }.next-appointment span { color: #62716a; font-size: 12px; }.next-appointment .status-badge { padding: 6px 10px; border-radius: 6px; color: #285c47; background: #eaf1eb; white-space: nowrap; }.next-appointment .text-button { white-space: nowrap; }
-@media (max-width: 740px) { .direction-picker { margin-left: auto; }.direction-picker button { padding: 5px 8px; font-size: 10px; }.registration-intro { display: block; }.registration-intro .link-botao { margin-bottom: 8px; }.dialog-evidencias { width: calc(100% - 32px); }.dialog-evidencias .dialog-body { padding: 20px 18px; }.dialog-fonte .dialog-body { padding: 20px 18px; }.details-grid { grid-template-columns: 1fr; } }
+@media (max-width: 740px) { .direction-picker { margin-left: auto; }.direction-picker button { padding: 5px 8px; font-size: 10px; }.registration-intro { display: block; }.registration-intro .link-botao { margin-bottom: 8px; }.dialog-evidencias { width: calc(100% - 32px); }.dialog-evidencias .dialog-body { padding: 20px 18px; }.dialog-fonte .dialog-body { padding: 20px 18px; }.dialog-complemento .dialog-body { padding: 20px 18px; }.details-grid, .form-grid { grid-template-columns: 1fr; } }
 
 /* Ajustes finais de correspondência com as telas de referência. */
 .review-bar { display: flex !important; min-height: 62px; height: 62px; }
