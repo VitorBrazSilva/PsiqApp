@@ -4,7 +4,7 @@ import { servicoPacientes, type Paciente } from '../pacientes/servicoPacientes'
 import { paraIsoComOffset, validarConsulta } from './validacaoConsulta'
 import { servicoConsultas, type Consulta } from './servicoConsultas'
 
-export function FormularioConsulta({ pacienteFixoId, aoCriar }: { pacienteFixoId?: string, aoCriar: (consulta: Consulta) => void }) {
+export function FormularioConsulta({ pacienteFixoId, pacienteNome, aoCriar, emDialogo = false, aoCancelar }: { pacienteFixoId?: string, pacienteNome?: string, aoCriar: (consulta: Consulta) => void, emDialogo?: boolean, aoCancelar?: () => void }) {
   const [pacientes, setPacientes] = useState<Paciente[]>([])
   const [pacienteSelecionadoId, setPacienteSelecionadoId] = useState('')
   const [dataHora, setDataHora] = useState('')
@@ -42,7 +42,8 @@ export function FormularioConsulta({ pacienteFixoId, aoCriar }: { pacienteFixoId
 
   return (
     <form className="formulario" onSubmit={enviar} noValidate>
-      <h2>Nova consulta</h2>
+      {!emDialogo && <h2>Nova consulta</h2>}
+      {emDialogo && pacienteFixoId && <div className="form-context">{pacienteNome ?? 'Paciente'} / Paciente fict&#237;cio</div>}
       {erroGeral && <p role="alert" className="erro">{erroGeral}</p>}
       {!pacienteFixoId && (
         <label>Paciente
@@ -56,7 +57,7 @@ export function FormularioConsulta({ pacienteFixoId, aoCriar }: { pacienteFixoId
       <label>Data e hora<input type="datetime-local" value={dataHora} onChange={e => setDataHora(e.target.value)} /></label>
       {erros.agendadaPara && <span className="erro-campo">{erros.agendadaPara}</span>}
       <label>Observações<textarea value={observacoes} onChange={e => setObservacoes(e.target.value)} /></label>
-      <button disabled={salvando}>{salvando ? 'Salvando...' : 'Criar consulta'}</button>
+      <div className="form-actions">{emDialogo && <button type="button" className="secondary" onClick={aoCancelar}>Cancelar</button>}<button className="primary" disabled={salvando}>{salvando ? 'Salvando...' : emDialogo ? 'Agendar consulta' : 'Criar consulta'}</button></div>
     </form>
   )
 }

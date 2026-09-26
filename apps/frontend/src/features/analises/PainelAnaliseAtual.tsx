@@ -5,7 +5,7 @@ import { servicoRegistrosClinicos, type RegistroClinico } from '../registros-cli
 
 interface Props { pacienteId: string; estado: EstadoAnalise | null; geracoes: GeracaoAnalise[]; carregando: boolean; erro: string; erroHistorico?: string; aoRegenerar?: () => void; regenerando?: boolean; aoAbrirFonte: (evidencia: EvidenciaAnalise, aoVoltar: () => void) => void; aoAbrirAnalise: () => void; aoSelecionarHistorica: (analiseId: string) => void; analiseHistorica?: AnaliseClinica | null; visaoCompleta?: boolean }
 
-type IconeNome = 'file' | 'trend' | 'eye' | 'arrow' | 'link'
+type IconeNome = 'file' | 'trend' | 'eye' | 'arrow' | 'link' | 'spark'
 
 function IconeAnalise({ nome, classe = '' }: { nome: IconeNome; classe?: string }) {
   return <svg className={classe} viewBox="0 0 24 24" aria-hidden="true">
@@ -14,6 +14,7 @@ function IconeAnalise({ nome, classe = '' }: { nome: IconeNome; classe?: string 
     {nome === 'eye' && <><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></>}
     {nome === 'arrow' && <path d="m9 5 7 7-7 7" />}
     {nome === 'link' && <path d="M10 13a5 5 0 0 0 7 .2l3-3a5 5 0 0 0-7-7l-2 2M14 11a5 5 0 0 0-7-.2l-3 3a5 5 0 0 0 7 7l2-2" />}
+    {nome === 'spark' && <path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z" />}
   </svg>
 }
 
@@ -30,7 +31,7 @@ function ConteudoAnalise({ analise, totalOriginais, aoAbrirEvidencias, aoAbrirAn
   return <>
     <div className="analise-meta"><span>Gerada em {data}</span><span>Baseada em {totalOriginais} pareceres originais</span></div>
     <section className="analise-secao"><SecaoAnalise titulo="Linha do tempo resumida" vazio="Sem itens validados para a linha do tempo resumida." itens={analise.linhaDoTempo} aoAbrirEvidencias={aoAbrirEvidencias} icone="file" visaoCompleta={visaoCompleta} /><SecaoAnalise titulo="Padrões observados" vazio="Sem padrões validados para exibição." itens={analise.padroes} aoAbrirEvidencias={aoAbrirEvidencias} icone="trend" visaoCompleta={visaoCompleta} /><SecaoAnalise titulo="Pontos de atenção" vazio="Sem pontos de atenção validados para exibição." itens={analise.pontosDeAtencao} aoAbrirEvidencias={aoAbrirEvidencias} icone="eye" visaoCompleta={visaoCompleta} /></section>
-    <div className="analise-limites"><strong>Limites desta análise</strong>{analise.limitacoes.map((limitacao, indice) => <p key={indice}>{limitacao}</p>)}<p>A análise apoia a leitura; a decisão clínica é do médico.</p></div>
+    <div className="analise-limites"><strong>Limites desta análise</strong><p>Risco de viés e interpretação incompleta: os resultados são apoio à leitura do histórico e exigem avaliação clínica.</p>{analise.limitacoes.map((limitacao, indice) => <p key={indice}>{limitacao}</p>)}<p>A análise apoia a leitura; a decisão clínica é do médico.</p></div>
     {visaoCompleta && <button type="button" className="text-button analise-atualizar" onClick={aoRegenerar} disabled={!podeRegenerar || regenerando}>{regenerando ? 'Solicitando atualização...' : 'Atualizar análise'} <IconeAnalise nome="arrow" /></button>}
     {!visaoCompleta && <button type="button" className="text-button analise-historico-link" onClick={aoAbrirAnalise}>Abrir análise e histórico&nbsp; <IconeAnalise nome="arrow" /></button>}
     <span className="sr-only">{total} observações disponíveis</span>
@@ -104,7 +105,7 @@ export function PainelAnaliseAtual({ pacienteId, estado, geracoes, carregando, e
   }
 
   return <section className={`painel analise${visaoCompleta ? ' ai-full' : ''}`} aria-labelledby="titulo-analise">
-    <div className="analise-cabecalho"><span className="spark-icon" aria-hidden="true">✦</span><div><h2 id="titulo-analise">Análise longitudinal</h2><span className="ia-badge">IA</span></div></div>
+    <div className="analise-cabecalho"><IconeAnalise nome="spark" classe="spark-icon" /><div><h2 id="titulo-analise">Análise longitudinal</h2><span className="ia-badge">IA</span></div></div>
     {carregando && <p>Carregando análise...</p>}{erro && <p role="alert" className="erro">{erro}</p>}
     {estado?.geracaoAtiva && <p className="analise-status status-ativa">Atualização em andamento. A análise anterior permanece disponível.</p>}
     {estado?.ultimaGeracao?.estado === 'FALHA' && <p className="analise-status status-falha">A última geração falhou. A análise válida anterior permanece exibida quando existe.</p>}

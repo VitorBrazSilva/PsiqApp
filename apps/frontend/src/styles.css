@@ -231,6 +231,8 @@ button { background: #285c47; min-height: 44px; }
 .observation-nature { color: #62716a; font-size: 11px; }
 .evidence-link, .text-button { display: inline-flex; align-items: center; min-height: 36px; padding: 0; border: 0; background: transparent; color: #285c47; font-family: inherit; font-size: 12px; font-weight: 600; }
 .text-button { gap: 6px; padding: 3px 0; }
+.a.text-button { text-decoration: underline; text-decoration-color: #a1bca0; text-underline-offset: 4px; }
+.a.text-button:hover { text-decoration-color: #285c47; }
 .text-button > svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .analysis-observation .evidence-link { font-size: 11px; text-decoration: none; }
 .analysis-observation .evidence-link svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
@@ -273,8 +275,22 @@ body:has(.dialog-paciente)::before, body:has(.dialog-fonte)::before, body:has(.d
 .dialog-complemento .complemento-form { margin: 0; padding: 0; border: 0; }
 .dialog-complemento .formulario label { color: #24382f; font-size: 13px; font-weight: 600; }
 .dialog-complemento .formulario .hint { font-weight: 400; }
+.dialog-consulta .dialog-body { padding: 24px 28px 28px; }
+.dialog-consulta .formulario { display: grid; gap: 19px; margin: 0; padding: 0; border: 0; }
+.dialog-consulta .formulario > h2 { display: none; }
+.dialog-consulta .formulario label { display: grid; gap: 7px; color: #24382f; font-size: 13px; font-weight: 600; }
+.dialog-consulta .formulario .hint { color: #718078; font-size: 12px; font-weight: 400; }
+.dialog-consulta .form-context { padding: 12px 15px; border-radius: 7px; background: #eaf1eb; font-size: 13px; line-height: 1.6; }
+.dialog-consulta .formulario input, .dialog-consulta .formulario textarea, .dialog-consulta .formulario select { padding: 11px 12px; border: 1px solid #cbd8cd; border-radius: 7px; font: inherit; font-size: 15px; color: #24382f; }
+.dialog-consulta .formulario textarea { min-height: 100px; }
+.dialog-consulta .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 0; padding-top: 20px; border-top: 1px solid #dde5df; }
+.dialog-consulta .form-actions button { min-height: 42px; padding: 9px 16px; border: 1px solid #285c47; border-radius: 7px; font-size: 13px; font-weight: 600; }
+.dialog-consulta .form-actions .secondary { background: #fff; color: #24382f; border-color: #dde5df; }
+.dialog-consulta .form-actions .secondary:hover { background: #eaf1eb; border-color: #99aea0; }
 .next-appointment { display: flex; align-items: center; gap: 18px; min-height: 80px; margin-bottom: 22px; padding: 16px 20px; border: 1px solid #dbe7dc; border-radius: 12px; background: #fff; }
 .next-appointment > div { display: grid; gap: 4px; flex: 1; }.next-appointment strong { font-size: 14px; }.next-appointment span { color: #62716a; font-size: 12px; }.next-appointment .status-badge { padding: 6px 10px; border-radius: 6px; color: #285c47; background: #eaf1eb; white-space: nowrap; }.next-appointment .text-button { white-space: nowrap; }
+.next-appointment .status-badge { display: inline-flex; align-items: center; gap: 5px; }
+.next-appointment .appointment-clock { width: 12px; height: 12px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 @media (max-width: 740px) { .direction-picker { margin-left: auto; }.direction-picker button { padding: 5px 8px; font-size: 10px; }.registration-intro { display: block; }.registration-intro .link-botao { margin-bottom: 8px; }.dialog-evidencias { width: calc(100% - 32px); }.dialog-evidencias .dialog-body { padding: 20px 18px; }.dialog-fonte .dialog-body { padding: 20px 18px; }.dialog-complemento .dialog-body { padding: 20px 18px; }.details-grid, .form-grid { grid-template-columns: 1fr; } }
 
 /* Ajustes finais de correspondência com as telas de referência. */
@@ -313,6 +329,18 @@ body:has(.dialog-paciente)::before, body:has(.dialog-fonte)::before, body:has(.d
 .analise-cabecalho { display: flex; align-items: center; gap: 10px; padding-bottom: 17px; border-bottom: 1px solid #d7e3d4; }.analise-cabecalho > div { display: flex; align-items: center; gap: 9px; flex: 1; }.analise-cabecalho h2 { margin: 0; color: #244c36; font-size: 18px; }.spark-icon { color: #527864; font-size: 23px; }.ia-badge { padding: 3px 7px; border-radius: 4px; background: #dcebdd; color: #527864; font-size: 10px; font-weight: 800; letter-spacing: .05em; }
 .analise-meta { display: grid; gap: 2px; padding: 14px 0 5px; color: #718078; font-size: 10px; }.analise-secao { margin-top: 8px; }.analise .limitacoes, .analise-acao { display: none !important; }
 .analise-limites { margin-top: 20px; padding-top: 15px; border-top: 1px solid #d7e3d4; color: #576950; font-size: 11px; line-height: 1.7; }.analise-limites strong { display: block; margin-bottom: 3px; color: #52645a; font-size: inherit; font-weight: 600; }.analise-limites p { margin: 3px 0; }.analise-historico-link { margin-top: 10px; }
+.analise-cabecalho { gap: 10px; padding-bottom: 17px; }
+.analise-cabecalho > div { display: contents; }
+.analise-cabecalho h2 { font-size: 16px; line-height: 1.35; }
+.analise-cabecalho .spark-icon { width: 17px; height: 17px; flex: none; fill: none; stroke: #285c47; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.analise-cabecalho .ia-badge { margin-left: auto; padding: 3px 7px; font-size: 10px; }
+.pagina-prontuario .heading-actions { gap: 9px; }
+.pagina-prontuario .heading-actions > button { display: inline-flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; min-height: 40px; padding: 9px 16px; border: 1px solid #dde5df; border-radius: 7px; font-family: inherit; font-size: 13px; font-weight: 600; line-height: 20px; }
+.pagina-prontuario .heading-actions .secondary { background: #fff; color: #52645a; }
+.pagina-prontuario .heading-actions .secondary:hover:not(:disabled) { background: #eaf1eb; border-color: #99aea0; color: #52645a; }
+.pagina-prontuario .heading-actions .primary { background: #285c47; color: #fff; border-color: #285c47; }
+.pagina-prontuario .heading-actions .primary:hover:not(:disabled) { background: #194a36; border-color: #194a36; }
+.pagina-prontuario .heading-actions .button-icon { width: 16px; height: 16px; flex: none; display: block; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .ai-full .analysis-group summary { font-size: 15px; }
 .ai-full .analysis-observation { padding: 20px 0; }
 .ai-full .analysis-observation p { max-width: 70ch; font-size: 15px; }
@@ -479,15 +507,21 @@ body { font-size: 13px; }
 .icon-button svg { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .dialog-evidencias .icon-button,
 .dialog-fonte .icon-button,
-.dialog-parecer .icon-button { background: transparent; }
+.dialog-parecer .icon-button,
+.dialog-complemento .icon-button { background: transparent; }
 .dialog-evidencias .icon-button:hover,
 .dialog-fonte .icon-button:hover,
-.dialog-parecer .icon-button:hover { background: #eaf1eb; }
+.dialog-parecer .icon-button:hover,
+.dialog-complemento .icon-button:hover { background: #eaf1eb; }
 .dialog-evidencias .icon-button svg,
 .dialog-fonte .icon-button svg,
-.dialog-parecer .icon-button svg { width: 19px; height: 19px; }
+.dialog-parecer .icon-button svg,
+.dialog-complemento .icon-button svg { width: 19px; height: 19px; }
 .primary:hover { background: #194a36; }
 .secondary:hover { background: #eaf1eb; border-color: #99aea0; }
+.heading-actions .secondary .button-icon { width: 16px; height: 16px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.pagina-prontuario .heading-actions .secondary { background: #fff; color: #24382f; border: 1px solid #dde5df; }
+.pagina-prontuario .heading-actions .secondary:hover:not(:disabled) { background: #eaf1eb; border-color: #99aea0; color: #24382f; }
 @media (max-width: 740px) {
   .nav-count { min-width: 19px; min-height: 19px; }
   .patient-result .patient-open-icon { display: none; }
