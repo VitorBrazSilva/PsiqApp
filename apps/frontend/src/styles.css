@@ -357,7 +357,8 @@ body:has(.dialog-paciente)::before, body:has(.dialog-fonte)::before, body:has(.d
 .ai-full .analise-limites { font-size: 11px; }
 .ai-full .analise-atualizar { margin-top: 13px; }
 .ai-full .analise-atualizar:disabled { cursor: not-allowed; opacity: .55; }
-.analysis-history-actions { display: flex; justify-content: flex-end; gap: 18px; flex-wrap: wrap; margin-top: 16px; }
+.analysis-history-actions { display: flex; justify-content: flex-start; gap: 18px; flex-wrap: wrap; margin-top: 16px; }
+.analysis-history-trigger { display: flex; width: fit-content; margin: 10px 0 0 30px; }
 .dialog-historico-analise { position: fixed; inset: 50% auto auto 50%; transform: translate(-50%, -50%); z-index: 30; width: min(660px, calc(100% - 32px)); max-height: calc(100dvh - 48px); overflow: auto; border: 1px solid #dbe7dc; border-radius: 16px; padding: 0; color: #24382f; background: #fff; box-shadow: 0 25px 90px #14271d30; }
 .dialog-historico-analise[open] { display: block; }
 .dialog-historico-analise::backdrop { background: #18271f70; }
@@ -366,6 +367,7 @@ body:has(.dialog-paciente)::before, body:has(.dialog-fonte)::before, body:has(.d
 .analysis-version-list h3, .analysis-version-list p { margin: 0 0 5px; }
 .analysis-version-list h3 { color: #24382f; font-size: 14px; }
 .analysis-version-list p, .analysis-version-list time { color: #62716a; font-size: 12px; }
+.analysis-history-note { margin: 22px 0 0 !important; padding: 10px 13px; border: 1px solid #e4d8ba; border-radius: 6px; color: #80652e; background: #faf6e9; }
 .prontuario-secao-historico .analise-coluna { display: block; }.prontuario-secao-historico .historico-bloco { display: none; }
 @media (max-width: 740px) { .pagina-prontuario { display: flex; }.pagina-prontuario > .historico-clinico-painel, .pagina-prontuario > .analise-coluna { width: 100%; }.analise-coluna { order: 5; } }
 @media (max-width: 560px) { .patient-heading { gap: 11px; }.patient-heading .patient-avatar { width: 48px; height: 48px; border-radius: 13px; }.heading-actions { gap: 6px; }.heading-actions > * { min-height: 40px; padding-inline: 8px; font-size: 11px; }.patient-tabs { margin-bottom: 17px; }.patient-tabs button { padding-inline: 8px; font-size: 11px; }.next-appointment { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; }.next-appointment .text-button { grid-column: 2 / -1; justify-self: end; }.timeline-item { padding-left: 17px; }.timeline-item .registro { padding: 18px 17px 12px; }.registro-footer { align-items: flex-start; flex-direction: column; gap: 5px; }.analise { padding: 18px 16px !important; }.ai-full { padding: 23px !important; }.analysis-version-list li { align-items: flex-start; flex-direction: column; } }
