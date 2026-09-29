@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { EstadoVazio } from '../../shared/componentes/EstadoVazio'
 import { FonteRegistroClinico, type FonteSelecionada } from '../analises/FonteRegistroClinico'
-import { PainelAnaliseAtual } from '../analises/PainelAnaliseAtual'
+import { PainelAnaliseAtual, type ChaveSecaoAnalise } from '../analises/PainelAnaliseAtual'
 import { type AnaliseClinica, type EvidenciaAnalise } from '../analises/servicoAnalises'
 import { usePollingAnalise } from '../analises/usePollingAnalise'
 import { servicoAnalises } from '../analises/servicoAnalises'
@@ -38,6 +38,7 @@ export function PaginaProntuario() {
   const [erroHistoricoAnalise, setErroHistoricoAnalise] = useState('')
   const [solicitandoAnalise, setSolicitandoAnalise] = useState(false)
   const secao = secaoDaUrl(parametros.get('secao'))
+  const categoriaAnalise = categoriaAnaliseDaUrl(parametros.get('grupo'))
   const [paginaRegistros, setPaginaRegistros] = useState({ pagina: 0, tamanho: 100, total: 0 })
   const { estado, geracoes, carregando: carregandoAnalise, erro: erroAnalise, recarregar } = usePollingAnalise(pacienteId ?? null)
 
@@ -238,6 +239,8 @@ export function PaginaProntuario() {
           aoAbrirAnalise={() => mudarSecao('analise')}
           aoSelecionarHistorica={id => { void selecionarAnaliseHistorica(id) }}
           visaoCompleta={secao === 'analise'}
+          categoriaSelecionada={categoriaAnalise}
+          aoSelecionarCategoria={categoria => setParametros(atual => { atual.set('grupo', categoria); return atual })}
           analiseHistorica={analiseHistorica}
         />
         <FonteRegistroClinico pacienteId={pacienteId} pacienteNome={paciente?.nome ?? ''} fonte={fonteAberta} aoFechar={() => { setFonteAberta(null); setRetornoEvidencias(null) }} aoVoltar={() => { setFonteAberta(null); retornoEvidencias?.(); setRetornoEvidencias(null) }} aoAbrirNoHistorico={abrirRegistroNoHistorico} />
@@ -254,6 +257,10 @@ export function PaginaProntuario() {
 
 function secaoDaUrl(valor: string | null): 'historico' | 'analise' | 'consultas' | 'dados' {
   return valor === 'analise' || valor === 'consultas' || valor === 'dados' ? valor : 'historico'
+}
+
+function categoriaAnaliseDaUrl(valor: string | null): ChaveSecaoAnalise {
+  return valor === 'padroes' || valor === 'pontosDeAtencao' ? valor : 'linhaDoTempo'
 }
 
 function formatarIdade(dataNascimento: string) {

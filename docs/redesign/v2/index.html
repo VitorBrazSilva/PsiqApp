@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f9f7">
+    <title>PsiqApp — Redesign v2</title>
+    <link rel="stylesheet" href="prototipos.css">
+    <script src="prototipos.js" defer></script>
+  </head>
+  <body data-direction="foco">
+    <a href="#conteudo" class="skip-link">Pular para o conteúdo</a>
+    <div class="review-bar" aria-label="Comparação de propostas">
+      <div class="review-label"><span class="review-dot"></span>Direção A escolhida <span class="review-stage">/ Protótipo v2</span></div>
+      <div class="direction-picker" role="group" aria-label="Direção visual">
+        <button type="button" data-direction="foco" aria-pressed="true"><span>A</span> Foco clínico</button>
+        <button type="button" data-direction="leitura" aria-pressed="false"><span>B</span> Referência anterior</button>
+      </div>
+      <button class="review-about" type="button" data-action="about">Sobre o protótipo <span aria-hidden="true">↗</span></button>
+    </div>
+    <div id="app"></div>
+    <div id="feedback" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+    <dialog id="dialog" aria-labelledby="dialog-title"></dialog>
+  </body>
+</html>
