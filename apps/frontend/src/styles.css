@@ -146,6 +146,7 @@ button { background: #285c47; min-height: 44px; }
 .pagina-prontuario .analise { background: #f1f6f0; border-color: #d7e3d4; }
 .pagina-prontuario .timeline-clinica { margin-top: 0; }.pagina-prontuario .registro { background: #fff; border-radius: 10px; padding: 21px 23px 15px; }.pagina-prontuario .registro p { line-height: 1.8; }.pagina-prontuario .metadados { color: #62716a; }
 .prontuario-secao-analise > .historico-clinico-painel, .prontuario-secao-analise > .contexto-paciente { display: none; }.prontuario-secao-analise > .analise-coluna { grid-column: 1 / -1; }.prontuario-secao-analise > .analise-coluna > .painel { width: min(820px,100%); margin: 0; }
+.pagina-prontuario.prontuario-secao-analise { row-gap: 20px; }
 .prontuario-secao-consultas > .historico-clinico-painel, .prontuario-secao-consultas > .analise-coluna { display: none; }.prontuario-secao-consultas > .contexto-paciente { grid-column: 1 / -1; }
 .prontuario-secao-dados > .historico-clinico-painel, .prontuario-secao-dados > .analise-coluna { display: none; }.prontuario-secao-dados > .contexto-paciente { grid-column: 1 / -1; }
 @media (max-width: 740px) { .pagina-prontuario { display: flex; flex-direction: column; }.pagina-prontuario > .painel,.pagina-prontuario > section.painel,.pagina-prontuario > div:last-child,.pagina-prontuario > .grade-prontuario { width: 100%; }.pagina-prontuario .grade-prontuario { grid-template-columns: 1fr; } }
@@ -303,6 +304,12 @@ body:has(.dialog-paciente)::before, body:has(.dialog-fonte)::before, body:has(.d
 .pagina-prontuario .patient-heading { margin-bottom: 0; }
 .pagina-prontuario .patient-heading .patient-avatar { width: 62px; height: 62px; }
 .pagina-prontuario .patient-tabs { margin-bottom: 0; }
+.pagina-prontuario.prontuario-secao-consultas .patient-tabs,
+.pagina-prontuario.prontuario-secao-dados .patient-tabs { margin-bottom: 0; }
+.pagina-prontuario.prontuario-secao-consultas > .contexto-paciente,
+.pagina-prontuario.prontuario-secao-dados > .contexto-paciente { margin-top: 0; }
+.pagina-prontuario.prontuario-secao-consultas > .contexto-paciente > .bloco,
+.pagina-prontuario.prontuario-secao-dados > .contexto-paciente > .bloco { padding-top: 0; }
 .pagina-prontuario > .historico-clinico-painel { padding: 0; border: 0; background: transparent; box-shadow: none; }
 .historico-clinico-painel > .records-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 17px; }
 .historico-clinico-painel > .records-heading h2 { margin: 0; color: #24382f; font-size: 18px; }
@@ -415,7 +422,7 @@ body { font-size: 13px; }
   .pagina-prontuario > .patient-heading, .pagina-prontuario > .patient-tabs, .pagina-prontuario > .contexto-paciente { width: 100%; }
   .pagina-prontuario .patient-heading .patient-avatar { width: 50px; height: 50px; }
   .pagina-prontuario .heading-actions { margin-top: 16px; }
-  .pagina-prontuario .patient-tabs { flex-wrap: nowrap; justify-content: space-between; gap: 0; margin: 21px 0; }
+  .pagina-prontuario .patient-tabs { flex-wrap: nowrap; justify-content: space-between; gap: 0; margin: 21px 0 0; }
   .pagina-prontuario .patient-tabs button { min-height: 46px; padding: 8px 0 12px; font-size: 12px; }
   .patient-tabs .count { display: none; }
   .pagina-prontuario .heading-actions .secondary { display: inline-flex; }
@@ -602,6 +609,7 @@ body { font-size: 13px; }
 .ai-full .analysis-heading-kicker svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .ai-full .analysis-view-heading h2 { margin: 0; color: #24382f; font-size: 24px; letter-spacing: -.7px; }
 .ai-full .analysis-view-heading > p { max-width: 65ch; margin: 5px 0 0; color: #62716a; font-size: 13px; }
+.ai-full .analysis-view-heading > p { max-width: none; white-space: nowrap; }
 .ai-full .analysis-view-actions { display: flex; flex-shrink: 0; gap: 8px; flex-wrap: wrap; }
 .ai-full .analysis-view-actions .primary, .ai-full .analysis-view-actions .secondary { min-height: 44px; padding: 0 12px; font-size: 12px; }
 .ai-full .analysis-view-actions .secondary { border: 1px solid #c8d8cc; background: #f1f6f0; color: #285c47; }
