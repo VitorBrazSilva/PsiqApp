@@ -6,7 +6,7 @@ const finais: Exclude<StatusConsulta, 'AGENDADA'>[] = ['REALIZADA', 'CANCELADA',
 export function SeletorStatusConsulta({ consulta, aoAtualizar }: { consulta: Consulta, aoAtualizar: (consulta: Consulta) => void }) {
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState<StatusConsulta | ''>('')
-  if (consulta.status !== 'AGENDADA') return <span className="status-final">Estado final</span>
+  if (consulta.status !== 'AGENDADA') return null
 
   async function atualizar(status: Exclude<StatusConsulta, 'AGENDADA'>) {
     setSalvando(status)
@@ -23,7 +23,7 @@ export function SeletorStatusConsulta({ consulta, aoAtualizar }: { consulta: Con
   return (
     <div className="acoes-status">
       {finais.map(status => (
-        <button key={status} disabled={!!salvando} onClick={() => void atualizar(status)}>
+        <button className="consulta-status-botao" key={status} type="button" disabled={!!salvando} onClick={() => void atualizar(status)}>
           {salvando === status ? 'Atualizando...' : rotuloStatus(status)}
         </button>
       ))}

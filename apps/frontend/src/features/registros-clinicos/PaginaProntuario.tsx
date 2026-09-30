@@ -200,7 +200,7 @@ export function PaginaProntuario() {
         {secao === 'historico' && <div className="compat-consultas"><ListaConsultas consultas={consultas} carregando={false} aoAtualizar={consulta => setConsultas(atuais => atuais.map(item => item.id === consulta.id ? consulta : item))} nomesPacientes={paciente ? { [paciente.id]: paciente.nome } : undefined} /></div>}
         {secao === 'consultas' && <section className="bloco">
           <h2>Consultas do paciente</h2>
-          <ListaConsultas consultas={consultas} carregando={false} aoAtualizar={consulta =>
+          <ListaConsultas consultas={[...consultas].sort((a, b) => new Date(b.agendadaPara).getTime() - new Date(a.agendadaPara).getTime())} carregando={false} aoAtualizar={consulta =>
             setConsultas(atuais => atuais.map(item => item.id === consulta.id ? consulta : item))
           } nomesPacientes={paciente ? { [paciente.id]: paciente.nome } : undefined} />
         </section>}
@@ -226,7 +226,7 @@ export function PaginaProntuario() {
       </section>
 
       <div className="analise-coluna">
-        <PainelAnaliseAtual
+        {secao !== 'consultas' && <PainelAnaliseAtual
           pacienteId={pacienteId}
           estado={estado}
           geracoes={geracoes}
@@ -242,7 +242,7 @@ export function PaginaProntuario() {
           categoriaSelecionada={categoriaAnalise}
           aoSelecionarCategoria={categoria => setParametros(atual => { atual.set('grupo', categoria); return atual })}
           analiseHistorica={analiseHistorica}
-        />
+        />}
         <FonteRegistroClinico pacienteId={pacienteId} pacienteNome={paciente?.nome ?? ''} fonte={fonteAberta} aoFechar={() => { setFonteAberta(null); setRetornoEvidencias(null) }} aoVoltar={() => { setFonteAberta(null); retornoEvidencias?.(); setRetornoEvidencias(null) }} aoAbrirNoHistorico={abrirRegistroNoHistorico} />
         {originalEmComplemento && <dialog ref={complementoDialogRef} className="dialog-complemento" aria-labelledby="titulo-complemento" onKeyDown={evento => { if (evento.key === 'Escape') { evento.preventDefault(); setComplementoAberto(false) } }} onCancel={evento => { evento.preventDefault(); setComplementoAberto(false) }}>
           <div className="dialog-header"><h2 id="titulo-complemento">Adicionar complemento</h2><button className="icon-button" type="button" aria-label="Fechar complemento" onClick={() => setComplementoAberto(false)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div>
