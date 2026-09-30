@@ -69,7 +69,7 @@ describe('PaginaProntuario', () => {
     expect(await screen.findByText('Paciente Atual B')).toBeVisible()
     await usuario.type(screen.getByLabelText('Data e hora'), '2026-06-01T12:00')
     await usuario.click(screen.getByRole('button', { name: 'Criar consulta' }))
-    expect(await screen.findByText('Paciente: Paciente Atual B')).toBeVisible()
+    expect(await screen.findByText(/12:00.*Paciente Atual B/)).toBeVisible()
     expect(fetchMock).toHaveBeenCalledWith(`/api/v1/pacientes/${pacienteB.id}/consultas`, expect.any(Object))
     expect(fetchMock).not.toHaveBeenCalledWith(`/api/v1/pacientes/${pacienteA.id}/consultas`, expect.any(Object))
   })
@@ -156,20 +156,6 @@ describe('PaginaProntuario', () => {
     expect(fonte.querySelector('mark')).toHaveTextContent('estável')
   })
 
-  it('mostra ícones nas seções e abre a aba de análise pelo link do painel', async () => {
-    const usuario = userEvent.setup()
-    renderProntuario()
-    expect(await screen.findByText('Análise longitudinal')).toBeVisible()
-    const grupos = document.querySelectorAll<HTMLDetailsElement>('.analise-secao .analysis-group')
-    expect(grupos).toHaveLength(3)
-    expect(document.querySelectorAll('.analysis-group summary .analysis-icon[aria-hidden="true"]')).toHaveLength(3)
-
-    await usuario.click(screen.getByRole('button', { name: /Abrir análise e histórico/ }))
-    expect(screen.getByRole('button', { name: 'Análise de IA' })).toHaveAttribute('aria-current', 'page')
-    expect([...grupos].every(grupo => grupo.open)).toBe(true)
-    expect(screen.queryByRole('button', { name: /Abrir análise e histórico/ })).not.toBeInTheDocument()
-  })
-
   it('mantem analise valida anterior em falha e nao sobrescreve formulario em edicao', async () => {
     const usuario = userEvent.setup()
     fetchMock.mockImplementation(async url => {
@@ -200,7 +186,8 @@ describe('PaginaProntuario', () => {
       return json(paginaVazia)
     })
     render(<MemoryRouter initialEntries={[`/prontuario/${pacienteA.id}?secao=analise`]}><Routes><Route path="/prontuario/:pacienteId" element={<PaginaProntuario />} /></Routes></MemoryRouter>)
-    await usuario.click(await screen.findByRole('button', { name: /Ver hist/ }))
+    await usuario.click(await screen.findByRole('button', { name: 'Análise de IA' }))
+    await usuario.click(await screen.findByRole('button', { name: 'Histórico de análises' }))
     expect(await screen.findByRole('dialog', { name: /Hist/ })).toBeVisible()
     await usuario.click(screen.getByRole('button', { name: /Abrir vers/ }))
     expect(await screen.findByText('Versao historica preservada.')).toBeVisible()

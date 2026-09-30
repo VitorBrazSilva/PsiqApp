@@ -50,6 +50,6 @@ export async function aguardarGeracaoConcluida(api: APIRequestContext, pacienteI
 
 export async function abrirProntuario(page: Page, pacienteId: string) {
   await page.goto(`/prontuario/${pacienteId}`)
-  await expect(page.getByRole('heading', { name: 'Prontuário' })).toBeVisible()
-  await expect(page.getByText('Dados do paciente')).toBeVisible()
+  await expect(page.locator('.patient-heading h1')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Análise de IA' })).toBeVisible()
 }

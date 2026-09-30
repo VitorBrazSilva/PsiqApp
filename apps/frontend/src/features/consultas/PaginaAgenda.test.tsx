@@ -47,8 +47,8 @@ describe('PaginaAgenda', () => {
     await usuario.type(screen.getByLabelText('Data e hora'), '2026-05-01T12:00')
     await usuario.click(screen.getByRole('button', { name: 'Criar consulta' }))
 
-    expect(await screen.findByText('Status: Agendada')).toBeVisible()
-    expect(screen.getByText('Paciente: Paciente Ficticia')).toBeVisible()
+    expect(await screen.findByText('Agendada')).toBeVisible()
+    expect(screen.getByText(/12:00.*Paciente Ficticia/)).toBeVisible()
     const chamadaCriacao = fetchMock.mock.calls.find(([url]) => url === `/api/v1/pacientes/${paciente.id}/consultas`)
     expect(chamadaCriacao).toBeDefined()
     expect(new Headers(chamadaCriacao?.[1]?.headers).get('Idempotency-Key')).toMatch(/[0-9a-f-]{36}/)
@@ -67,9 +67,9 @@ describe('PaginaAgenda', () => {
     render(<MemoryRouter><PaginaAgenda /></MemoryRouter>)
 
     await usuario.click(await screen.findByRole('button', { name: 'Realizada' }))
-    await waitFor(() => expect(screen.getByText('Status: Realizada')).toBeVisible())
-    expect(screen.getByText('Paciente: Paciente Ficticia')).toBeVisible()
-    expect(screen.getByText('Estado final')).toBeVisible()
+    await waitFor(() => expect(screen.getByText('Realizada')).toBeVisible())
+    expect(screen.getByText(/12:00.*Paciente Ficticia/)).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Cancelada' })).not.toBeInTheDocument()
     expect(fetchMock).toHaveBeenCalledWith(`/api/v1/consultas/${consulta.id}/status`, expect.any(Object))
   })
 
@@ -81,7 +81,7 @@ describe('PaginaAgenda', () => {
     })
     render(<MemoryRouter><PaginaAgenda /></MemoryRouter>)
 
-    expect(await screen.findByText(`Paciente: ${paciente.id}`)).toBeVisible()
-    expect(screen.getByText('Status: Agendada')).toBeVisible()
+    expect(await screen.findByText(new RegExp(`12:00.*${paciente.id}`))).toBeVisible()
+    expect(screen.getByText('Agendada')).toBeVisible()
   })
 })

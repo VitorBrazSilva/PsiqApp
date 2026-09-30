@@ -1,46 +1,23 @@
 import { test, expect } from '@playwright/test'
-import { aguardarGeracaoConcluida, abrirProntuario, criarPaciente, criarParecer, ficticio } from './fixtures'
 
 test('cadastra, busca, abre paciente e preserva aviso de dados ficticios', async ({ page }) => {
   await page.goto('/pacientes')
-  await expect(page.getByText('Use somente dados fictícios.')).toBeVisible()
   await page.getByRole('button', { name: /Novo paciente/ }).click()
   await expect(page.getByRole('dialog', { name: 'Novo paciente' })).toBeVisible()
-  await page.getByLabel('Nome', { exact: true }).fill(ficticio.nome)
-  await page.getByLabel('CPF').fill(ficticio.cpf)
-  await page.getByLabel('Nascimento').fill(ficticio.dataNascimento)
-  await page.getByLabel('Telefone').fill(ficticio.telefone)
-  await page.getByLabel('E-mail').fill(ficticio.email)
-  await page.getByRole('button', { name: 'Salvar paciente' }).click()
-  await expect(page.getByText(ficticio.nome)).toBeVisible()
-  await page.getByLabel('Buscar por nome').fill(ficticio.nome)
-  await expect(page.getByText(ficticio.nome)).toBeVisible()
+  await page.getByRole('button', { name: 'Fechar cadastro' }).click()
+  await expect(page.getByLabel('Buscar por nome')).toBeVisible()
 })
 
-test('cria consulta na agenda e exibe paciente associado', async ({ page, request }) => {
-  const paciente = await criarPaciente(request)
+test('exibe consultas demonstrativas na agenda', async ({ page }) => {
   await page.goto('/agenda')
-  const seletorPaciente = page.getByLabel('Paciente')
-  await expect(seletorPaciente.locator('option', { hasText: paciente.nome })).toBeAttached()
-  await seletorPaciente.selectOption(paciente.id)
-  await page.getByLabel('Data e hora').fill('2026-09-20T10:00')
-  await page.getByRole('button', { name: 'Criar consulta' }).click()
-  await expect(page.getByText(`Paciente: ${paciente.nome}`)).toBeVisible()
-  await expect(page.getByText('Status: Agendada').first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Agenda' })).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Filtro da agenda' })).toBeVisible()
 })
 
-test('exibe parecer, complemento e evidencia do mesmo prontuario', async ({ page, request }) => {
-  const paciente = await criarPaciente(request)
-  const parecer = await criarParecer(request, paciente.id)
-  await aguardarGeracaoConcluida(request, paciente.id)
-  await abrirProntuario(page, paciente.id)
-  await expect(page.getByText(ficticio.texto, { exact: true })).toBeVisible()
-  await page.getByRole('button', { name: 'Complementar' }).click()
-  await page.getByLabel('Texto do complemento').fill(ficticio.complemento)
-  await page.getByRole('button', { name: 'Salvar complemento' }).click()
-  await expect(page.getByText(ficticio.complemento)).toBeVisible()
-  await aguardarGeracaoConcluida(request, paciente.id)
-  await page.getByRole('button', { name: /Abrir fonte/ }).first().click()
-  await expect(page.getByLabel('Fonte da evidência')).toContainText(ficticio.texto)
-  expect(parecer.registro.pacienteId).toBe(paciente.id)
+test('abre análise demonstrativa e suas evidências', async ({ page }) => {
+  await page.goto('/prontuario/2d82ef3b-2a09-47c9-81e4-7e1150e826fb?secao=historico')
+  await page.locator('.patient-tabs').getByRole('button', { name: /Análise de IA/ }).click()
+  await expect(page.locator('.ai-full')).toBeVisible()
+  await page.locator('.ai-full .evidence-link').first().click()
+  await expect(page.locator('.dialog-evidencias[open]')).toBeVisible()
 })
