@@ -14,25 +14,48 @@ export function ListaConsultas({ consultas, carregando, aoAtualizar, nomesPacien
     <ul className="lista consultas">
       {consultas.map(consulta => (
         <li key={consulta.id}>
-          <div>
-            <strong>{formatarDataHora(consulta.agendadaPara)}</strong>
-            <span>Paciente: {nomesPacientes?.[consulta.pacienteId] ?? consulta.pacienteId}</span>
-            <span>Status: {rotuloStatus(consulta.status)}</span>
+          <span className="consulta-calendario" aria-label={formatarDataCompleta(consulta.agendadaPara)}>
+            <small>{formatarMes(consulta.agendadaPara)}</small>
+            <strong>{formatarDia(consulta.agendadaPara)}</strong>
+          </span>
+          <div className="consulta-detalhes">
+            <strong>{formatarDataCompleta(consulta.agendadaPara)}</strong>
+            <span>{formatarHora(consulta.agendadaPara)}{nomesPacientes ? ` · ${nomesPacientes[consulta.pacienteId] ?? consulta.pacienteId}` : ''}</span>
             {consulta.observacoes && <p>{consulta.observacoes}</p>}
           </div>
-          <SeletorStatusConsulta consulta={consulta} aoAtualizar={aoAtualizar} />
+          <div className="consulta-acoes">
+            <span className={`consulta-status status-${consulta.status.toLowerCase()}`}>{rotuloStatus(consulta.status)}</span>
+            <SeletorStatusConsulta consulta={consulta} aoAtualizar={aoAtualizar} />
+          </div>
         </li>
       ))}
     </ul>
   )
 }
 
-function formatarDataHora(valor: string) {
+function obterData(valor: string) {
   const data = new Date(valor)
-  if (Number.isNaN(data.getTime())) return 'Data inválida'
-  return new Intl.DateTimeFormat('pt-BR', {
-    dateStyle: 'short',
-    timeStyle: 'short',
-    timeZone: 'America/Sao_Paulo',
-  }).format(data)
+  return Number.isNaN(data.getTime()) ? null : data
+}
+
+const opcoesFuso = { timeZone: 'America/Sao_Paulo' }
+
+function formatarDia(valor: string) {
+  const data = obterData(valor)
+  return data ? new Intl.DateTimeFormat('pt-BR', { ...opcoesFuso, day: '2-digit' }).format(data) : '—'
+}
+
+function formatarMes(valor: string) {
+  const data = obterData(valor)
+  return data ? new Intl.DateTimeFormat('pt-BR', { ...opcoesFuso, month: 'short' }).format(data).replace('.', '') : '—'
+}
+
+function formatarDataCompleta(valor: string) {
+  const data = obterData(valor)
+  return data ? new Intl.DateTimeFormat('pt-BR', { ...opcoesFuso, weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(data) : 'Data inválida'
+}
+
+function formatarHora(valor: string) {
+  const data = obterData(valor)
+  return data ? new Intl.DateTimeFormat('pt-BR', { ...opcoesFuso, hour: '2-digit', minute: '2-digit' }).format(data) : ''
 }
