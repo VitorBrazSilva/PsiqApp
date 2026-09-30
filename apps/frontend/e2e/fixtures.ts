@@ -32,15 +32,24 @@ export async function criarPaciente(api: APIRequestContext) {
 export async function criarParecer(api: APIRequestContext, pacienteId: string, texto = ficticio.texto) {
   const response = await api.post(`/api/v1/pacientes/${pacienteId}/registros-clinicos`, {
     headers: { 'Idempotency-Key': randomUUID() },
-    data: { texto, dataHoraClinica: '2026-09-10T12:00:00Z' },
+    data: { texto, humor: 'Fictício para teste', medicamentos: null, dataHoraClinica: '2026-09-10T12:00:00Z', consultaId: null },
   })
   expect(response.status()).toBe(201)
-  return response.json()
+  return response.json() as Promise<{ registro: { id: string; pacienteId: string; texto: string }; geracaoId: string }>
+}
+
+export async function criarConsulta(api: APIRequestContext, pacienteId: string, agendadaPara = new Date(Date.now() + 86_400_000).toISOString()) {
+  const response = await api.post(`/api/v1/pacientes/${pacienteId}/consultas`, {
+    headers: { 'Idempotency-Key': randomUUID() },
+    data: { pacienteId, agendadaPara, observacoes: 'Consulta fictícia para validação E2E.' },
+  })
+  expect(response.status()).toBe(201)
+  return response.json() as Promise<{ id: string; pacienteId: string; status: string }>
 }
 
 export async function aguardarGeracaoConcluida(api: APIRequestContext, pacienteId: string) {
   await expect.poll(async () => {
-  const response = await api.get(`/api/v1/pacientes/${pacienteId}/estado-analise`)
+    const response = await api.get(`/api/v1/pacientes/${pacienteId}/estado-analise`)
     const corpo = await response.text()
     expect(response.ok()).toBeTruthy()
     const estado = JSON.parse(corpo) as { ultimaGeracao?: { estado?: string } | null }
@@ -52,4 +61,13 @@ export async function abrirProntuario(page: Page, pacienteId: string) {
   await page.goto(`/prontuario/${pacienteId}`)
   await expect(page.locator('.patient-heading h1')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Análise de IA' })).toBeVisible()
+}
+
+export async function aguardarRegistroAnalise(api: APIRequestContext, pacienteId: string, registroId: string) {
+  await expect.poll(async () => {
+    const response = await api.get(`/api/v1/pacientes/${pacienteId}/estado-analise`)
+    expect(response.ok()).toBeTruthy()
+    const estado = await response.json() as { analiseAtual?: { linhaDoTempo?: { evidencias?: { registroId: string }[] }[] } | null }
+    return estado.analiseAtual?.linhaDoTempo?.flatMap(item => item.evidencias ?? []).some(evidencia => evidencia.registroId === registroId) ?? false
+  }, { timeout: 30_000, intervals: [500, 1_000, 2_000] }).toBe(true)
 }

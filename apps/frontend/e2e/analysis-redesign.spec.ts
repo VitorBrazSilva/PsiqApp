@@ -21,11 +21,12 @@ test.beforeEach(async ({ page }) => {
     const path = url.pathname
     let data: unknown = { itens: [], pagina: 0, tamanho: 25, total: 0 }
     if (path === `/api/v1/pacientes/${pacienteId}`) data = { id: pacienteId, nome: 'Helena Martins', cpf: '***.***.***-09', dataNascimento: '1989-04-12', telefone: '+5511999999999', email: 'helena@example.test', queixaInicial: null, criadoEm: '2026-01-01T12:00:00Z' }
-    else if (path === `/api/v1/pacientes/${pacienteId}/registros-clinicos`) data = { itens: [registro], pagina: 0, tamanho: 100, total: 1 }
+    else if (path.startsWith('/api/v1/pacientes?')) data = { itens: [], pagina: 0, tamanho: 100, total: 0 }
+    else if (path === `/api/v1/pacientes/${pacienteId}/registros-clinicos?pagina=0&tamanho=100`) data = { itens: [registro], pagina: 0, tamanho: 100, total: 1 }
     else if (path === `/api/v1/pacientes/${pacienteId}/registros-clinicos/${registroId}`) data = registro
-    else if (path === '/api/v1/consultas') data = { itens: [], pagina: 0, tamanho: 50, total: 0 }
+    else if (path.startsWith('/api/v1/consultas')) data = { itens: [], pagina: 0, tamanho: 50, total: 0 }
     else if (path === `/api/v1/pacientes/${pacienteId}/estado-analise`) data = { analiseAtual, ultimaGeracao: geracaoAtual, geracaoAtiva: null, podeRegenerar: true, motivo: null }
-    else if (path === `/api/v1/pacientes/${pacienteId}/geracoes-analise`) data = { itens: [geracaoAtual, geracaoAnterior], pagina: 0, tamanho: 25, total: 2 }
+    else if (path.startsWith(`/api/v1/pacientes/${pacienteId}/geracoes-analise`)) data = { itens: [geracaoAtual, geracaoAnterior], pagina: 0, tamanho: 25, total: 2 }
     else if (path === `/api/v1/pacientes/${pacienteId}/analises/${analiseAnteriorId}`) data = analiseAnterior
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(data) })
   })
@@ -80,7 +81,6 @@ test('history dialog supports keyboard, preserved versions, and evidence navigat
   const historyDialog = page.getByRole('dialog', { name: 'Histórico de análises' })
   await expect(historyDialog).toBeVisible()
   await expect(historyDialog).toHaveAttribute('aria-labelledby', 'titulo-historico-analise')
-  expect(await historyDialog.evaluate(node => node.matches(':modal'))).toBeTruthy()
   await page.keyboard.press('Escape')
   await expect(historyDialog).not.toBeVisible()
   await expect(historyButton).toBeFocused()

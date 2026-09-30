@@ -16,7 +16,7 @@ export class ClienteApi {
       throw new ErroApi(0, 'CAMINHO_INVALIDO')
     }
     // A aplicação é entregue com a demonstração visual autocontida. O backend continua disponível para integração, mas a revisão do redesign usa o dataset determinístico local.
-    if (import.meta.env.DEV && import.meta.env.MODE !== 'test' && (opcoes.metodo ?? 'GET') === 'GET') {
+    if (import.meta.env.MODE === 'development' && (opcoes.metodo ?? 'GET') === 'GET') {
       try { return mockClinico(caminho, opcoes.metodo) as T } catch { /* segue para a API */ }
     }
     const headers = new Headers({ Accept: 'application/json, application/problem+json' })
@@ -40,7 +40,7 @@ export class ClienteApi {
     }
 
     if (!resposta.ok) {
-      if (resposta.status === 404 && import.meta.env.MODE !== 'test') {
+      if (resposta.status === 404 && import.meta.env.MODE === 'development') {
         try { return mockClinico(caminho, opcoes.metodo) as T } catch { /* devolve o erro HTTP abaixo */ }
       }
       let problema: unknown

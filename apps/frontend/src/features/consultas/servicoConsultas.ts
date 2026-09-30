@@ -52,6 +52,7 @@ export const servicoConsultas = {
     return api.requisitar<Consulta>(`/consultas/${id}/status`, {
       metodo: 'POST',
       corpo: { status },
+      chaveDeIdempotencia: chaveDeIdempotencia(),
     })
   },
 }
