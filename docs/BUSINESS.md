@@ -6,11 +6,11 @@ O PsiqApp MVP é um sistema de apoio ao atendimento psiquiátrico para um único
 
 O objetivo principal é reduzir o esforço de releitura manual do prontuário antes de uma consulta, mantendo os registros clínicos originais como fonte de verdade. A IA ajuda a organizar acontecimentos, recorrências, padrões e pontos de atenção, mas não decide, diagnostica, prescreve nem substitui o julgamento clínico.
 
-**Capacidade atual:** o backend já permite cadastrar, buscar e visualizar pacientes por API, criar consultas associadas a pacientes, listar agenda, atualizar consultas agendadas para estados finais, criar pareceres originais e complementos, consultar a linha do tempo clínica, criar a solicitação persistente de geração automática, consultar estado e histórico de gerações, consultar análises validadas persistidas, solicitar regeneração manual quando permitido e processar gerações por worker assíncrono configurável. O provider local padrão é fake e determinístico; o adapter OpenAI pode ser habilitado por ambiente. No frontend, já é possível cadastrar pacientes, buscar por nome, abrir o prontuário, visualizar dados do paciente, criar consultas, consultar a agenda global ou por paciente, atualizar status finais, registrar pareceres e complementos, consultar a linha do tempo clínica, ver análise atual, limitações, evidências, histórico de gerações, estados de IA e solicitar regeneração manual quando permitida pela API.
+**Capacidade atual:** o backend já permite cadastrar, buscar e visualizar pacientes por API, criar e listar consultas, consultar disponibilidade local e do Google Agenda, sincronizar eventos por worker durável, atualizar consultas para estados finais, criar pareceres originais e complementos, consultar a linha do tempo clínica, processar gerações de IA e consultar análises e seu histórico. A sincronização Google é opcional, usa o calendário principal e mantém a consulta do PsiqApp como fonte de verdade. O provider local padrão da IA é fake e determinístico; o adapter OpenAI pode ser habilitado por ambiente. No frontend, já é possível cadastrar pacientes, buscar por nome, abrir o prontuário, visualizar dados do paciente, criar e consultar consultas, atualizar status finais, registrar pareceres e complementos, consultar a linha do tempo clínica, ver análises e solicitar regeneração manual quando permitida pela API. A interface para conexão, disponibilidade e estado da sincronização Google ainda será integrada.
 
-**Estado do checkout (revisão de 01/10/2026):** os fluxos descritos acima estão presentes no código atual. Este MVP deve ser usado exclusivamente com dados fictícios. A agenda implementada é interna ao PsiqApp. A integração com Google Agenda tem PRD e TechSpec, mas ainda não aparece implementada no backend ou no frontend. Os relatórios de QA e os gates das features anteriores não estão presentes neste checkout; por isso, este documento não declara um estado histórico de aprovação.
+**Estado do checkout (revisão de 01/10/2026):** as capacidades de backend das tasks 1.0 e 2.0 da integração Google estão implementadas; a integração de interface pertence à task 3.0. Este MVP deve ser usado exclusivamente com dados fictícios. Os relatórios de QA e gates de features anteriores não estão presentes neste checkout; por isso, este documento não declara um estado histórico de aprovação dessas features.
 
-Este documento descreve as capacidades implementadas e as regras de negócio que elas devem respeitar. As invariantes vigentes estão nas Rules. A especificação disponível para a [integração com Google Agenda](../tasks/prd-integracao-google-agenda/prd.md) descreve comportamento planejado, não uma capacidade atual.
+Este documento descreve as capacidades implementadas e as regras de negócio que elas devem respeitar. As invariantes vigentes estão nas Rules. A [integração com Google Agenda](../tasks/prd-integracao-google-agenda/prd.md) já dispõe de conexão e sincronização no backend; a tela de integração ainda está pendente.
 
 ## 2. Contexto de uso
 
@@ -20,7 +20,7 @@ Premissas do MVP:
 - existe apenas um médico usuário;
 - não existem perfis administrativos;
 - não existe portal do paciente;
-- a agenda é interna ao PsiqApp e alimentada manualmente;
+- o PsiqApp mantém a fonte de verdade das consultas e pode consultar/sincronizar opcionalmente o calendário principal Google;
 - a ausência de autenticação no protótipo local não significa que autenticação seja desnecessária no produto final.
 
 Antes de qualquer uso com pacientes reais, o produto precisará de decisões e implementação adicionais sobre LGPD, autenticação, autorização, criptografia, hospedagem, backup, retenção, auditoria, fornecedores externos, logs e tratamento de dados por provedores de IA.
@@ -84,6 +84,12 @@ Regras funcionais:
 - O MVP não permite retornar uma consulta final para `AGENDADA`.
 - O MVP não permite alterar diretamente uma consulta de um estado final para outro estado final.
 - Observações de consulta não entram como fonte clínica da IA.
+- Cada consulta ocupa uma hora; a disponibilidade local compara instantes em intervalos com fim exclusivo.
+- Sem conexão Google ativa por escolha do médico, o agendamento considera somente consultas `AGENDADA` do PsiqApp. Com conexão ativa, a disponibilidade Google também é consultada; falha nessa verificação impede novo agendamento e é distinta de conflito.
+- Consulta nova e sua intenção de sincronização são persistidas juntas. Indisponibilidade Google após a criação não desfaz a consulta; o estado de sincronização fica visível pela API e o worker tenta novamente.
+- O evento gerenciado no calendário principal contém nome, e-mail e horário. Não inclui CPF, observações nem conteúdo clínico. Eventos Google preexistentes contribuem apenas com intervalos ocupados e não aparecem como consultas do PsiqApp.
+- Mudanças para `REALIZADA` e `FALTA` atualizam o evento sem alterar o horário; `CANCELADA` remove o evento após a sincronização.
+- A integração não cria vínculos para consultas legadas. Elas permanecem na agenda local com estado Google `NAO_APLICAVEL`.
 
 ## 5. Registros clínicos e prontuário
 
@@ -325,7 +331,7 @@ As etapas de criação, listagem de agenda e atualização de status existem no 
 
 ## 9. Fora do escopo do MVP
 
-O PRD e a TechSpec da integração com Google Agenda estão disponíveis, mas a funcionalidade ainda não está implementada. Até lá, a agenda continua sendo interna ao PsiqApp e alimentada manualmente.
+O backend já consulta disponibilidade e sincroniza consultas com o calendário principal Google. A integração da interface React para conexão, verificação e apresentação do estado ainda pertence à task 3.0.
 
 Não fazem parte do MVP:
 
@@ -349,6 +355,7 @@ Não fazem parte do MVP:
 - uso em produção com dados reais;
 - infraestrutura completa de segurança para operação clínica real;
 - exportação avançada do prontuário.
+- interface React para conexão e apresentação da disponibilidade/estado Google, ainda pendente da task 3.0.
 
 ## 10. Métricas de validação
 
@@ -370,6 +377,6 @@ Esses indicadores não são resultados já medidos. O checkout atual contém tes
 
 ## 11. Fontes canônicas
 
-Este documento foi conferido com a implementação em `apps/backend` e `apps/frontend`, as migrations, os testes versionados e as Rules. A pasta `tasks/` disponível neste checkout contém os artefatos da integração com Google Agenda; seus requisitos são tratados como planejados até haver implementação. Relatórios e artefatos SDD das features anteriores não estão disponíveis neste checkout e não são usados aqui como evidência de aprovação.
+Este documento foi conferido com a implementação em `apps/backend` e `apps/frontend`, as migrations, os testes versionados e as Rules. As tasks 1.0 e 2.0 do backend Google estão implementadas; a task 3.0 da interface permanece pendente. Relatórios e artefatos SDD das features anteriores não estão disponíveis neste checkout e não são usados aqui como evidência de aprovação.
 
 Fontes adicionais: `docs/TECHNICAL.md`, `README.md`, `.agents/rules/product-invariants.md`, `.agents/rules/clinical-data-privacy.md`, `.agents/rules/clinical-ai-safety.md` e `.agents/rules/documentation-maintenance.md`.

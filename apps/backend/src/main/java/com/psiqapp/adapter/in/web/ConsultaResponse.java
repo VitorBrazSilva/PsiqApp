@@ -12,9 +12,12 @@ public record ConsultaResponse(
         StatusConsulta status,
         String observacoes,
         Instant criadaEm,
-        Instant statusAlteradoEm) {
-    static ConsultaResponse de(Consulta consulta) {
+        Instant statusAlteradoEm,
+        SincronizacaoGoogleAgendaResponse sincronizacaoGoogleAgenda) {
+    static ConsultaResponse de(Consulta consulta,
+            com.psiqapp.application.port.out.RepositorySincronizacaoConsultaPort.Situacao sincronizacao) {
         return new ConsultaResponse(consulta.id(), consulta.pacienteId(), consulta.agendadaPara(),
-                consulta.status(), consulta.observacoes(), consulta.criadaEm(), consulta.statusAlteradoEm());
+                consulta.status(), consulta.observacoes(), consulta.criadaEm(), consulta.statusAlteradoEm(),
+                SincronizacaoGoogleAgendaResponse.de(sincronizacao));
     }
 }

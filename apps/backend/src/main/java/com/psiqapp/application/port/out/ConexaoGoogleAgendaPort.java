@@ -8,6 +8,7 @@ public interface ConexaoGoogleAgendaPort {
     Optional<Conexao> obter();
     void salvar(String refreshToken, Instant conectadaEm);
     void desconectar(Instant desconectadaEm);
+    void marcarIndisponivel(Instant indisponivelEm);
 
     record Conexao(String refreshToken, Instant conectadaEm) {}
 }

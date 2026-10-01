@@ -61,6 +61,9 @@ psiqapp:
     redirect-uri: ${PSIQAPP_GOOGLE_AGENDA_REDIRECT_URI:http://127.0.0.1:8080/api/v1/integracoes/google-agenda/callback}
     frontend-uri: ${PSIQAPP_GOOGLE_AGENDA_FRONTEND_URI:http://127.0.0.1:5173/agenda}
     encryption-key: ${PSIQAPP_GOOGLE_AGENDA_ENCRYPTION_KEY:}
+    worker:
+      enabled: ${PSIQAPP_GOOGLE_AGENDA_WORKER_ENABLED:true}
+      poll-interval: ${PSIQAPP_GOOGLE_AGENDA_WORKER_POLL_INTERVAL:5s}
   analise:
     worker:
       enabled: ${PSIQAPP_ANALISE_WORKER_ENABLED:false}

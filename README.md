@@ -2,7 +2,7 @@
 
 PsiqApp MVP e uma aplicacao local para desenvolver e validar uma ferramenta de apoio ao prontuario psiquiatrico usando somente dados ficticios.
 
-O repositorio contem os documentos SDD aprovados, Rules, PostgreSQL local, backend Spring Boot com APIs de pacientes, consultas, registros clinicos, nucleo persistente de analises e worker assincrono de IA configuravel, e uma SPA navegavel com aviso persistente de dados ficticios. No frontend, Pacientes, Agenda e Prontuario permitem cadastrar, buscar e abrir pacientes, visualizar dados basicos, criar consultas, atualizar status, registrar pareceres e complementos, consultar linha do tempo clinica, ver estados da IA, analise atual, historico e evidencias consumindo a API real.
+O repositorio contem documentos SDD, Rules, PostgreSQL local, backend Spring Boot com APIs de pacientes, consultas, integracao server-side com Google Agenda, registros clinicos, nucleo persistente de analises e workers configuraveis, e uma SPA navegavel com aviso persistente de dados ficticios. No frontend, Pacientes, Agenda e Prontuario permitem cadastrar, buscar e abrir pacientes, visualizar dados basicos, criar consultas, atualizar status, registrar pareceres e complementos, consultar linha do tempo clinica, ver analises e seu historico consumindo a API real. A interface Google sera integrada na task 3.0 da feature.
 
 ## Aviso de seguranca
 
@@ -41,6 +41,8 @@ Substitua os placeholders localmente. `.env` e outros arquivos locais de ambient
 O worker de analise fica desabilitado por padrao. Para processar geracoes localmente, habilite `PSIQAPP_ANALISE_WORKER_ENABLED=true`. O provider padrao e `fake`, sem rede externa; para usar OpenAI, configure `PSIQAPP_ANALISE_PROVIDER=openai`, `OPENAI_API_KEY` e `OPENAI_MODEL`.
 
 A conexao OAuth opcional com Google Agenda requer `PSIQAPP_GOOGLE_AGENDA_CLIENT_ID`, `PSIQAPP_GOOGLE_AGENDA_CLIENT_SECRET` e `PSIQAPP_GOOGLE_AGENDA_ENCRYPTION_KEY` (Base64 de 32 bytes aleatorios). Configure tambem `PSIQAPP_GOOGLE_AGENDA_REDIRECT_URI` no cliente OAuth Google e `PSIQAPP_GOOGLE_AGENDA_FRONTEND_URI` com o destino fixo `/agenda`. Sem essa configuracao completa, o backend inicia normalmente e informa `NAO_CONFIGURADA`; o fluxo de conexao fica indisponivel. O refresh token e persistido cifrado com AES-256-GCM e a chave deve permanecer fora do repositório. OAuth usa navegação para `/api/v1/integracoes/google-agenda/conectar`; credenciais nunca são retornadas à SPA. Este fluxo não habilita uso com dados reais de pacientes.
+
+O worker de sincronização do Google Agenda usa `PSIQAPP_GOOGLE_AGENDA_WORKER_ENABLED=true` e polling de `PSIQAPP_GOOGLE_AGENDA_WORKER_POLL_INTERVAL=5s` por padrão; ajuste essas opções no `.env` quando necessário. O backend valida disponibilidade local e Google antes de criar consulta, registra a intenção de sincronização junto com a consulta e atualiza eventos depois do commit. Eventos existentes no Google são usados somente como intervalos ocupados; eventos gerenciados pelo PsiqApp contêm nome, e-mail e horário. A interface React para conectar conta, verificar horários e mostrar o estado da sincronização ainda pertence à task 3.0.
 
 ## PostgreSQL
 
@@ -89,7 +91,7 @@ cd apps/backend
 ./mvnw verify
 ```
 
-O `verify` executa testes unitarios, testes de contexto HTTP, arquitetura, migrations e integracao das APIs de pacientes, consultas, registros clinicos, analises e worker de IA com PostgreSQL 18.6 via Testcontainers. Docker Desktop deve estar iniciado. O CI tem jobs separados para backend, frontend e E2E integrado.
+O `verify` executa testes unitarios, testes de contexto HTTP, arquitetura, migrations e integracao das APIs de pacientes, consultas, disponibilidade/sincronizacao Google, registros clinicos, analises e workers com PostgreSQL 18.6 via Testcontainers. Docker Desktop deve estar iniciado. O CI tem jobs separados para backend, frontend e E2E integrado.
 
 ## Frontend local
 
@@ -127,4 +129,4 @@ Os testes de unidade usam Vitest e Testing Library, sem endpoints reais. A suite
 - Rules do projeto: `.agents/rules/`
 - Documentacao de negocio: `docs/BUSINESS.md`
 - Documentacao tecnica: `docs/TECHNICAL.md`
-- Especificacao da integracao Google Agenda (ainda sem implementacao): `tasks/prd-integracao-google-agenda/`
+- Feature SDD da integracao Google Agenda (backend Tasks 1.0/2.0; interface Task 3.0 pendente): `tasks/prd-integracao-google-agenda/`
