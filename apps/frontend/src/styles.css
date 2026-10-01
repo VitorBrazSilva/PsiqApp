@@ -699,3 +699,50 @@ body { font-size: 13px; }
   .ai-full .analysis-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ai-full .analysis-summary > div:last-child { grid-column: 1 / -1; }
 }
+
+/* Integração Google na agenda: feedback contextual, sem substituir a lista local. */
+.google-agenda-painel { display: grid; gap: 14px; border-left: 3px solid #3d765c; }
+.google-agenda-cabecalho { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.google-agenda-cabecalho h2 { margin: 0; color: #244c36; font-size: 17px; }
+.google-agenda-resumo { max-width: 72ch; margin: 6px 0 0; color: #435749; font-size: 13px; }
+.google-agenda-selo, .google-agenda-selo-sincronizacao { display: inline-flex; align-items: center; min-height: 28px; width: fit-content; padding: 4px 9px; border-radius: 6px; background: #edf3ee; color: #355844; font-size: 11px; font-weight: 650; line-height: 1.4; }
+.google-agenda-conectada, .sync-sincronizada { background: #e4efe5; color: #244c36; }
+.google-agenda-indisponivel, .google-agenda-nao_configurada, .sync-falha { background: #f7eae8; color: #7b302b; }
+.google-agenda-nao_conectada, .google-agenda-desconectada, .sync-aguardando_conexao, .sync-pendente { background: #f2f1e9; color: #594f2c; }
+.sync-nao_aplicavel { background: #edf0ed; color: #46594d; }
+.google-agenda-divulgacao { max-width: 92ch; margin: 0; padding: 12px 14px; border: 1px solid #e0e8e1; border-radius: 7px; background: #f7faf7; color: #52645a; font-size: 12px; line-height: 1.65; }
+.google-agenda-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.google-agenda-acao { min-height: 44px; }
+.google-agenda-painel .google-agenda-acao.secondary { border: 1px solid #c8d8cc; background: #f1f6f0; color: #285c47; }
+.google-agenda-ajuda { margin: 0; color: #62716a; font-size: 12px; }
+.google-agenda-feedback { margin: 0; color: #285c47; font-size: 13px; }
+.google-agenda-feedback.erro { color: #8d1f1f; }
+.google-agenda-verificacao { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.google-agenda-verificar { min-height: 44px; padding: 9px 14px; border: 1px solid #c8d8cc; background: #f1f6f0; color: #285c47; }
+.google-agenda-verificacao .google-agenda-mensagem-disponibilidade { flex: 1 1 250px; margin: 0; color: #52645a; font-size: 12px; }
+.google-agenda-verificacao .disponibilidade-disponivel { color: #285c47; }
+.google-agenda-verificacao .disponibilidade-ocupado, .google-agenda-verificacao .disponibilidade-indisponivel { color: #7b302b; }
+.google-agenda-resumo-erros { padding: 12px 14px; border: 1px solid #e4c6c1; border-radius: 7px; background: #fff7f5; }
+.google-agenda-resumo-erros:focus { outline: 3px solid #285c47; outline-offset: 3px; }
+.google-agenda-resumo-erros ul { margin: 6px 0 0; padding-left: 20px; }
+.google-agenda-sincronizacao { display: grid; justify-items: start; gap: 5px; margin-top: 7px; }
+.google-agenda-selo-sincronizacao { min-height: 24px; font-size: 11px; }
+.google-agenda-tentar { min-height: 44px; padding: 8px 10px; border: 1px solid #c8d8cc; background: #fff; color: #285c47; font-size: 12px; font-weight: 650; }
+.google-agenda-tentar:hover:not(:disabled) { border-color: #99aea0; background: #eaf1eb; color: #244c36; }
+.google-agenda-erro-tentativa { color: #8d1f1f; font-size: 12px; }
+.agenda-page .filtros-agenda input, .agenda-page .filtros-agenda select, .agenda-form input, .agenda-form select, .agenda-form textarea { min-height: 44px; }
+.agenda-page .acoes-status .consulta-status-botao { min-height: 44px; padding: 8px 10px; }
+.agenda-page :is(button, a, input, select, textarea):focus-visible { outline: 3px solid #285c47; outline-offset: 3px; }
+@media (max-width: 740px) {
+  .google-agenda-painel { padding: 18px; }
+  .google-agenda-cabecalho { flex-direction: column; gap: 10px; }
+  .google-agenda-acoes, .google-agenda-acoes > * { width: 100%; }
+  .google-agenda-acao { justify-content: center; }
+  .google-agenda-verificacao { align-items: stretch; flex-direction: column; }
+  .google-agenda-verificar, .agenda-form .form-actions > button { width: 100%; }
+  .agenda-page .filtros-agenda { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .agenda-page .consultas li { min-width: 0; }
+  .agenda-page .consulta-detalhes { min-width: 0; overflow-wrap: anywhere; }
+  .agenda-page .consulta-acoes { justify-items: start; }
+  .agenda-page .acoes-status { justify-content: flex-start; }
+}

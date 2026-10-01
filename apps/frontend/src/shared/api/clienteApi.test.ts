@@ -8,9 +8,22 @@ const cliente = new ClienteApi()
 const requestId = 'd6b462cb-fbd3-444f-b3e1-fc30d40b0b24'
 
 beforeEach(() => vi.stubGlobal('fetch', fetchMock))
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.unstubAllGlobals()
+  vi.unstubAllEnvs()
+})
 
 describe('ClienteApi', () => {
+  it('permite que a Agenda ignore o mock local e consulte a API no modo de desenvolvimento', async () => {
+    vi.stubEnv('MODE', 'development')
+    fetchMock.mockResolvedValueOnce(Response.json({ itens: [], pagina: 0, tamanho: 50, total: 0 }))
+
+    await expect(cliente.requisitar('/consultas?pagina=0&tamanho=50', { usarApiReal: true }))
+      .resolves.toMatchObject({ itens: [], total: 0 })
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/v1/consultas?pagina=0&tamanho=50', expect.objectContaining({ method: 'GET' }))
+  })
+
   it('retorna JSON e centraliza base, headers e opções de privacidade', async () => {
     fetchMock.mockResolvedValueOnce(Response.json({ itens: [] }))
     await expect(cliente.requisitar('/pacientes?pagina=0')).resolves.toEqual({ itens: [] })

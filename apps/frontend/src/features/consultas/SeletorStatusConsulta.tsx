@@ -3,7 +3,11 @@ import { servicoConsultas, type Consulta, type StatusConsulta, rotuloStatus } fr
 
 const finais: Exclude<StatusConsulta, 'AGENDADA'>[] = ['REALIZADA', 'CANCELADA', 'FALTA']
 
-export function SeletorStatusConsulta({ consulta, aoAtualizar }: { consulta: Consulta, aoAtualizar: (consulta: Consulta) => void }) {
+export function SeletorStatusConsulta({ consulta, aoAtualizar, usarApiReal = false }: {
+  consulta: Consulta
+  aoAtualizar: (consulta: Consulta) => void
+  usarApiReal?: boolean
+}) {
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState<StatusConsulta | ''>('')
   if (consulta.status !== 'AGENDADA') return null
@@ -12,7 +16,7 @@ export function SeletorStatusConsulta({ consulta, aoAtualizar }: { consulta: Con
     setSalvando(status)
     setErro('')
     try {
-      aoAtualizar(await servicoConsultas.atualizarStatus(consulta.id, status))
+      aoAtualizar(await servicoConsultas.atualizarStatus(consulta.id, status, { usarApiReal }))
     } catch (falha) {
       setErro(falha instanceof Error ? falha.message : 'Não foi possível atualizar o status.')
     } finally {
@@ -21,7 +25,7 @@ export function SeletorStatusConsulta({ consulta, aoAtualizar }: { consulta: Con
   }
 
   return (
-    <div className="acoes-status">
+    <div className="acoes-status" aria-busy={!!salvando}>
       {finais.map(status => (
         <button className="consulta-status-botao" key={status} type="button" disabled={!!salvando} onClick={() => void atualizar(status)}>
           {salvando === status ? 'Atualizando...' : rotuloStatus(status)}

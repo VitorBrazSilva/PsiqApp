@@ -69,7 +69,7 @@ export function Aplicacao() {
           </div>
         </header>
         <main id="conteudo" tabIndex={-1}><Rotas /></main>
-        <footer className="page-footer"><span>Protótipo navegável. Nenhum dado é enviado ou salvo no servidor.</span><span>A / Foco clínico</span></footer>
+        <footer className="page-footer"><span>Ambiente de demonstração. Use somente dados fictícios.</span><span>A / Foco clínico</span></footer>
       </div>
     </div>
   </>

@@ -38,7 +38,12 @@ export async function criarParecer(api: APIRequestContext, pacienteId: string, t
   return response.json() as Promise<{ registro: { id: string; pacienteId: string; texto: string }; geracaoId: string }>
 }
 
-export async function criarConsulta(api: APIRequestContext, pacienteId: string, agendadaPara = new Date(Date.now() + 86_400_000).toISOString()) {
+function horarioConsultaFicticioUnico() {
+  const minutosDeDeslocamento = Number.parseInt(randomUUID().slice(0, 8), 16) % (365 * 24 * 60)
+  return new Date(Date.now() + 86_400_000 + minutosDeDeslocamento * 60_000).toISOString()
+}
+
+export async function criarConsulta(api: APIRequestContext, pacienteId: string, agendadaPara = horarioConsultaFicticioUnico()) {
   const response = await api.post(`/api/v1/pacientes/${pacienteId}/consultas`, {
     headers: { 'Idempotency-Key': randomUUID() },
     data: { pacienteId, agendadaPara, observacoes: 'Consulta fictícia para validação E2E.' },

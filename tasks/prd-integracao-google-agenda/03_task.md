@@ -32,11 +32,11 @@ Tasks 1.0 e 2.0 aprovadas, com contratos HTTP disponíveis para o frontend.
 
 ## Subtarefas
 
-- [ ] 3.1 Adicionar serviço/contratos da feature para estado, OAuth, disponibilidade e nova tentativa de sincronização.
-- [ ] 3.2 Integrar painel de conexão, disclosure e estados de recuperação em `PaginaAgenda`.
-- [ ] 3.3 Integrar verificação e invalidação de disponibilidade em `FormularioConsulta`.
-- [ ] 3.4 Integrar indicadores e ação de sincronização em `ListaConsultas`.
-- [ ] 3.5 Cobrir estados, falhas e acessibilidade em Vitest/Testing Library e Playwright; atualizar documentação operacional.
+- [x] 3.1 Adicionar serviço/contratos da feature para estado, OAuth, disponibilidade e nova tentativa de sincronização.
+- [x] 3.2 Integrar painel de conexão, disclosure e estados de recuperação em `PaginaAgenda`.
+- [x] 3.3 Integrar verificação e invalidação de disponibilidade em `FormularioConsulta`.
+- [x] 3.4 Integrar indicadores e ação de sincronização em `ListaConsultas`.
+- [x] 3.5 Cobrir estados, falhas e acessibilidade em Vitest/Testing Library e Playwright; atualizar documentação operacional.
 
 ## Critérios de sucesso
 
@@ -49,12 +49,12 @@ Tasks 1.0 e 2.0 aprovadas, com contratos HTTP disponíveis para o frontend.
 - README e documentação humana descrevem somente fluxos implementados; a documentação passa pelo `project-documentation-maintainer` antes do commit.
 
 ## Testes obrigatórios
-- [ ] Unitários/componente: estados de conexão/sincronização, verificação e invalidação por alteração da data/hora, bloqueio de envio, mensagens distintas e nova tentativa.
-- [ ] Integração: cliente HTTP da feature para rotas novas, erros Problem Details e resposta sem credenciais/detalhes Google.
-- [ ] E2E/sistema: conectar/desconectar; sem conexão; conflito local/Google; falha de disponibilidade; consulta pendente e sincronizada; atualização de `REALIZADA`/`FALTA`; cancelamento; consulta legada.
-- [ ] Acessibilidade/responsividade: teclado e foco, leitor de tela/announcements, labels e erros, zoom/reflow, breakpoint móvel e `prefers-reduced-motion`.
-- [ ] Casos de erro/edge cases: configuração ausente, autorização revogada, consulta ocupada, indisponibilidade sem falso conflito, erro ao sincronizar, nova tentativa e mudança de data/hora depois de uma verificação.
-- [ ] E2E usa backend/fakes locais e dados fictícios; não depende de conta Google ou rede externa.
+- [x] Unitários/componente: estados de conexão/sincronização, verificação e invalidação por alteração da data/hora, bloqueio de envio, mensagens distintas e nova tentativa.
+- [x] Integração: cliente HTTP da feature para rotas novas, erros Problem Details e resposta sem credenciais/detalhes Google.
+- [x] E2E/sistema: conectar/desconectar; sem conexão; conflito local/Google; falha de disponibilidade; consulta pendente e sincronizada; atualização de `REALIZADA`/`FALTA`; cancelamento; consulta legada.
+- [x] Acessibilidade/responsividade: teclado e foco, leitor de tela/announcements, labels e erros, zoom/reflow, breakpoint móvel e `prefers-reduced-motion`.
+- [x] Casos de erro/edge cases: configuração ausente, autorização revogada, consulta ocupada, indisponibilidade sem falso conflito, erro ao sincronizar, nova tentativa e mudança de data/hora depois de uma verificação.
+- [x] E2E usa backend/fakes locais e dados fictícios; não depende de conta Google ou rede externa.
 
 ## Skills aplicáveis
 

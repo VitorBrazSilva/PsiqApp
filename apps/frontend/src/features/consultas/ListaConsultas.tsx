@@ -1,14 +1,17 @@
+import { useState } from 'react'
 import { EstadoVazio } from '../../shared/componentes/EstadoVazio'
 import { SeletorStatusConsulta } from './SeletorStatusConsulta'
 import { rotuloStatus, type Consulta } from './servicoConsultas'
+import { servicoGoogleAgenda, type EstadoSincronizacaoGoogleAgenda } from './servicoGoogleAgenda'
 
-export function ListaConsultas({ consultas, carregando, aoAtualizar, nomesPacientes }: {
+export function ListaConsultas({ consultas, carregando, aoAtualizar, nomesPacientes, usarApiReal = false }: {
   consultas: Consulta[]
   carregando: boolean
   aoAtualizar: (consulta: Consulta) => void
   nomesPacientes?: Record<string, string>
+  usarApiReal?: boolean
 }) {
-  if (carregando) return <p className="estado">Carregando agenda...</p>
+  if (carregando) return <p className="estado" role="status">Carregando agenda...</p>
   if (!consultas.length) return <EstadoVazio mensagem="Nenhuma consulta encontrada para o periodo." />
   return (
     <ul className="lista consultas">
@@ -22,14 +25,63 @@ export function ListaConsultas({ consultas, carregando, aoAtualizar, nomesPacien
             <strong>{formatarDataCompleta(consulta.agendadaPara)}</strong>
             <span>{formatarHora(consulta.agendadaPara)}{nomesPacientes ? ` · ${nomesPacientes[consulta.pacienteId] ?? consulta.pacienteId}` : ''}</span>
             {consulta.observacoes && <p>{consulta.observacoes}</p>}
+            <EstadoSincronizacao consulta={consulta} aoAtualizar={aoAtualizar} />
           </div>
           <div className="consulta-acoes">
             <span className={`consulta-status status-${consulta.status.toLowerCase()}`}>{rotuloStatus(consulta.status)}</span>
-            <SeletorStatusConsulta consulta={consulta} aoAtualizar={aoAtualizar} />
+            <SeletorStatusConsulta consulta={consulta} aoAtualizar={aoAtualizar} usarApiReal={usarApiReal} />
           </div>
         </li>
       ))}
     </ul>
+  )
+}
+
+const rotulosSincronizacao: Record<EstadoSincronizacaoGoogleAgenda, string> = {
+  SINCRONIZADA: 'Sincronizada com Google Agenda',
+  AGUARDANDO_CONEXAO: 'Aguardando conexão com Google Agenda',
+  PENDENTE: 'Aguardando sincronização com Google Agenda',
+  FALHA: 'Falha ao sincronizar com Google Agenda',
+  NAO_APLICAVEL: 'Sem evento Google associado',
+}
+
+function EstadoSincronizacao({ consulta, aoAtualizar }: {
+  consulta: Consulta
+  aoAtualizar: (consulta: Consulta) => void
+}) {
+  const [tentando, setTentando] = useState(false)
+  const [erro, setErro] = useState('')
+  const [mensagem, setMensagem] = useState('')
+  const estado = consulta.sincronizacaoGoogleAgenda?.estado ?? 'NAO_APLICAVEL'
+
+  async function tentarNovamente() {
+    setTentando(true)
+    setErro('')
+    setMensagem('')
+    try {
+      const atualizada = await servicoGoogleAgenda.tentarSincronizarNovamente(consulta.id)
+      aoAtualizar(atualizada)
+      setMensagem('Nova tentativa de sincronização solicitada.')
+    } catch {
+      setErro('Não foi possível solicitar a sincronização. Tente novamente.')
+    } finally {
+      setTentando(false)
+    }
+  }
+
+  return (
+    <div className="google-agenda-sincronizacao" aria-busy={tentando}>
+      <span className={`google-agenda-selo-sincronizacao sync-${estado.toLowerCase()}`}>
+        {rotulosSincronizacao[estado]}
+      </span>
+      {(estado === 'PENDENTE' || estado === 'FALHA') && (
+        <button className="google-agenda-tentar" type="button" onClick={() => void tentarNovamente()} disabled={tentando}>
+          {tentando ? 'Solicitando...' : 'Tentar sincronizar novamente'}
+        </button>
+      )}
+      <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">{mensagem}</span>
+      {erro && <span className="google-agenda-erro-tentativa" role="alert">{erro}</span>}
+    </div>
   )
 }
 

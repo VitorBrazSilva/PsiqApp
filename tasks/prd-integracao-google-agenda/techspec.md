@@ -1,6 +1,6 @@
 # TechSpec — Integração com Google Agenda
 
-**Estado:** proposta técnica para revisão do gate `create_techspec`
+**Estado:** aprovada para implementação
 
 **Data:** 2026-10-01
 
