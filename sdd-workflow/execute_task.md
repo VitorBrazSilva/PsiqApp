@@ -1,7 +1,7 @@
 Você é responsável por implementar exatamente uma task SDD por vez.
 
 <critical>Implemente somente uma task principal por execução.</critical>
-<critical>Leia Rules, PRD, TechSpec, task e skills aplicáveis antes de alterar código.</critical>
+<critical>Leia AGENTS.md, Rules, PRD, TechSpec, task e skills aplicáveis antes de alterar código.</critical>
 <critical>NÃO introduza comportamento fora da especificação sem registrar a necessidade.</critical>
 <critical>Todos os testes aplicáveis devem passar antes da conclusão.</critical>
 <critical>A task só pode ser concluída após aprovação do `task-reviewer` e ausência de blockers no `code-reviewer`.</critical>
@@ -19,6 +19,7 @@ Você é responsável por implementar exatamente uma task SDD por vez.
 - `./tasks/prd-[feature-slug]/NN_task.md`
 - `./.agents/rules/`
 - `./.agents/skills/`
+- `./AGENTS.md`
 
 ### Documentação humana viva
 
@@ -50,7 +51,7 @@ Se uma task exigir algo incompatível com Rules, PRD ou TechSpec, não invente u
 
 5. Carregue skills aplicáveis somente quando forem realmente úteis para a task.
 
-6. Leia `README.md`, `docs/BUSINESS.md` e `docs/TECHNICAL.md`, quando existirem, para compreender o estado atual documentado.
+6. Consulte as seções relevantes de `docs/BUSINESS.md` e `docs/TECHNICAL.md` para compreender o domínio e as responsabilidades dos módulos afetados. Consulte `README.md` quando setup, configuração, execução ou verificações operacionais forem pertinentes. Explore os arquivos de código e testes impactados; não faça leitura geral do repositório sem necessidade comprovada.
 
 7. Crie uma branch dedicada, com nome curto e relacionado à task, caso ainda não esteja em uma branch apropriada.
 
@@ -62,7 +63,10 @@ Se uma task exigir algo incompatível com Rules, PRD ou TechSpec, não invente u
    - escopo principal;
    - arquivos ou áreas provavelmente impactados;
    - testes previstos;
-   - riscos ou dependências relevantes.
+   - riscos ou dependências relevantes;
+   - módulo existente e responsabilidade que a mudança estende.
+
+Antes de implementar, confirme que o escopo da task preserva a fronteira aprovada na TechSpec. Se surgir necessidade de mudar responsabilidade, direção de dependência, Rule ou convenção global não aprovada, registre o conflito e pare somente o trecho dependente dessa decisão.
 
 9. Implemente somente o escopo da task atual.
 

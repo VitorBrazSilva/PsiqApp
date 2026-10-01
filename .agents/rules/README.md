@@ -4,6 +4,14 @@ Arquivos destinados a `.agents/rules/`.
 
 Estas Rules representam invariantes e guard rails do projeto e devem ser consideradas por agentes de PRD review, TechSpec, criação de Tasks, implementação, code review, QA e feature review.
 
+## Como aplicar
+
+- `AGENTS.md` é a entrada do repositório e indica quais fontes consultar em cada etapa.
+- Antes de iniciar uma etapa SDD, leia esta página e as Rules relevantes ao escopo. Segurança clínica e privacidade são obrigatórias sempre que a feature tocar IA, prontuários ou dados pessoais.
+- Use `docs/BUSINESS.md` como referência para comportamento atual e termos de domínio; use `docs/TECHNICAL.md` como mapa da arquitetura, módulos e responsabilidades atuais. Consulte as seções afetadas, não o documento inteiro por padrão.
+- A TechSpec registra como a proposta se encaixa nas responsabilidades e fronteiras existentes. Desvios ou mudanças de invariantes exigem decisão explícita e atualização das fontes canônicas antes da implementação.
+- A implementação e o review devem confirmar o contexto documentado nos arquivos impactados. Se documento, código e especificação divergirem, registre a divergência e resolva-a conforme a precedência abaixo; não transforme uma inconsistência existente em novo padrão.
+
 ## Files
 
 - `product-invariants.md`
@@ -11,6 +19,7 @@ Estas Rules representam invariantes e guard rails do projeto e devem ser conside
 - `clinical-data-privacy.md`
 - `architecture-boundaries.md`
 - `testing-quality.md`
+- `documentation-maintenance.md`
 
 ## Precedence
 

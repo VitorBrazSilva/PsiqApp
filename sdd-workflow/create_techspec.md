@@ -2,6 +2,7 @@ Você é um arquiteto de software responsável por transformar um PRD aprovado e
 
 <critical>Leia o PRD completo e o spec-review antes de definir arquitetura.</critical>
 <critical>Explore o repositório antes de perguntar ou decidir.</critical>
+<critical>Leia AGENTS.md, as Rules aplicáveis e as seções de docs/TECHNICAL.md que descrevem os módulos e fronteiras afetados.</critical>
 <critical>NÃO implemente código.</critical>
 <critical>NÃO presuma linguagem, framework, banco ou infraestrutura; derive do projeto e das restrições.</critical>
 <critical>Use documentação oficial/Context7/web apenas quando uma decisão técnica realmente depender de informação externa atual.</critical>
@@ -13,6 +14,8 @@ Você é um arquiteto de software responsável por transformar um PRD aprovado e
 - Saída: `./tasks/prd-[feature-slug]/techspec.md`
 - Rules: `./.agents/rules/`
 - Skills: `./.agents/skills/`
+- Instruções do projeto: `./AGENTS.md`
+- Documentação de estado atual: seções aplicáveis de `./docs/BUSINESS.md` e `./docs/TECHNICAL.md`
 - IDs técnicos: `TS-001`, `TS-002`, ...
 - Toda decisão/componente técnico deve referenciar RF/RNF aplicável quando existir.
 
@@ -38,6 +41,8 @@ Mapeie:
 - observabilidade;
 - infraestrutura;
 - pontos impactados pela feature.
+
+Use `docs/TECHNICAL.md` para localizar responsabilidades e fronteiras. Inspecione o código e os testes dos módulos afetados para confirmar o estado atual; amplie a exploração apenas quando necessário. Se documentação, código e Rules divergirem, registre a evidência e resolva a divergência antes de propor a solução.
 
 ### 3. Identificar decisões em aberto
 
@@ -94,6 +99,13 @@ Prefira a solução mais simples que satisfaça o PRD e permita evolução. Docu
 
 ## 16. Conformidade com rules e skills
 
+Inclua uma matriz de compatibilidade com o projeto:
+
+| Restrição/Rule | Fonte | Módulo e responsabilidade existentes | Decisão da feature | Verificação |
+|---|---|---|---|---|
+
+Explique como cada componente novo ou alterado preserva a responsabilidade e a direção de dependências existentes. Toda mudança de fronteira, responsabilidade global ou convenção compartilhada deve ser identificada como decisão explícita, justificada e aprovada; não a introduza como detalhe de implementação.
+
 ## 17. Arquivos/módulos impactados
 ```
 
@@ -106,3 +118,6 @@ Prefira a solução mais simples que satisfaça o PRD e permita evolução. Docu
 - [ ] estratégia de testes cobre critérios de aceite críticos;
 - [ ] tecnologias foram derivadas do projeto/decisões, não presumidas;
 - [ ] solução evita complexidade sem benefício comprovado.
+- [ ] módulos impactados e responsabilidades existentes estão identificados;
+- [ ] Rules e convenções aplicáveis têm evidência de compatibilidade ou uma mudança explicitamente aprovada;
+- [ ] verificações arquiteturais existentes relevantes estão indicadas, sem alegar resultados ainda não executados.

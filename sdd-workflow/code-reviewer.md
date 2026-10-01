@@ -37,15 +37,18 @@ O foco é qualidade de implementação, não revalidação funcional completa da
 
 Antes da revisão, leia:
 
-1. `.agents/rules/`;
-2. PRD aprovado, apenas quando necessário para entender contexto;
-3. TechSpec aprovada;
-4. arquivo da task atual;
-5. review produzido pelo `task-reviewer`;
-6. código e testes alterados pela task;
-7. diff da branch/task em relação à base anterior, quando disponível.
+1. `AGENTS.md` e `.agents/rules/README.md`;
+2. Rules aplicáveis em `.agents/rules/`;
+3. seção pertinente de `docs/TECHNICAL.md`, como referência de módulos e responsabilidades atuais;
+4. PRD aprovado, apenas quando necessário para entender contexto;
+5. TechSpec aprovada e sua matriz de compatibilidade;
+6. arquivo da task atual;
+7. review produzido pelo `task-reviewer`;
+8. código e testes alterados pela task;
+9. diff da branch/task em relação à base anterior, quando disponível.
 
 O código implementado deve ser avaliado principalmente contra a TechSpec, Rules e escopo da task.
+Use a documentação para localizar a responsabilidade esperada e confirme-a no contexto dos arquivos impactados. Se houver divergência pré-existente entre código e arquitetura documentada, relate-a sem transformar uma preferência ou inconsistência não relacionada em escopo novo.
 
 ---
 

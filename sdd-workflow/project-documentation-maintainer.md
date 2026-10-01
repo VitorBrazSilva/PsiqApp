@@ -66,6 +66,7 @@ Deve conter apenas o necessário para:
 
 Antes de decidir qualquer atualização, leia:
 
+- `AGENTS.md` e `.agents/rules/README.md`;
 - diff atual da branch/task (`git diff`, `git status`, commits relevantes);
 - `docs/BUSINESS.md`, se existir;
 - `docs/TECHNICAL.md`, se existir;
@@ -89,6 +90,8 @@ Antes de decidir qualquer atualização, leia:
 6. Preserve linguagem ubíqua e terminologia canônica do projeto.
 7. Verifique links/caminhos/comandos alterados quando aplicável.
 8. Não crie commit; o agente chamador é responsável pelo commit final.
+
+Se uma decisão aprovada alterar uma Rule, uma responsabilidade de módulo ou uma convenção compartilhada, confirme que a task atualizou também a Rule e a documentação técnica pertinente. Não altere uma Rule para acomodar uma implementação que ainda não foi aprovada.
 
 ## Matriz de decisão
 

@@ -2,16 +2,15 @@
 
 ## 1. Estado técnico atual
 
-Revisado em 23/09/2026 contra o código, as migrations, os contratos HTTP, o frontend, o CI e os artefatos das duas features.
+Revisado em 01/10/2026 contra o código, as migrations, os contratos HTTP, o frontend, os testes versionados, o CI e os artefatos SDD presentes no checkout.
 
 O monorepo contém backend Spring Boot, frontend React, PostgreSQL, worker assíncrono configurável e execução completa via Docker Compose. Estão implementados cadastro/busca de pacientes, agenda/status de consultas, pareceres e complementos append-only, linha do tempo, geração automática, análise atual, evidências, histórico de gerações e regeneração manual.
 
-**Implementação e aprovação têm estados diferentes:** as tasks 01–10 do MVP estão concluídas no índice, mas a task 11 de QA integrado continua pendente e o feature review registra `NOT READY`. A refatoração registra `READY`; a revisão atual encontrou divergências entre essa aprovação e o código, especialmente no upgrade de dados, na minimização do contexto de IA e na conclusão da nomenclatura. Veja a [revisão documental](REVISAO-DOCUMENTAL.md).
+**O código e os gates de entrega são evidências diferentes:** os diretórios das tasks do MVP e da refatoração de nomenclaturas não estão presentes neste checkout, portanto seus estados históricos `READY`/`NOT READY` não podem ser confirmados aqui. A integração com Google Agenda possui PRD, spec review aprovado e TechSpec, mas não há implementação correspondente no código. Veja a [revisão documental](REVISAO-DOCUMENTAL.md).
 
-Este documento descreve a implementação presente e identifica seus limites. As especificações mantêm os requisitos e decisões de origem:
+Este documento descreve a implementação presente e identifica seus limites. As Rules continuam sendo as invariantes do projeto. O artefato de feature disponível neste checkout descreve escopo planejado:
 
-- [PRD e artefatos do MVP](../tasks/prd-psiqapp-mvp/prd.md);
-- [PRD da refatoração](../tasks/prd-refatoracao-arquitetural-nomenclaturas/prd.md) e [TechSpec](../tasks/prd-refatoracao-arquitetural-nomenclaturas/techspec.md);
+- [PRD da integração com Google Agenda](../tasks/prd-integracao-google-agenda/prd.md) e [TechSpec](../tasks/prd-integracao-google-agenda/techspec.md);
 - Rules de [arquitetura](../.agents/rules/architecture-boundaries.md), [produto](../.agents/rules/product-invariants.md), [privacidade](../.agents/rules/clinical-data-privacy.md), [segurança clínica](../.agents/rules/clinical-ai-safety.md) e [qualidade](../.agents/rules/testing-quality.md).
 
 ## 2. Stack configurada no repositório
@@ -46,9 +45,9 @@ apps/
   frontend/         # React/Vite, Dockerfile, Nginx, Playwright
 infra/compose.yaml
 docs/
+  redesign/       # protótipos, direção visual e análise de UX
 tasks/
-  prd-psiqapp-mvp/
-  prd-refatoracao-arquitetural-nomenclaturas/
+  prd-integracao-google-agenda/  # PRD/TechSpec; ainda sem implementação
 .agents/rules/
 ```
 
@@ -196,7 +195,7 @@ Criação de paciente, consulta, parecer, complemento e regeneração manual exi
 - V003: análises, evidências, tentativas e proteções append-only adicionais.
 - V004: renomeação das oito tabelas e de parte das colunas/índices, conversão de enums e tentativa de conversão do JSONB histórico.
 
-V001–V003 permanecem como histórico. V004 é executada também na criação de uma base nova. Há pendências no upgrade de uma base V003 com análises/evidências: atualizações colidem com triggers append-only ativos, os valores antigos de `campo` não são convertidos e a conversão interna do JSONB só trata `linhaDoTempo`. A [revisão documental](REVISAO-DOCUMENTAL.md) detalha os pontos; passagem de migrations em banco vazio não comprova preservação de uma base populada.
+V001–V003 permanecem como histórico. V004 é executada também na criação de uma base nova. O upgrade de uma base V003 populada permanece sem validação: a migration reativa o trigger append-only de `analise_clinica` antes de normalizar o JSONB, não converte os valores antigos de `evidencia_analise.campo` antes de adicionar o novo CHECK e só normaliza objetos internos de `linhaDoTempo`. O teste de bootstrap atual aplica as quatro migrations em banco vazio; isso não comprova upgrade nem preservação de dados existentes. A [revisão documental](REVISAO-DOCUMENTAL.md) detalha a inspeção.
 
 ## 7. Índices, constraints e proteção dos dados
 
@@ -384,12 +383,12 @@ DTOs efetivos:
 | `CriarRegistroClinicoRequest` | `texto`, `humor`, `medicamentos`, `dataHoraClinica`, `consultaId`. O complemento rejeita `consultaId` preenchido. |
 | `RegistroClinicoResponse` | `id`, `pacienteId`, `tipo`, `parecerOriginalId`, `consultaId`, `dataHoraClinica`, `criadoEm`, `texto`, `humor`, `medicamentos`, `revisao`. |
 | `CriarRegistroClinicoResponse` | `registro`, `geracaoId`, `geracao` inicialmente `ENFILEIRADA`. |
-| `GeracaoAnaliseResponse` | `id`, `pacienteId`, `estado`, `revisaoSnapshot`, `sequenciaRequest`, `solicitadaEm`, `totalRegistros`, `totalOriginais`, `totalComplementos`, `ultimoRegistroClinicoId`, `modo`. |
+| `GeracaoAnaliseResponse` | `id`, `pacienteId`, `estado`, `revisaoSnapshot`, `sequenciaRequest`, `solicitadaEm`, `totalRegistros`, `totalOriginais`, `totalComplementos`, `ultimoRegistroClinicoId`, `modo`, `analiseId`. |
 | `EstadoAnaliseResponse` | `analiseAtual`, `ultimaGeracao`, `geracaoAtiva`, `podeRegenerar`, `motivo`. |
 | `AnaliseResponse` | `id`, `geracaoId`, `pacienteId`, `geradaEm`, `modo`, `linhaDoTempo`, `padroes`, `pontosDeAtencao`, `limitacoes`. |
 | `PaginaResponse<T>` | `itens`, `pagina`, `tamanho`, `total`. |
 
-As contagens/corte do snapshot estão em `GeracaoAnaliseResponse`. Esse DTO ainda não expõe código de falha, número de tentativas, instante de conclusão ou ID da análise resultante; o histórico da interface exibe os metadados disponíveis.
+As contagens/corte do snapshot e, quando disponível, o `analiseId` estão em `GeracaoAnaliseResponse`. O DTO não expõe código de falha, número de tentativas nem instante de conclusão. A interface usa `analiseId` para abrir uma análise histórica concluída.
 
 ## 12. Erros, paginação e datas
 
@@ -482,7 +481,7 @@ Capacidades implementadas:
 - Agenda e prontuário possuem criação de consultas com `Idempotency-Key`, listagem de consultas, exibição de paciente/data/hora/status, estados carregando/vazio/erro e atualização de status final (`REALIZADA`, `CANCELADA`, `FALTA`). No prontuário, a criação usa sempre o paciente da rota atual.
 - Prontuário clínico possui formulários de parecer original e complemento com `Idempotency-Key`, data/hora clínica, texto obrigatório, humor e medicações opcionais. A linha do tempo exibe originais e complementos com metadados e referência ao parecer original.
 - Análise clínica possui painel de análise atual, limitações persistentes, seções de timeline resumida, padrões e pontos de atenção, mensagens fixas para seções vazias, evidências clicáveis para abrir a fonte do registro clínico, histórico de gerações e regeneração manual quando `podeRegenerar` permite.
-- O histórico da UI lista metadados de gerações e abre uma versão concluída somente quando o contrato fornece `analiseId`; a tela valida paciente e geração antes de exibir o conteúdo histórico. Gerações sem vínculo permanecem indisponíveis explicitamente e não substituem a análise atual.
+- O histórico da UI lista metadados de gerações e abre uma versão concluída quando o contrato fornece `analiseId`; a tela valida paciente e geração antes de exibir o conteúdo histórico. Gerações sem vínculo permanecem indisponíveis explicitamente e não substituem a análise atual.
 - Polling de análise ocorre a cada 3 segundos somente enquanto houver geração ativa e a aba estiver visível; ao retornar à aba, consulta imediatamente. O hook evita requisições sobrepostas, descarta respostas de paciente anterior e não sobrescreve formulários clínicos em edição.
 - Aviso de uso exclusivo de dados fictícios no layout comum, sem dispensa e com posicionamento sticky; CSS responsivo simples, navegação semântica e foco visível.
 - `ClienteApi.requisitar<T>` usa base relativa `/api/v1`, JSON, `Accept` comum, `Idempotency-Key` opcional e `AbortSignal`. Não mantém cache de paciente, não faz retry automático e usa `cache: no-store`.
@@ -562,7 +561,7 @@ Conexão OAuth opcional do Google Agenda:
 
 O logger operacional usa nível INFO e o root usa WARN. O INFO emitido pelo scheduler não é uma trilha estruturada completa de geração/tentativa nessa configuração. A auditoria de tentativas é persistida em `tentativa_geracao_analise`.
 
-Logs não devem expor conteúdo clínico, respostas integrais da IA, CPF completo, credenciais ou secrets. Há testes de formato/privacidade de logs e erros; a varredura operacional integrada requerida pela task 11 ainda precisa de evidência final.
+Logs não devem expor conteúdo clínico, respostas integrais da IA, CPF completo, credenciais ou secrets. Há testes de formato/privacidade de logs e erros. A revisão documental não executou uma varredura operacional integrada.
 
 Actuator expõe apenas health/readiness, sem detalhes; OpenAPI é um endpoint separado. Não há plataforma externa de observabilidade nem heartbeat persistente implementado.
 
@@ -570,7 +569,7 @@ Actuator expõe apenas health/readiness, sem detalhes; OpenAPI é um endpoint se
 
 O backend usa JUnit 5, Spring Boot Test, Mockito, ArchUnit e Testcontainers PostgreSQL. `mvnw verify` executa testes unitários/contexto e os `*IT` de APIs, banco, registros, análises e worker. Os testes cobrem contratos, append-only, snapshot, evidências, isolamento, idempotência e falhas/retentativas em camadas específicas.
 
-O frontend usa Vitest/Testing Library para cliente HTTP, formulários, fluxos e polling. Playwright possui cinco cenários em dois arquivos: cadastro/busca, criação de consulta, parecer/complemento/evidência, isolamento de registros e análise com histórico insuficiente após reload. As fixtures usam a API local; não há interceptação de rede que substitua o backend nessa suíte. O nome `isolamento-e-falha-ia.spec.ts` não significa que já exista cenário de falha do provider no arquivo.
+O frontend usa Vitest/Testing Library para cliente HTTP, formulários, fluxos e polling. Playwright contém sete testes em três arquivos: cadastro/busca, criação de consulta, parecer/complemento/evidência, isolamento de registros, histórico insuficiente após reload, layout responsivo da análise e navegação por teclado no histórico. As fixtures usam a API local; não há interceptação de rede que substitua o backend nessa suíte. Apesar do nome `isolamento-e-falha-ia.spec.ts`, seus testes não simulam falha, timeout ou retry do provider.
 
 ### CI configurado
 
@@ -582,21 +581,19 @@ O frontend usa Vitest/Testing Library para cliente HTTP, formulários, fluxos e 
 
 ### Evidências e seus limites
 
-O QA da refatoração registra 45 testes backend, 35 frontend e cinco E2E aprovados. Esses números são evidências históricas daquele relatório, não uma execução realizada nesta revisão documental.
-
-O gate do MVP continua pendente: faltam evidências finais de falha/timeout/retry no fluxo E2E, isolamento integrado completo, varredura operacional de logs e volume de RNF-008. O teste `BackendBootstrapIT` aplica quatro migrations em banco vazio; não foi encontrado teste versionado que prepare uma base V003 populada e valide seu upgrade para V004. O relatório da refatoração não substitui essa cobertura específica.
+O workflow de CI define jobs de backend, frontend e E2E, mas esta revisão documental não executou esses jobs nem as suítes locais. A pasta `tasks/` atual não contém relatórios de QA ou feature review do MVP; por isso, este documento não atribui um gate de aprovação à feature. A inspeção dos testes encontrou sete casos Playwright, sem cenário E2E de falha, timeout ou retry do provider. `BackendBootstrapIT` verifica V001–V004 em banco novo; não foi encontrado teste versionado que prepare V003 com dados e valide o upgrade para V004.
 
 Testes comuns usam fake/mock e dados fictícios; não precisam de OpenAI real. Testes contra provider externo exigem autorização explícita.
 
 ## 18. Situação das features
 
-| Feature | Implementação e registro de entrega | Pendências |
-|---|---|---|
-| `prd-psiqapp-mvp` | Tasks 01–10 marcadas como concluídas; fluxos backend/frontend presentes. | Task 11 parcial; feature review `NOT READY`, QA e clinical safety sem aprovação final. Os bloqueios antigos de JDK/backend estão resolvidos nos próprios artefatos. |
-| `prd-refatoracao-arquitetural-nomenclaturas` | Tasks 01–08 com encerramento registrado; feature review `READY`; rotas, JSON público, tabelas e enums principais atualizados. | A inspeção atual encontrou padronização incompleta, riscos de upgrade e divergências do adapter de IA. Não há nova aprovação desses pontos. |
-| `prd-integracao-google-agenda` | Task 1.0 implementada: conexão OAuth server-side e refresh token cifrado. | Tasks 2.0 e 3.0 ainda cobrem disponibilidade, sincronização durável e interface; uso permanece restrito a dados fictícios. |
+| Área | Estado verificável neste checkout |
+|---|---|
+| Pacientes, consultas, prontuário e análise | Backend e frontend implementam os fluxos descritos nas seções anteriores; testes unitários, de integração e E2E estão versionados. A presença dos testes não comprova que passaram nesta revisão. |
+| Integração com Google Agenda | Task 1.0 entrega conexão OAuth server-side com refresh token cifrado. As tasks 2.0 e 3.0 ainda cobrem disponibilidade, sincronização durável e interface; uso permanece restrito a dados fictícios. |
+| Gates antigos do MVP e da refatoração de nomenclaturas | Os diretórios SDD correspondentes não estão presentes neste checkout. Seus estados históricos de aprovação não podem ser confirmados pelos arquivos atuais. |
 
-A [revisão documental](REVISAO-DOCUMENTAL.md) relaciona achados, fontes e ações necessárias. Os PRDs e TechSpecs preservam requisitos de origem; este documento descreve o código atual. A aprovação da refatoração não encerra automaticamente o gate do MVP.
+A [revisão documental](REVISAO-DOCUMENTAL.md) registra a comparação realizada e seus limites. Os artefatos atuais da integração Google descrevem as entregas concluídas e planejadas.
 
 ## 19. Limites técnicos do MVP
 
@@ -621,14 +618,14 @@ Não implementar no MVP sem nova decisão:
 
 ## 20. Pendências técnicas e de validação
 
-As pendências atuais não são criar o bootstrap, definir todas as migrations ou implementar os fluxos principais; esses artefatos já existem. Permanecem:
+Os pontos abaixo foram confirmados por inspeção estática do código e dos artefatos disponíveis; não representam um gate histórico de feature:
 
-- corrigir e demonstrar upgrade V003 → V004 com registros, gerações, análises e evidências existentes, preservando todas as seções e naturezas do JSONB;
-- concluir a nomenclatura interna e avaliar as separações de responsabilidades ainda divergentes da TechSpec;
-- remover IDs internos do contexto enviado ao provider e alinhar prompt ao schema/modo em português;
-- definir/aplicar limites de contexto e saída, deadline global da tentativa e completar auditoria de versões quando exigida;
-- tratar expiração da última reserva no limite de tentativas, sem deixar geração ativa indefinidamente;
-- completar a validação integrada da task 11: falha/timeout/retry de IA, isolamento, logs, volume e avaliação observacional do uso;
-- reconciliar os gates históricos com novas evidências antes de declarar o MVP aprovado.
+- validar e corrigir upgrade V003 → V004 com análises e evidências fictícias já persistidas, incluindo todas as seções do JSONB;
+- minimizar o payload OpenAI: `montarPayload` serializa `RegistroSnapshot` diretamente, incluindo UUID interno e `revisao`;
+- alinhar o prompt OpenAI ao schema e aos modos atuais em português; o texto atual usa chaves/valores em inglês e contém caracteres acentuados corrompidos;
+- encerrar ou recuperar uma geração `EM_EXECUCAO` cuja lease expire já no limite de tentativas; a recuperação atual só reivindica leases expiradas quando `contagem_tentativas < maxTentativas`;
+- definir o comportamento desejado para limite global de tempo e limites de entrada/saída da IA antes de tratar esses controles como garantias existentes;
+- completar a implementação da integração Google Agenda conforme PRD/TechSpec, caso a feature siga adiante;
+- executar os checks do CI e documentar evidências atuais antes de declarar aprovação de entrega. Esta revisão não os executou.
 
-Catálogo de segurança, envelopes HTTP, mensagens de UI, SQL e política de idempotência já possuem implementações concretas descritas neste documento. Seus limites devem ser considerados em futuras alterações. Os detalhes desta revisão estão em [REVISAO-DOCUMENTAL.md](REVISAO-DOCUMENTAL.md).
+Os demais limites da implementação estão descritos nas seções de banco, IA, API, frontend e operação. Fontes e evidências desta revisão estão em [REVISAO-DOCUMENTAL.md](REVISAO-DOCUMENTAL.md).

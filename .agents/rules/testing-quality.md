@@ -15,6 +15,12 @@ Nenhuma Task pode ser marcada como concluída quando viola requisito crítico, p
 - Testes devem validar comportamento e objetivo de negócio, não apenas cobertura de linhas.
 - Testes novos devem usar nomes que deixem claro qual regra ou cenário está sendo protegido.
 
+## Verificações arquiteturais
+
+- Quando uma mudança tocar uma fronteira arquitetural que possa ser expressa por testes ou verificações estáticas existentes, a TechSpec e a task devem apontar essa verificação e a conclusão deve registrar seu resultado.
+- Se uma regra arquitetural não tiver verificação automatizada viável, o review deve registrar a evidência manual de compatibilidade e a lacuna de automação. Documentação ou aprovação de review, isoladamente, não deve ser descrita como bloqueio automatizado.
+- Não adicione uma ferramenta ou suíte arquitetural nova sem benefício concreto e decisão técnica registrada na TechSpec.
+
 ## Mandatory critical scenarios
 
 Quando aplicáveis à Task, devem existir testes para:

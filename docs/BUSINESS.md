@@ -6,23 +6,21 @@ O PsiqApp MVP é um sistema de apoio ao atendimento psiquiátrico para um único
 
 O objetivo principal é reduzir o esforço de releitura manual do prontuário antes de uma consulta, mantendo os registros clínicos originais como fonte de verdade. A IA ajuda a organizar acontecimentos, recorrências, padrões e pontos de atenção, mas não decide, diagnostica, prescreve nem substitui o julgamento clínico.
 
-**Capacidade atual:** o backend já permite cadastrar, buscar e visualizar pacientes fictícios por API, criar consultas associadas a pacientes, listar agenda, atualizar consultas agendadas para estados finais, criar pareceres originais e complementos, consultar a linha do tempo clínica, criar a solicitação persistente de geração automática, consultar estado e histórico de gerações, consultar análises validadas persistidas, solicitar regeneração manual quando permitido e processar gerações por worker assíncrono configurável. O provider local padrão é fake e determinístico; o adapter OpenAI pode ser habilitado por ambiente. No frontend, já é possível cadastrar pacientes, buscar por nome, abrir o prontuário, visualizar dados do paciente, criar consultas, consultar a agenda global ou por paciente, atualizar status finais, registrar pareceres e complementos, consultar a linha do tempo clínica, ver análise atual, limitações, evidências, histórico de gerações, estados de IA e solicitar regeneração manual quando permitida pela API. Um aviso permanece visível em todas as páginas: usar somente dados fictícios e não inserir dados reais de pacientes.
+**Capacidade atual:** o backend já permite cadastrar, buscar e visualizar pacientes por API, criar consultas associadas a pacientes, listar agenda, atualizar consultas agendadas para estados finais, criar pareceres originais e complementos, consultar a linha do tempo clínica, criar a solicitação persistente de geração automática, consultar estado e histórico de gerações, consultar análises validadas persistidas, solicitar regeneração manual quando permitido e processar gerações por worker assíncrono configurável. O provider local padrão é fake e determinístico; o adapter OpenAI pode ser habilitado por ambiente. No frontend, já é possível cadastrar pacientes, buscar por nome, abrir o prontuário, visualizar dados do paciente, criar consultas, consultar a agenda global ou por paciente, atualizar status finais, registrar pareceres e complementos, consultar a linha do tempo clínica, ver análise atual, limitações, evidências, histórico de gerações, estados de IA e solicitar regeneração manual quando permitida pela API.
 
-**Estado de entrega (revisão de 23/09/2026):** os fluxos funcionais das tasks 01–10 do MVP estão implementados. A task 11, de validação integrada, permanece pendente de aprovação: o gate da feature principal está registrado como `NOT READY`. A refatoração de nomenclaturas possui gate `READY` registrado, mas isso não encerra as pendências do MVP. A [revisão documental](REVISAO-DOCUMENTAL.md) registra as divergências encontradas entre relatórios, especificações e código.
+**Estado do checkout (revisão de 01/10/2026):** os fluxos descritos acima estão presentes no código atual. Este MVP deve ser usado exclusivamente com dados fictícios. A agenda implementada é interna ao PsiqApp. A integração com Google Agenda tem PRD e TechSpec, mas ainda não aparece implementada no backend ou no frontend. Os relatórios de QA e os gates das features anteriores não estão presentes neste checkout; por isso, este documento não declara um estado histórico de aprovação.
 
-Este documento descreve as capacidades implementadas e as regras de negócio que elas devem respeitar. Os requisitos continuam definidos no [PRD do MVP](../tasks/prd-psiqapp-mvp/prd.md) e nas Rules. A [refatoração](../tasks/prd-refatoracao-arquitetural-nomenclaturas/prd.md) alterou nomes e contratos técnicos; não definiu novos fluxos de produto.
+Este documento descreve as capacidades implementadas e as regras de negócio que elas devem respeitar. As invariantes vigentes estão nas Rules. A especificação disponível para a [integração com Google Agenda](../tasks/prd-integracao-google-agenda/prd.md) descreve comportamento planejado, não uma capacidade atual.
 
 ## 2. Contexto de uso
 
-O MVP foi desenhado para validação controlada com dados fictícios. Ele não deve ser usado com prontuários reais, dados reais de pacientes ou em produção clínica.
-
 Premissas do MVP:
 
+- o uso é restrito a desenvolvimento e validação com dados fictícios;
 - existe apenas um médico usuário;
 - não existem perfis administrativos;
 - não existe portal do paciente;
 - a agenda é interna ao PsiqApp e alimentada manualmente;
-- a validação inicial usa apenas dados fictícios;
 - a ausência de autenticação no protótipo local não significa que autenticação seja desnecessária no produto final.
 
 Antes de qualquer uso com pacientes reais, o produto precisará de decisões e implementação adicionais sobre LGPD, autenticação, autorização, criptografia, hospedagem, backup, retenção, auditoria, fornecedores externos, logs e tratamento de dados por provedores de IA.
@@ -32,7 +30,7 @@ Antes de qualquer uso com pacientes reais, o produto precisará de decisões e i
 | Termo | Significado no PsiqApp |
 |---|---|
 | Médico | Usuário único do MVP, responsável pelos registros e pela decisão clínica final. |
-| Paciente | Pessoa cadastrada no sistema para organização de consultas, prontuário e análise longitudinal. No MVP, deve ser fictícia. |
+| Paciente | Pessoa cadastrada no sistema para organização de consultas, prontuário e análise longitudinal; no MVP, deve ser fictícia. |
 | Prontuário | Conjunto organizado de dados do paciente, consultas, registros clínicos e análises de IA associadas. |
 | Consulta | Evento de agenda associado a um paciente, com data, hora, status e observações opcionais. |
 | Parecer clínico | Registro clínico original escrito pelo médico. É fonte clínica de verdade e não deve ser sobrescrito. |
@@ -216,13 +214,13 @@ O backend permite solicitar uma nova geração manual quando existe pelo menos u
 
 ### Histórico disponível
 
-A interface mostra o histórico de gerações com estado, data de solicitação, revisão do snapshot e contagens. A API também permite consultar o conteúdo de uma análise histórica pelo seu identificador. A interface atual não oferece abertura do conteúdo de análises anteriores a partir da lista de gerações.
+A interface mostra o histórico de gerações com estado, data de solicitação, revisão do snapshot e contagens. Quando uma geração concluída inclui `analiseId`, a interface permite abrir sua análise histórica; a API também permite consultar esse conteúdo pelo identificador.
 
 ## 7. Fluxos principais
 
 ### Fluxo 1 - Cadastro e abertura de prontuário
 
-As etapas de cadastro, busca e visualização de dados básicos existem no backend por API e já estão disponíveis no frontend para pacientes fictícios.
+As etapas de cadastro, busca e visualização de dados básicos existem no backend por API e já estão disponíveis no frontend.
 
 1. O médico cadastra um paciente com dados obrigatórios válidos.
 2. O sistema salva o paciente.
@@ -319,13 +317,15 @@ As etapas de criação, listagem de agenda e atualização de status existem no 
 
 ### Segurança clínica e privacidade
 
-- Apenas dados fictícios devem ser usados no MVP.
+- No MVP, usar exclusivamente dados fictícios de pacientes, conforme a Rule `clinical-data-privacy.md`.
 - Dados de pacientes diferentes nunca podem se misturar.
 - Toda evidência deve apontar para registro existente do mesmo paciente.
 - Logs não devem expor prontuário completo, resposta clínica integral da IA, CPF completo sem necessidade, secrets ou dados clínicos sensíveis.
 - O contexto enviado ao provedor de IA deve conter apenas dados necessários do paciente analisado.
 
 ## 9. Fora do escopo do MVP
+
+O PRD e a TechSpec da integração com Google Agenda estão disponíveis, mas a funcionalidade ainda não está implementada. Até lá, a agenda continua sendo interna ao PsiqApp e alimentada manualmente.
 
 Não fazem parte do MVP:
 
@@ -337,7 +337,6 @@ Não fazem parte do MVP:
 - assinatura digital;
 - emissão de atestado;
 - faturamento, convênios ou financeiro;
-- integração com Google Calendar, WhatsApp ou sistemas externos;
 - RAG, embeddings, banco vetorial ou busca semântica;
 - resumo incremental como fonte clínica principal;
 - catálogo farmacológico;
@@ -367,21 +366,10 @@ Indicadores de validação:
 
 ### Situação da validação
 
-Esses indicadores não são resultados já medidos. O [QA do MVP](../tasks/prd-psiqapp-mvp/qa-report.md) registra uma rodada integrada em 16/09/2026 com backend e cinco cenários E2E aprovados, mas mantém pendências de falha/timeout/retry de IA no fluxo integrado, volume representativo e varredura operacional de logs. O [feature review](../tasks/prd-psiqapp-mvp/feature-review.md) também exige completar a evidência de isolamento integrado. Os bloqueios iniciais de Java/backend constam como resolvidos em `bugs.md`.
-
-Os testes posteriores da refatoração não demonstram, por si só, o encerramento desses critérios. A revisão do código também identificou pendências na migração de dados existentes e na minimização do payload do adapter OpenAI, detalhadas na [revisão documental](REVISAO-DOCUMENTAL.md). As restrições de dados fictícios e de decisão clínica pelo médico continuam aplicáveis.
+Esses indicadores não são resultados já medidos. O checkout atual contém testes unitários, de integração e E2E, mas esta revisão documental não executou as suítes nem encontrou relatórios atuais de QA ou de aprovação da feature principal. A revisão estática identificou pontos técnicos pendentes na migração V004 e na minimização do payload OpenAI, detalhados em [REVISAO-DOCUMENTAL.md](REVISAO-DOCUMENTAL.md). A decisão clínica final continua pertencendo ao médico.
 
 ## 11. Fontes canônicas
 
-Este documento foi conferido com a implementação em `apps/backend` e `apps/frontend` e com:
+Este documento foi conferido com a implementação em `apps/backend` e `apps/frontend`, as migrations, os testes versionados e as Rules. A pasta `tasks/` disponível neste checkout contém os artefatos da integração com Google Agenda; seus requisitos são tratados como planejados até haver implementação. Relatórios e artefatos SDD das features anteriores não estão disponíveis neste checkout e não são usados aqui como evidência de aprovação.
 
-- `tasks/prd-psiqapp-mvp/prd.md`;
-- `tasks/prd-psiqapp-mvp/spec-review.md`;
-- `tasks/prd-psiqapp-mvp/techspec.md`;
-- `tasks/prd-psiqapp-mvp/tasks.md`, `qa-report.md`, `feature-review.md` e `bugs.md`;
-- `tasks/prd-refatoracao-arquitetural-nomenclaturas/prd.md`, `techspec.md`, `tasks.md` e relatórios finais;
-- `docs/TECHNICAL.md`, para contratos e limites técnicos atuais;
-- `.agents/rules/product-invariants.md`;
-- `.agents/rules/clinical-data-privacy.md`;
-- `.agents/rules/clinical-ai-safety.md`;
-- `.agents/rules/documentation-maintenance.md`.
+Fontes adicionais: `docs/TECHNICAL.md`, `README.md`, `.agents/rules/product-invariants.md`, `.agents/rules/clinical-data-privacy.md`, `.agents/rules/clinical-ai-safety.md` e `.agents/rules/documentation-maintenance.md`.

@@ -17,7 +17,7 @@ apps/
 infra/
   compose.yaml
 docs/
-tasks/prd-psiqapp-mvp/
+tasks/prd-integracao-google-agenda/
 .agents/rules/
 ```
 
@@ -122,6 +122,9 @@ Os testes de unidade usam Vitest e Testing Library, sem endpoints reais. A suite
 
 ## Documentacao
 
+- Instrucoes para agentes: `AGENTS.md`
+- Workflow SDD: `sdd-workflow/workflow.md`
+- Rules do projeto: `.agents/rules/`
 - Documentacao de negocio: `docs/BUSINESS.md`
 - Documentacao tecnica: `docs/TECHNICAL.md`
-- Documentos canonicos das tasks do MVP: `tasks/prd-psiqapp-mvp/`
+- Especificacao da integracao Google Agenda (ainda sem implementacao): `tasks/prd-integracao-google-agenda/`

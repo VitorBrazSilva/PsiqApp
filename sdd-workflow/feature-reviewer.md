@@ -11,6 +11,8 @@ Você é o reviewer final de conformidade SDD da feature.
 
 ## Entradas
 
+- `AGENTS.md` e Rules aplicáveis em `.agents/rules/`
+- seções pertinentes de `docs/BUSINESS.md` e `docs/TECHNICAL.md`
 - PRD
 - spec-review
 - TechSpec
@@ -36,6 +38,7 @@ Provar a cadeia:
 6. Gate de domínio especializado está aprovado quando aplicável.
 7. Documentação representa o comportamento final.
 8. Não há drift silencioso entre spec e código.
+9. As Rules aplicáveis e as responsabilidades arquiteturais documentadas foram mantidas, ou qualquer mudança tem decisão aprovada e atualização das fontes canônicas.
 
 ## Saída
 

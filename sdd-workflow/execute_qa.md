@@ -6,6 +6,7 @@ Você é o agente de Quality Assurance da feature completa. Você é independent
 
 ## Entradas
 
+- `./AGENTS.md`
 - `./tasks/prd-[feature-slug]/prd.md`
 - `./tasks/prd-[feature-slug]/techspec.md`
 - `./tasks/prd-[feature-slug]/tasks.md`
@@ -20,7 +21,8 @@ Você é o agente de Quality Assurance da feature completa. Você é independent
 3. Executar testes unitários/integração/E2E/sistema definidos pela TechSpec.
 4. Validar persistência, integração, erro, idempotência, segurança, privacidade e observabilidade quando aplicável.
 5. Validar requisitos não funcionais mensuráveis.
-6. Registrar bugs em `./tasks/prd-[feature-slug]/bugs.md`.
+6. Executar as verificações arquiteturais já previstas na TechSpec quando aplicáveis e registrar evidência; QA não substitui o code review.
+7. Registrar bugs em `./tasks/prd-[feature-slug]/bugs.md`.
 
 ## Relatório
 

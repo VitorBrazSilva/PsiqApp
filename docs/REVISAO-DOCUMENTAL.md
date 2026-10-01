@@ -1,64 +1,77 @@
 # Revisão documental do estado do PsiqApp
 
-Revisão realizada em 23/09/2026, comparando `docs/BUSINESS.md` e `docs/TECHNICAL.md` com o código em `apps/`, as migrations, o README, as Rules e os artefatos das features `prd-psiqapp-mvp` e `prd-refatoracao-arquitetural-nomenclaturas`.
+Revisão realizada em 01/10/2026. Foram comparados `docs/BUSINESS.md` e `docs/TECHNICAL.md` com o código de `apps/backend` e `apps/frontend`, as migrations, os testes versionados, o workflow de CI, `README.md`, as Rules e os artefatos SDD disponíveis em `tasks/`.
+
+Esta foi uma revisão estática. As suítes de teste, o CI e as migrations não foram executados. Nenhum código de produção foi alterado.
 
 ## Conclusão
 
-Os documentos anteriores estavam parcialmente defasados. Eles misturavam capacidades já implementadas com planos da TechSpec, usavam contratos e nomes antigos em vários pontos e não deixavam visível que o gate do MVP ainda está `NOT READY`.
+As documentações anteriores ainda descreviam gates e relatórios de features cujos artefatos não estão presentes no checkout atual. Também havia links para essas pastas ausentes e afirmações incorretas sobre a abertura de análises históricas. `BUSINESS.md` e `TECHNICAL.md` foram atualizados para distinguir comportamento implementado, limites verificados no código e trabalho apenas especificado. O README teve somente seus dois caminhos obsoletos de task atualizados.
 
-Os documentos vivos foram atualizados para descrever a implementação encontrada. A aprovação registrada da refatoração permanece indicada como histórico, enquanto as divergências verificadas no código continuam explícitas. Esta revisão não reexecuta os testes nem altera o código de produção.
+As pastas SDD disponíveis atualmente descrevem a integração com Google Agenda. O PRD dessa feature tem spec review aprovado e existe uma TechSpec, mas não foram encontrados componentes da integração no backend ou frontend. A agenda que funciona hoje permanece interna ao PsiqApp.
 
-## Estado das features
+## Estado observável neste checkout
 
-| Feature | Estado registrado | Leitura atual |
-|---|---|---|
-| `prd-psiqapp-mvp` | `NOT READY` em `feature-review.md`; QA e clinical safety reprovados, com atualização posterior registrando backend/Compose/E2E funcionais | Tasks 01–10 estão implementadas. A task 11 tem implementação parcial e ainda não fecha a evidência integrada de falhas da IA, isolamento completo, logs e volume representativo. |
-| `prd-refatoracao-arquitetural-nomenclaturas` | `READY` em `feature-review.md` e QA aprovado | Rotas, payloads públicos, tabelas principais e enums foram atualizados. A inspeção atual ainda encontra divergências entre a nomenclatura final especificada e nomes internos, além de riscos no upgrade de uma base V003 populada. |
+| Área | Estado observado |
+|---|---|
+| Pacientes, consultas, prontuário e análise | Os fluxos estão presentes no backend e no frontend, com testes unitários, de integração e E2E versionados. Esta revisão não executou esses testes e não declara aprovação de entrega. |
+| Integração com Google Agenda | PRD, spec review aprovado e TechSpec presentes; não há implementação correspondente nem task de execução em `tasks/`. |
+| Gates antigos do MVP e da refatoração de nomenclaturas | As pastas e os relatórios que registravam esses gates não estão presentes. Seus estados históricos não podem ser confirmados a partir do checkout atual. |
+| Privacidade do MVP | As Rules, o README e o aviso da interface restringem o uso a dados fictícios. `BUSINESS.md` agora registra a mesma regra. |
 
 ## Achados que afetam a documentação
 
-### 1. O MVP está funcional, mas não aprovado como feature completa
+### 1. Referências e status de entrega estavam desatualizados
 
-O código contém os fluxos de pacientes, consultas, registros clínicos, análise e frontend. Porém `tasks/prd-psiqapp-mvp/feature-review.md` mantém `NOT READY`, e `qa-report.md` lista como pendentes os cenários integrados de falha/timeout/retry da IA, volume representativo e varredura operacional de logs. `11_task.md` também mantém essas verificações desmarcadas. A documentação agora diferencia implementação de aprovação.
+`BUSINESS.md`, `TECHNICAL.md` e `README.md` apontavam para `tasks/prd-psiqapp-mvp/` e/ou `tasks/prd-refatoracao-arquitetural-nomenclaturas/`, que não existem no checkout atual. As documentações ainda repetiam estados `READY`/`NOT READY` de relatórios ausentes e uma data de revisão de 23/09/2026.
 
-### 2. A nomenclatura pública mudou, mas a padronização interna ainda não é total
+Os links foram substituídos por referências existentes. Os documentos não atribuem mais um gate histórico às features antigas. Isso não significa que esses gates foram aprovados ou reprovados; significa que não há evidência atual no checkout para confirmá-los.
 
-O código efetivo usa rotas como `/pacientes`, `/consultas`, `/registros-clinicos` e `/estado-analise`, tabelas portuguesas em V004 e respostas com campos como `dataHoraClinica`, `criadoEm` e `podeRegenerar`. Isso foi refletido nos documentos.
+### 2. Integração com Google Agenda é especificada, mas ainda não implementada
 
-Ao mesmo tempo, a TechSpec final previa `domain/model`, `application/service`, classes `...JpaEntity` e repositórios `...SpringDataRepository`, enquanto o código ainda contém `domain/modelo`, `application/servico`, `Entidade...Jpa` e `Repository...JpaSpring`. `ArquiteturaTest` também mantém referências de compatibilidade a pacotes e nomes antigos. Esses pontos não devem ser documentados como encerrados sem nova decisão ou nova evidência.
+`tasks/prd-integracao-google-agenda/` contém PRD, spec review e TechSpec. A busca no código atual não encontrou rotas OAuth/disponibilidade, adapter Google, migration V005, worker de sincronização ou interface de conexão. `BUSINESS.md` e `TECHNICAL.md` agora identificam a integração como planejamento, mantendo a agenda interna como comportamento atual.
 
-### 3. V004 não demonstra upgrade seguro de uma base V003 com dados
+### 3. A regra de dados fictícios precisava estar explícita no documento de negócio
 
-`V004__padronizacao_nomenclaturas.sql` é suficiente para o bootstrap de uma base nova sem dados históricos, conforme os testes que verificam as quatro migrations. Não foi encontrado teste que prepare uma base V003 populada e compare o antes/depois.
+A versão de trabalho de `BUSINESS.md` não mencionava mais a restrição de dados fictícios. A Rule `clinical-data-privacy.md`, o README e o aviso persistente da interface continuam exigindo essa restrição para o MVP. Ela foi recolocada no contexto de uso, no glossário e nas regras de privacidade de `BUSINESS.md`.
 
-Há dois riscos concretos no caminho populado:
+### 4. A API e a interface já permitem abrir análises históricas
 
-- o trigger append-only de `analise_clinica` é reativado antes da atualização posterior do JSONB, portanto uma análise existente pode fazer a migration falhar;
-- os valores antigos de `evidencia_analise.campo` (`TEXT`, `MOOD`, `MEDICATIONS`) não são convertidos para `TEXTO`, `HUMOR`, `MEDICAMENTOS`, embora V004 crie o check que aceita apenas os nomes portugueses.
+`GeracaoAnaliseResponse` inclui `analiseId`. `HistoricoGeracoes` oferece a ação de abrir uma geração concluída quando esse identificador está disponível, e a tela consulta a análise histórica. A documentação anterior dizia que o contrato não expunha esse vínculo e que a interface não abria análises anteriores; `BUSINESS.md` e a tabela/descrição técnica foram corrigidos.
 
-Além disso, a normalização detalhada do JSONB converte apenas os itens de `linhaDoTempo`; os itens de `padroes` e `pontosDeAtencao` históricos não recebem a mesma conversão. Por isso, `TECHNICAL.md` agora trata V004 como uma migração implementada com risco de upgrade pendente, e não como preservação comprovada de dados existentes.
+### 5. O conjunto E2E cresceu, mas não cobre falha real do provider
 
-### 4. O adapter OpenAI ainda envia campos internos do snapshot
+Há sete testes Playwright em três arquivos. Eles cobrem cadastro/busca, consulta, parecer/complemento/evidência, isolamento, histórico insuficiente, layout responsivo e navegação por teclado no histórico. Apesar do nome `isolamento-e-falha-ia.spec.ts`, esse arquivo não simula falha, timeout ou retry do provider. `TECHNICAL.md` registra a quantidade e o limite pelo comportamento efetivamente presente.
 
-`OpenAiAnaliseClinicaAdapter.montarPayload` serializa diretamente `SnapshotAnalise.RegistroSnapshot`, que contém `id` e `revisao`. A regra da TechSpec exige que o provider receba apenas alias, tipo, referência temporária, data/hora clínica, texto, humor e medicamentos. O documento técnico passou a registrar essa diferença como pendência de privacidade/minimização.
+### 6. O upgrade V003 → V004 de uma base populada ainda não está demonstrado
 
-O mesmo adapter mantém instruções textuais com chaves inglesas e `SUMMARY_ONLY`, enquanto o contrato interno final usa campos e modo em português. O provider fake não cobre essa divergência de prompt.
+`BackendBootstrapIT` verifica a aplicação das quatro migrations em um banco novo; não foi encontrado teste versionado que inicie de V003 com análises e evidências existentes.
 
-### 5. A cobertura integrada não deve ser inferida pelo nome dos arquivos E2E
+Na leitura estática de V004 foram confirmados estes riscos para dados históricos:
 
-`isolamento-e-falha-ia.spec.ts` contém isolamento e análise com histórico insuficiente, mas não contém um cenário real de falha/timeout/retry do provider. O relatório da task 11 já registra essa lacuna. `TECHNICAL.md` agora descreve os cinco cenários E2E pelo comportamento efetivamente presente.
+- a migration reativa o trigger append-only de `analise_clinica` antes das atualizações que normalizam seu JSONB;
+- os valores antigos de `evidencia_analise.campo` (`TEXT`, `MOOD`, `MEDICATIONS`) não são convertidos antes da inclusão do CHECK que aceita os nomes em português;
+- a normalização dos objetos de evidência no JSONB é feita apenas em `linhaDoTempo`, não em `padroes` e `pontosDeAtencao`.
 
-## Alterações realizadas
+Por isso, uma execução bem-sucedida em banco vazio não demonstra que uma base V003 populada migra ou preserva seu histórico.
 
-- `docs/BUSINESS.md`: capacidades atuais, status do gate do MVP, histórico de análise disponível na UI e limites de validação foram alinhados ao código e aos relatórios.
-- `docs/TECHNICAL.md`: contratos portugueses, schema V004, componentes efetivos, worker, IA, erros, Compose, frontend, testes e pendências foram reescritos para o estado presente; nomes antigos deixaram de aparecer como rotas ou tabelas ativas.
-- `tasks/prd-psiqapp-mvp/tasks.md`: task 11 passou a aparecer explicitamente como parcial e `NOT READY`.
-- `tasks/prd-refatoracao-arquitetural-nomenclaturas/tasks.md`: o checkbox da task 8 foi alinhado ao encerramento registrado, com ressalva das divergências atuais.
-- Os dois PRDs receberam uma nota de estado, preservando os requisitos originais sem apresentá-los como prova de implementação.
+### 7. O adapter OpenAI envia identificadores internos e o prompt não acompanha o schema
 
-## Próximas ações recomendadas
+`OpenAiAnaliseClinicaAdapter.montarPayload` serializa diretamente cada `RegistroSnapshot`, incluindo `id` UUID e `revisao`. O prompt usa nomes de chaves e modo em inglês (`timeline`, `patterns`, `SUMMARY_ONLY`, entre outros), enquanto o contrato e os modos usados no backend são em português. O texto do prompt também contém sequências de caracteres acentuados corrompidas no arquivo atual.
 
-1. Criar teste de upgrade V003 → V004 com análises, evidências e JSONB fictícios já persistidos; corrigir a migration antes de usar uma base existente.
-2. Remover `id` e `revisao` do DTO enviado ao provider e alinhar prompt, schema e nomes de modo.
-3. Decidir se os nomes internos restantes serão concluídos conforme a TechSpec ou formalmente justificados.
-4. Completar a task 11 do MVP e atualizar os gates somente após evidência integrada de falhas da IA, isolamento, logs e volume.
+A documentação técnica agora registra essa diferença como pendência de minimização e alinhamento do contrato. A revisão não alterou o adapter.
+
+### 8. Uma lease expirada no limite de tentativas pode deixar a geração ativa
+
+`AdapterGeracaoAnaliseJpa.recuperarLeaseExpirado` só reivindica uma geração quando `contagem_tentativas < maxTentativas`. Se o processo cair durante a última tentativa e a lease expirar, a linha pode continuar em `EM_EXECUCAO` sem ser reivindicada nem marcada como falha terminal. Esse limite foi registrado em `TECHNICAL.md`.
+
+## Documentação atualizada
+
+- `docs/BUSINESS.md`: removeu status e links para relatórios ausentes; reafirmou a regra de dados fictícios; distinguiu a agenda implementada da integração Google especificada; atualizou as fontes e os limites de validação.
+- `docs/TECHNICAL.md`: atualizou data, estrutura e estado dos artefatos disponíveis; corrigiu o DTO de histórico e o inventário E2E; registrou limites técnicos confirmados no código sem afirmar gates de entrega inexistentes.
+- `README.md`: atualizou os caminhos da estrutura do repositório e da seção de documentação para a pasta SDD presente.
+- `docs/REVISAO-DOCUMENTAL.md`: substituiu os achados de 23/09 por esta revisão.
+
+## Verificações e limites
+
+Foram conferidos os caminhos referenciados nos documentos atualizados contra os arquivos existentes e relidos os diffs das alterações documentais. Testes, CI, execução de migrations e chamadas ao provider de IA não foram realizados; os resultados dessas verificações não são declarados aqui.

@@ -10,6 +10,27 @@ Elas não definem framework, banco ou provider específicos. Essas escolhas pert
 
 A TechSpec pode escolher tecnologias e padrões, mas não pode violar os limites abaixo sem decisão arquitetural explícita e atualização destas Rules quando necessário.
 
+## Arquitetura e responsabilidades do projeto
+
+- `docs/TECHNICAL.md`, seção 3, é o mapa da estrutura atual do monorepo e das responsabilidades dos módulos. A seção 5 registra fronteiras técnicas relevantes. Consulte também as seções dos componentes afetados.
+- O backend usa arquitetura hexagonal pragmática. Preserve a direção de dependências para dentro (`adapter/config -> application -> domain`): o domínio contém conceitos e regras de negócio; a aplicação coordena casos de uso e contratos; adapters integram HTTP, persistência e provedores externos; `config` compõe a aplicação.
+- No frontend, preserve a separação documentada entre `features` e `shared`; código compartilhado deve ter responsabilidade realmente transversal.
+- Uma feature nova deve estender a responsabilidade existente mais próxima. Não coloque regra de negócio em controller, detalhe de provider no domínio, acesso a infraestrutura na aplicação sem um limite aprovado, ou lógica específica de feature em código compartilhado sem necessidade transversal.
+- Antes de propor um novo módulo, serviço, port ou mudança de dependência, justifique a fronteira pelo requisito e pela responsabilidade envolvida. Não crie camadas apenas para repetir a estrutura de outra feature.
+- O código existente pode conter exceções e inconsistências documentadas. Elas não estabelecem automaticamente um padrão novo nem autorizam ampliar a divergência. Não corrija áreas não relacionadas como efeito colateral da feature.
+
+## Compatibilidade obrigatória na TechSpec
+
+Toda TechSpec deve registrar, para cada área afetada:
+
+- módulo e responsabilidade existentes;
+- fronteira/Rule que se aplica;
+- responsabilidade proposta e como ela permanece coesa;
+- qualquer mudança de fronteira ou exceção, com justificativa e decisão explícita;
+- testes ou verificações que demonstram a preservação da arquitetura, incluindo testes arquiteturais existentes quando aplicáveis.
+
+Se a arquitetura necessária não estiver descrita ou houver conflito entre a documentação e o código diretamente afetado, registre a lacuna e resolva a decisão antes de decompor ou implementar a mudança. Não assuma uma arquitetura nova por conveniência.
+
 ## Clinical persistence boundary
 
 - Persistir um parecer é responsabilidade independente da IA.
