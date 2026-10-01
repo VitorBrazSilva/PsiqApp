@@ -55,6 +55,12 @@ springdoc:
     path: /api/v1/openapi
   paths-to-match: /api/v1/**
 psiqapp:
+  google-agenda:
+    client-id: ${PSIQAPP_GOOGLE_AGENDA_CLIENT_ID:}
+    client-secret: ${PSIQAPP_GOOGLE_AGENDA_CLIENT_SECRET:}
+    redirect-uri: ${PSIQAPP_GOOGLE_AGENDA_REDIRECT_URI:http://127.0.0.1:8080/api/v1/integracoes/google-agenda/callback}
+    frontend-uri: ${PSIQAPP_GOOGLE_AGENDA_FRONTEND_URI:http://127.0.0.1:5173/agenda}
+    encryption-key: ${PSIQAPP_GOOGLE_AGENDA_ENCRYPTION_KEY:}
   analise:
     worker:
       enabled: ${PSIQAPP_ANALISE_WORKER_ENABLED:false}

@@ -9,6 +9,8 @@ import com.psiqapp.application.port.out.RepositoryPacientePort;
 import com.psiqapp.application.port.out.RepositoryRegistroClinicoPort;
 import com.psiqapp.application.port.out.RepositorySequenciaPacientePort;
 import com.psiqapp.application.port.out.TransactionRunnerPort;
+import com.psiqapp.application.port.out.ConexaoGoogleAgendaPort;
+import com.psiqapp.application.port.out.GoogleAgendaAutorizacaoPort;
 import com.psiqapp.application.usecase.*;
 import java.time.Clock;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -18,6 +20,29 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnProperty(prefix = "psiqapp.product", name = "enabled", havingValue = "true", matchIfMissing = true)
 class CasosDeUsoConfiguration {
+    @Bean
+    ObterEstadoGoogleAgendaUseCase obterEstadoGoogleAgendaUseCase(ConexaoGoogleAgendaPort conexao, GoogleAgendaPropriedades propriedades) {
+        return new ObterEstadoGoogleAgendaUseCase(conexao, propriedades);
+    }
+
+    @Bean
+    IniciarConexaoGoogleAgendaUseCase iniciarConexaoGoogleAgendaUseCase(GoogleAgendaAutorizacaoPort autorizacao,
+            ConexaoGoogleAgendaPort conexao, GoogleAgendaPropriedades propriedades) {
+        return new IniciarConexaoGoogleAgendaUseCase(autorizacao, conexao, propriedades);
+    }
+
+    @Bean
+    ConcluirConexaoGoogleAgendaUseCase concluirConexaoGoogleAgendaUseCase(IniciarConexaoGoogleAgendaUseCase inicio,
+            GoogleAgendaAutorizacaoPort autorizacao, ConexaoGoogleAgendaPort conexao, GoogleAgendaPropriedades propriedades) {
+        return new ConcluirConexaoGoogleAgendaUseCase(inicio, autorizacao, conexao, propriedades);
+    }
+
+    @Bean
+    DesconectarGoogleAgendaUseCase desconectarGoogleAgendaUseCase(ConexaoGoogleAgendaPort conexao,
+            GoogleAgendaAutorizacaoPort autorizacao, GoogleAgendaPropriedades propriedades) {
+        return new DesconectarGoogleAgendaUseCase(conexao, autorizacao, propriedades);
+    }
+
     @Bean
     IdempotenciaServico idempotenciaServico(RepositoryIdempotenciaPort repositorio, ObjectMapper json) {
         return new IdempotenciaServico(repositorio, json);

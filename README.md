@@ -40,6 +40,8 @@ Substitua os placeholders localmente. `.env` e outros arquivos locais de ambient
 
 O worker de analise fica desabilitado por padrao. Para processar geracoes localmente, habilite `PSIQAPP_ANALISE_WORKER_ENABLED=true`. O provider padrao e `fake`, sem rede externa; para usar OpenAI, configure `PSIQAPP_ANALISE_PROVIDER=openai`, `OPENAI_API_KEY` e `OPENAI_MODEL`.
 
+A conexao OAuth opcional com Google Agenda requer `PSIQAPP_GOOGLE_AGENDA_CLIENT_ID`, `PSIQAPP_GOOGLE_AGENDA_CLIENT_SECRET` e `PSIQAPP_GOOGLE_AGENDA_ENCRYPTION_KEY` (Base64 de 32 bytes aleatorios). Configure tambem `PSIQAPP_GOOGLE_AGENDA_REDIRECT_URI` no cliente OAuth Google e `PSIQAPP_GOOGLE_AGENDA_FRONTEND_URI` com o destino fixo `/agenda`. Sem essa configuracao completa, o backend inicia normalmente e informa `NAO_CONFIGURADA`; o fluxo de conexao fica indisponivel. O refresh token e persistido cifrado com AES-256-GCM e a chave deve permanecer fora do repositório. OAuth usa navegação para `/api/v1/integracoes/google-agenda/conectar`; credenciais nunca são retornadas à SPA. Este fluxo não habilita uso com dados reais de pacientes.
+
 ## PostgreSQL
 
 Subir o banco local:

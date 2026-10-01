@@ -39,12 +39,12 @@ class BackendBootstrapIT {
     void contextoCarregaJpaFlywayPostgresEClockComMigrationsDeProduto() {
         assertThat(jpa.isOpen()).isTrue();
         assertThat(flyway.validateWithResult().validationSuccessful).isTrue();
-        assertThat(flyway.info().applied()).hasSize(4);
+        assertThat(flyway.info().applied()).hasSize(5);
         assertThat(jdbc.queryForObject("select current_setting('server_version')", String.class)).startsWith("18.6");
         assertThat(jdbc.queryForList("select tablename from pg_tables where schemaname='public'", String.class))
                 .contains("paciente", "consulta", "registro_clinico", "geracao_analise",
                         "analise_clinica", "evidencia_analise", "tentativa_geracao_analise",
-                        "idempotencia", "flyway_schema_history");
+                        "idempotencia", "conexao_google_agenda", "flyway_schema_history");
         assertThat(relogio.getZone()).isEqualTo(ZoneOffset.UTC);
         assertThat(ambiente.getProperty("server.address")).isEqualTo("127.0.0.1");
         assertThat(ambiente.getProperty("spring.jpa.open-in-view")).isEqualTo("false");
@@ -61,6 +61,14 @@ class BackendBootstrapIT {
             assertThat(resposta.getBody().has("details")).isFalse();
             assertThat(resposta.getHeaders().getFirst("X-Request-Id")).isNotBlank();
         }
+    }
+
+    @Test
+    void googleAgendaSemCredenciaisInformaConfiguracaoAusenteSemExporSegredos() {
+        var resposta = http.getForEntity("/api/v1/integracoes/google-agenda", JsonNode.class);
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resposta.getBody().path("estado").asText()).isEqualTo("NAO_CONFIGURADA");
+        assertThat(resposta.getBody().toString()).doesNotContain("token", "secret", "client");
     }
 
     @Test

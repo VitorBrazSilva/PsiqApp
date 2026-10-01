@@ -547,6 +547,15 @@ Frontend recebe apenas configuração pública. Nunca expor `OPENAI_API_KEY`, cr
 
 Versionar somente `.env.example` com placeholders. Arquivos reais de ambiente ficam fora do Git. O Compose local deve ser executado com `--env-file .env` após criação local desse arquivo a partir do template.
 
+Conexão OAuth opcional do Google Agenda:
+
+- `PSIQAPP_GOOGLE_AGENDA_CLIENT_ID` e `PSIQAPP_GOOGLE_AGENDA_CLIENT_SECRET` identificam o cliente server-side;
+- `PSIQAPP_GOOGLE_AGENDA_REDIRECT_URI` precisa terminar no callback fixo `/api/v1/integracoes/google-agenda/callback`;
+- `PSIQAPP_GOOGLE_AGENDA_FRONTEND_URI` define o destino fixo `/agenda` após callback;
+- `PSIQAPP_GOOGLE_AGENDA_ENCRYPTION_KEY` é Base64 de 32 bytes aleatórios e deve permanecer fora do repositório.
+
+`GET /api/v1/integracoes/google-agenda` expõe somente estado seguro. O fluxo em `adapter/out/google/GoogleAgendaOAuthAdapter` solicita `calendar.freebusy` e `calendar.events.owned`. O refresh token é cifrado em `conexao_google_agenda` por AES-256-GCM com IV aleatório por gravação; access tokens não são persistidos. Início e callback usam cookie `HttpOnly`, `SameSite=Lax`, `Secure` fora de loopback e `state` aleatório, de uso único, vinculado ao cookie e válido por dez minutos. Configuração ausente ou incompleta não impede startup e produz `NAO_CONFIGURADA`. Desconexão remove a credencial local e tenta revogar o token; falha remota não restaura a conexão.
+
 ## 16. Observabilidade
 
 `logback-spring.xml` emite JSON com allowlist de `timestamp`, `level`, `requestId`, `status`, `duracaoMs` e `codigo`. Mensagem, argumentos, exceção e MDC completo não são serializados. `FiltroRequestId` propaga o header `X-Request-Id` e registra metadados operacionais da requisição.
@@ -585,6 +594,7 @@ Testes comuns usam fake/mock e dados fictícios; não precisam de OpenAI real. T
 |---|---|---|
 | `prd-psiqapp-mvp` | Tasks 01–10 marcadas como concluídas; fluxos backend/frontend presentes. | Task 11 parcial; feature review `NOT READY`, QA e clinical safety sem aprovação final. Os bloqueios antigos de JDK/backend estão resolvidos nos próprios artefatos. |
 | `prd-refatoracao-arquitetural-nomenclaturas` | Tasks 01–08 com encerramento registrado; feature review `READY`; rotas, JSON público, tabelas e enums principais atualizados. | A inspeção atual encontrou padronização incompleta, riscos de upgrade e divergências do adapter de IA. Não há nova aprovação desses pontos. |
+| `prd-integracao-google-agenda` | Task 1.0 implementada: conexão OAuth server-side e refresh token cifrado. | Tasks 2.0 e 3.0 ainda cobrem disponibilidade, sincronização durável e interface; uso permanece restrito a dados fictícios. |
 
 A [revisão documental](REVISAO-DOCUMENTAL.md) relaciona achados, fontes e ações necessárias. Os PRDs e TechSpecs preservam requisitos de origem; este documento descreve o código atual. A aprovação da refatoração não encerra automaticamente o gate do MVP.
 
