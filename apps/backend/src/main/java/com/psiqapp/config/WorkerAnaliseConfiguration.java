@@ -4,6 +4,7 @@ import com.psiqapp.application.port.out.*;
 import com.psiqapp.application.servico.*;
 import com.psiqapp.application.usecase.ProcessarGeracaoAnaliseUseCase;
 import com.psiqapp.application.usecase.ProcessarGeracaoAnaliseUseCase.Config;
+import com.psiqapp.application.usecase.ProcessarSincronizacaoGoogleAgendaUseCase;
 import java.time.Clock;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -46,5 +47,18 @@ class WorkerAnaliseConfiguration {
     @ConditionalOnProperty(prefix = "psiqapp.analise.worker", name = "enabled", havingValue = "true")
     WorkerAnaliseScheduler workerAnaliseScheduler(ProcessarGeracaoAnaliseUseCase processador) {
         return new WorkerAnaliseScheduler(processador);
+    }
+
+    @Bean
+    ProcessarSincronizacaoGoogleAgendaUseCase processarSincronizacaoGoogleAgendaUseCase(
+            RepositorySincronizacaoConsultaPort sincronizacoes, ConexaoGoogleAgendaPort conexao,
+            GoogleAgendaCalendarioPort calendario, GoogleAgendaConfiguracaoPort configuracao, Clock relogio) {
+        return new ProcessarSincronizacaoGoogleAgendaUseCase(sincronizacoes, conexao, calendario, configuracao, relogio);
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "psiqapp.google-agenda.worker", name = "enabled", havingValue = "true", matchIfMissing = true)
+    GoogleAgendaWorkerScheduler googleAgendaWorkerScheduler(ProcessarSincronizacaoGoogleAgendaUseCase processador) {
+        return new GoogleAgendaWorkerScheduler(processador);
     }
 }

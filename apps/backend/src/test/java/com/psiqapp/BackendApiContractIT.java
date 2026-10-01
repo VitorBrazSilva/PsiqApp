@@ -126,6 +126,8 @@ class BackendApiContractIT {
         assertThat(paths.has("/api/v1/pacientes/{pacienteId}/consultas")).isTrue();
         assertThat(paths.has("/api/v1/consultas")).isTrue();
         assertThat(paths.has("/api/v1/consultas/{id}/status")).isTrue();
+        assertThat(paths.has("/api/v1/consultas/disponibilidade")).isTrue();
+        assertThat(paths.has("/api/v1/consultas/{id}/sincronizacao-google/tentar-novamente")).isTrue();
         assertThat(paths.has("/api/v1/pacientes/{pacienteId}/registros-clinicos")).isTrue();
         assertThat(paths.has("/api/v1/pacientes/{pacienteId}/registros-clinicos/{parecerOriginalId}/complementos")).isTrue();
         assertThat(paths.has("/api/v1/pacientes/{pacienteId}/registros-clinicos/{registroId}")).isTrue();

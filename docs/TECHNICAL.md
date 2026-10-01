@@ -4,11 +4,11 @@
 
 Revisado em 01/10/2026 contra o código, as migrations, os contratos HTTP, o frontend, os testes versionados, o CI e os artefatos SDD presentes no checkout.
 
-O monorepo contém backend Spring Boot, frontend React, PostgreSQL, worker assíncrono configurável e execução completa via Docker Compose. Estão implementados cadastro/busca de pacientes, agenda/status de consultas, pareceres e complementos append-only, linha do tempo, geração automática, análise atual, evidências, histórico de gerações e regeneração manual.
+O monorepo contém backend Spring Boot, frontend React, PostgreSQL, workers assíncronos configuráveis e execução completa via Docker Compose. Estão implementados cadastro/busca de pacientes, disponibilidade e sincronização de consultas com Google Agenda no backend, pareceres e complementos append-only, linha do tempo e geração/consulta de análises.
 
-**O código e os gates de entrega são evidências diferentes:** os diretórios das tasks do MVP e da refatoração de nomenclaturas não estão presentes neste checkout, portanto seus estados históricos `READY`/`NOT READY` não podem ser confirmados aqui. A integração com Google Agenda possui PRD, spec review aprovado e TechSpec, mas não há implementação correspondente no código. Veja a [revisão documental](REVISAO-DOCUMENTAL.md).
+**O código e os gates de entrega são evidências diferentes:** os diretórios das tasks do MVP e da refatoração de nomenclaturas não estão presentes neste checkout, portanto seus estados históricos `READY`/`NOT READY` não podem ser confirmados aqui. As tasks 1.0 e 2.0 do backend da integração Google estão implementadas; a interface correspondente permanece na task 3.0. Veja a [revisão documental](REVISAO-DOCUMENTAL.md).
 
-Este documento descreve a implementação presente e identifica seus limites. As Rules continuam sendo as invariantes do projeto. O artefato de feature disponível neste checkout descreve escopo planejado:
+Este documento descreve a implementação presente e identifica seus limites. As Rules continuam sendo as invariantes do projeto. Os artefatos da integração Google registram o comportamento entregue e o escopo de interface ainda pendente:
 
 - [PRD da integração com Google Agenda](../tasks/prd-integracao-google-agenda/prd.md) e [TechSpec](../tasks/prd-integracao-google-agenda/techspec.md);
 - Rules de [arquitetura](../.agents/rules/architecture-boundaries.md), [produto](../.agents/rules/product-invariants.md), [privacidade](../.agents/rules/clinical-data-privacy.md), [segurança clínica](../.agents/rules/clinical-ai-safety.md) e [qualidade](../.agents/rules/testing-quality.md).
@@ -23,7 +23,8 @@ Este documento descreve a implementação presente e identifica seus limites. As
 | Roteamento frontend | React Router 8.3.1 declarativo. |
 | Comunicação frontend | `fetch` nativo por cliente HTTP centralizado. |
 | Banco | PostgreSQL 18.6 local. |
-| Migrations | Flyway 11.20.3; V001–V003 criam o schema inicial; V004 aplica a padronização de nomenclaturas. |
+| Migrations | Flyway 11.20.3; V001–V003 criam o schema inicial; V004 padroniza nomes; V005/V006 adicionam conexão e sincronização Google. |
+| Google Agenda | Google API Java Client Calendar v3 (`google-api-services-calendar` fixado no `pom.xml`), isolado em adapter; conexão OAuth server-side. |
 | Persistência backend | Spring Data JPA/Hibernate no adapter de persistência. |
 | IA | OpenAI atrás de port, SDK oficial Java 4.63.3, Responses API, Structured Outputs e provider fake determinístico para testes/local. |
 | Modelo inicial | `OPENAI_MODEL=gpt-5.6-terra`, configurado por ambiente. |
@@ -47,7 +48,7 @@ infra/compose.yaml
 docs/
   redesign/       # protótipos, direção visual e análise de UX
 tasks/
-  prd-integracao-google-agenda/  # PRD/TechSpec; ainda sem implementação
+  prd-integracao-google-agenda/  # backend Tasks 1.0/2.0; interface Task 3.0 pendente
 .agents/rules/
 ```
 
@@ -68,7 +69,8 @@ apps/backend/src/main/java/com/psiqapp/
 │   ├── in/web/
 │   └── out/
 │       ├── persistence/
-│       └── ai/
+│       ├── ai/
+│       └── google/       # OAuth e Google Calendar
 └── config/
 ```
 
@@ -98,6 +100,7 @@ Responsabilidades:
 - `adapter/in/web`: controllers, DTOs Request/Response, `FiltroRequestId` e `HttpErrorHandler`.
 - `adapter/out/persistence`: entidades JPA, repositórios Spring Data e adapters JPA/JDBC. `AdapterRegistroClinicoJpa` ainda reúne persistência, timeline e estatísticas; `AdapterAnaliseClinicaJdbc` persiste análise e evidências.
 - `adapter/out/ai`: providers fake e OpenAI.
+- `adapter/out/google`: adapters OAuth e Calendar; o port de Calendar retorna apenas intervalos ocupados e não expõe eventos Google existentes à aplicação.
 - `config`: composição Spring, relógio e scheduler do worker.
 
 A direção principal é `adapter/config -> application -> domain`. ArchUnit verifica dependências de frameworks/adapters; `IdempotenciaServico` ainda importa Jackson na aplicação. A convenção pretendida combina conceitos de negócio em português e papéis arquiteturais em inglês, mas a padronização é parcial: existem `domain/modelo`, `application/servico`, `EntidadePacienteJpa`, `ClienteApi`, aliases antigos de enums e acessores de análise em inglês. Esses nomes são os existentes, não equivalentes inventados a partir da TechSpec.
@@ -146,13 +149,15 @@ A aplicação usa um `TransactionRunnerPort` em `application/port/out`, implemen
 Uso implementado:
 
 - blocos atômicos de cadastro e criação de geração;
+- criação de consulta, idempotência e intenção de sincronização Google;
 - reivindicação de geração pelo worker;
+- claim e atualização de estado da sincronização Google;
 - finalização atômica de análise, evidências e estado `CONCLUIDA`;
-- nunca envolvendo chamada externa de IA.
+- chamadas externas de IA e Google ficam fora das transações.
 
 ## 6. Modelo de dados técnico
 
-O schema de produto contém oito tabelas após V004, além do histórico do Flyway. IDs de entidades são UUIDs; instantes usam `timestamptz`; nascimento usa `date`. As FKs usam exclusão restritiva.
+O schema de produto contém dez tabelas após V006, além do histórico do Flyway. IDs de entidades são UUIDs; instantes usam `timestamptz`; nascimento usa `date`. As FKs usam exclusão restritiva.
 
 | Tabela | Campos principais atuais | Responsabilidade |
 |---|---|---|
@@ -164,6 +169,8 @@ O schema de produto contém oito tabelas após V004, além do histórico do Flyw
 | `evidencia_analise` | `id`, `analise_id`, `paciente_id`, `secao`, `indice_item`, `registro_id`, `campo`, `citacao`, `criada_em` | Evidências normalizadas por item da análise. |
 | `tentativa_geracao_analise` | `id`, `geracao_id`, `numero_tentativa`, `iniciada_em`, `finalizada_em`, `resultado`, `codigo_erro`, `duracao_ms`, `requisicao_provedor_id`, `tokens_entrada`, `tokens_saida` | Auditoria técnica gravada ao finalizar uma tentativa. |
 | `idempotencia` | `id`, `operacao_escopo`, `paciente_id`, `key`, `hash_payload`, `tipo_recurso`, `recurso_id`, `status_original`, `criada_em` | Repetição segura. A coluna da chave ainda se chama `key`. |
+| `conexao_google_agenda` | `id`, `estado`, `refresh_token_iv`, `refresh_token_cifrado`, `atualizada_em` | Estado da conexão e refresh token cifrado; não persiste access token. |
+| `sincronizacao_consulta_google` | `consulta_id`, `google_event_id`, `estado`, `tentativas`, `proxima_tentativa`, `ultima_tentativa`, `ultimo_erro`, `versao`, `atualizada_em` | Intenção durável de sincronização, claim/lease e categoria de falha por consulta nova. |
 
 Não existe tabela de heartbeat do worker. A geração não armazena versões de prompt/schema/modelo; a análise armazena `versao_regras_seguranca`. Não se deve inferir essa auditoria adicional a partir da TechSpec original.
 
@@ -172,6 +179,7 @@ Não existe tabela de heartbeat do worker. A geração não armazena versões de
 | Conceito | Valores serializados atuais |
 |---|---|
 | Status de consulta | `AGENDADA`, `REALIZADA`, `CANCELADA`, `FALTA` |
+| Sincronização Google | `AGUARDANDO_CONEXAO`, `PENDENTE`, `SINCRONIZADA`, `FALHA`; respostas para consultas legadas usam `NAO_APLICAVEL`. |
 | Tipo de registro | `PARECER`, `COMPLEMENTO` |
 | Estado da geração | `ENFILEIRADA`, `EM_EXECUCAO`, `AGUARDANDO_RETENTATIVA`, `CONCLUIDA`, `FALHA` |
 | Gatilho | `AUTOMATICA`, `MANUAL` |
@@ -188,27 +196,34 @@ Criação de paciente, consulta, parecer, complemento e regeneração manual exi
 
 `IdempotenciaServico` serializa requisições de mesmo escopo com locks em memória no processo. A operação e o registro de idempotência são persistidos na mesma transação, com índice único no banco. As sequências clínicas usam lock na linha do paciente. Essa implementação corresponde ao backend único do MVP; não estabelece coordenação distribuída entre múltiplas instâncias.
 
+A criação de consultas também usa um `pg_advisory_xact_lock` dedicado à agenda, seguido por nova leitura de sobreposição e gravação atômica da consulta, da idempotência e da intenção de sincronização. Nenhuma chamada Google ocorre enquanto o lock ou a transação está aberto.
+
 ### Migrations
 
 - V001: pacientes, consultas e idempotência.
 - V002: registros clínicos, gerações, revisões e proteções append-only dos registros.
 - V003: análises, evidências, tentativas e proteções append-only adicionais.
 - V004: renomeação das oito tabelas e de parte das colunas/índices, conversão de enums e tentativa de conversão do JSONB histórico.
+- V005: tabela de estado da conexão Google, com validação de estado/credencial cifrada.
+- V006: tabela de sincronização Google, índice parcial de itens vencidos e índice parcial de consultas `AGENDADA` por horário; não faz backfill de consultas existentes.
 
-V001–V003 permanecem como histórico. V004 é executada também na criação de uma base nova. O upgrade de uma base V003 populada permanece sem validação: a migration reativa o trigger append-only de `analise_clinica` antes de normalizar o JSONB, não converte os valores antigos de `evidencia_analise.campo` antes de adicionar o novo CHECK e só normaliza objetos internos de `linhaDoTempo`. O teste de bootstrap atual aplica as quatro migrations em banco vazio; isso não comprova upgrade nem preservação de dados existentes. A [revisão documental](REVISAO-DOCUMENTAL.md) detalha a inspeção.
+V001–V004 permanecem como histórico. V006 é executada também em base nova e não cria estado para consultas anteriores. `GoogleAgendaCalendarIT` valida upgrade de V005 para V006 com consulta preexistente, além de bootstrap em base vazia. O upgrade V003 → V004 permanece sem validação: a migration reativa o trigger append-only de `analise_clinica` antes de normalizar JSONB, não converte valores antigos de `evidencia_analise.campo` antes de adicionar o novo CHECK e só normaliza objetos internos de `linhaDoTempo`. A [revisão documental](REVISAO-DOCUMENTAL.md) detalha a inspeção anterior.
 
 ## 7. Índices, constraints e proteção dos dados
 
-Índices existentes após V004 incluem:
+Índices existentes após V006 incluem:
 
 - `paciente(nome_busca, id)`;
 - `consulta(paciente_id, agendada_para, id)` e `consulta(agendada_para, id)`;
+- `consulta(agendada_para)` parcial para consultas `AGENDADA` e `sincronizacao_consulta_google(proxima_tentativa, consulta_id)` parcial para `PENDENTE`/`AGUARDANDO_CONEXAO`;
 - `registro_clinico(paciente_id, data_hora_clinica DESC, criado_em DESC, id DESC)` e `(paciente_id, revision)`;
 - `geracao_analise(estado, proxima_tentativa_em, solicitada_em, id)`, `(paciente_id, estado)` e `(paciente_id, revisao_snapshot, sequencia_requisicao)`;
 - `analise_clinica(paciente_id, gerada_em DESC, id DESC)`;
 - evidências por `analise_id` e por `registro_id`.
 
 Constraints garantem CPF único, revisão única por paciente, sequência de geração única por paciente, geração automática única por registro disparador, análise única por geração e tentativa única por geração/número. FKs compostas preservam os vínculos por paciente entre registros, consultas, gerações, análises e evidências.
+
+`sincronizacao_consulta_google` possui uma linha por consulta gerenciada, FK restritiva para consulta, identificador de evento único e limite no banco de cinco tentativas automáticas.
 
 Há checks de tipos, estados, modos, seções e campos, além de referência obrigatória do complemento ao parecer original. Um trigger verifica se o original referenciado é um `PARECER` do mesmo paciente. Triggers `BEFORE UPDATE/DELETE` impedem mutação de registros clínicos, análises e evidências. Parte dos nomes de constraints, funções e triggers permanece em inglês após V004.
 
@@ -357,9 +372,11 @@ Base: `/api/v1`. O contrato usa REST/JSON, DTOs separados das entidades JPA e CP
 | `POST /pacientes` | 201; cria paciente; exige `Idempotency-Key`. |
 | `GET /pacientes?nome&pagina&tamanho` | Busca/listagem paginada. |
 | `GET /pacientes/{id}` | Dados cadastrais. |
-| `POST /pacientes/{pacienteId}/consultas` | 201; cria consulta `AGENDADA`; exige `Idempotency-Key`. |
+| `POST /pacientes/{pacienteId}/consultas` | 201; valida sobreposição local/Google, cria consulta `AGENDADA` e intenção durável; exige `Idempotency-Key`. Com conexão ativa indisponível retorna 503 sanitizado. |
 | `GET /consultas?de&ate&pacienteId&pagina&tamanho` | Agenda por intervalo/paciente. |
 | `POST /consultas/{id}/status` | 200; transição para status final. |
+| `GET /consultas/disponibilidade?agendadaPara` | `DISPONIVEL`, `OCUPADO` ou `INDISPONIVEL`, fuso `America/Sao_Paulo` e instante de verificação. |
+| `POST /consultas/{id}/sincronizacao-google/tentar-novamente` | 202; reinicia o estado durável de sincronização quando existe vínculo. |
 | `GET /pacientes/{pacienteId}/registros-clinicos?pagina&tamanho` | Linha do tempo descendente. |
 | `POST /pacientes/{pacienteId}/registros-clinicos` | 201; parecer e geração; exige `Idempotency-Key`. |
 | `POST /pacientes/{pacienteId}/registros-clinicos/{parecerOriginalId}/complementos` | 201; complemento e geração; exige `Idempotency-Key`. |
@@ -379,7 +396,8 @@ DTOs efetivos:
 | `CriarPacienteRequest` | `nome`, `cpf`, `dataNascimento`, `telefone`, `email`, `queixaInicial`. |
 | `PacienteResponse` | `id`, dados cadastrais, `cpf` mascarado e `criadoEm`. |
 | `CriarConsultaRequest` | `agendadaPara`, `observacoes`. |
-| `ConsultaResponse` | `id`, `pacienteId`, `agendadaPara`, `status`, `observacoes`, `criadaEm`, `statusAlteradoEm`. |
+| `ConsultaResponse` | Campos atuais da consulta e objeto aditivo `sincronizacaoGoogleAgenda` (`estado`, `ultimaTentativa`); legado retorna `NAO_APLICAVEL`. |
+| `DisponibilidadeConsultaResponse` | `estado`, `fusoHorario`, `verificadoEm`; não inclui detalhes de eventos Google. |
 | `CriarRegistroClinicoRequest` | `texto`, `humor`, `medicamentos`, `dataHoraClinica`, `consultaId`. O complemento rejeita `consultaId` preenchido. |
 | `RegistroClinicoResponse` | `id`, `pacienteId`, `tipo`, `parecerOriginalId`, `consultaId`, `dataHoraClinica`, `criadoEm`, `texto`, `humor`, `medicamentos`, `revisao`. |
 | `CriarRegistroClinicoResponse` | `registro`, `geracaoId`, `geracao` inicialmente `ENFILEIRADA`. |
@@ -420,6 +438,8 @@ Categorias:
 
 Falhas da IA após aceite da solicitação aparecem como estado da geração, não como erro HTTP retroativo.
 
+Falha ao verificar disponibilidade Google numa conexão ativa retorna 503 com `codigo=GOOGLE_DISPONIBILIDADE_INDISPONIVEL`; ocupação local ou Google retorna 409 `CONFLITO`. Respostas e logs não reproduzem detalhes brutos do provider.
+
 ### Paginação
 
 Padrão:
@@ -440,6 +460,8 @@ Política aprovada:
 - receber datas/horas na API como ISO 8601 com offset;
 - responder instantes em UTC;
 - exibir na interface em `America/Sao_Paulo`;
+- enviar intervalos de consulta ao Google como instantes e solicitar/gerar eventos no fuso `America/Sao_Paulo`;
+- comparar disponibilidade como intervalo `[início, início + 1 hora)`, mantendo o fim exclusivo;
 - nascimento usa `DATE`/`LocalDate`;
 - `criadoEm` é gerado pelo servidor;
 - `dataHoraClinica` permanece separado de `criadoEm`;
@@ -555,11 +577,19 @@ Conexão OAuth opcional do Google Agenda:
 
 `GET /api/v1/integracoes/google-agenda` expõe somente estado seguro. O fluxo em `adapter/out/google/GoogleAgendaOAuthAdapter` solicita `calendar.freebusy` e `calendar.events.owned`. O refresh token é cifrado em `conexao_google_agenda` por AES-256-GCM com IV aleatório por gravação; access tokens não são persistidos. Início e callback usam cookie `HttpOnly`, `SameSite=Lax`, `Secure` fora de loopback e `state` aleatório, de uso único, vinculado ao cookie e válido por dez minutos. Configuração ausente ou incompleta não impede startup e produz `NAO_CONFIGURADA`. Desconexão remove a credencial local e tenta revogar o token; falha remota não restaura a conexão.
 
+### Google Calendar e sincronização
+
+O adapter Calendar consulta `freeBusy.query` apenas para `primary` e retorna intervalos ocupados; eventos preexistentes e seus detalhes não são importados nem armazenados. Eventos do PsiqApp usam UUID estável sem hífens e uma propriedade privada que confirma a associação antes de alterar/remover. O payload contém somente nome, e-mail e início/fim; não inclui CPF, observações ou conteúdo clínico. A conexão Google é consultada fora da transação de agenda.
+
+`sincronizacao_consulta_google` mantém estados `AGUARDANDO_CONEXAO`, `PENDENTE`, `SINCRONIZADA` e `FALHA`. O worker roda no backend, processa lotes de 20 com claim transacional `FOR UPDATE SKIP LOCKED`, reserva de dois minutos e polling configurável (padrão `5s`). Reivindicação vencida torna o trabalho recuperável após restart; falhas transitórias têm backoff exponencial e limite de cinco tentativas automáticas. A reconciliação consulta o ID estável após timeout para evitar duplicatas. Erros de autorização marcam a conexão indisponível. Eventos de consultas canceladas são removidos; consultas legadas não têm linha de sincronização. Não há broker externo.
+
+Variáveis do worker Calendar: `PSIQAPP_GOOGLE_AGENDA_WORKER_ENABLED` (padrão `true`) e `PSIQAPP_GOOGLE_AGENDA_WORKER_POLL_INTERVAL` (padrão `5s`). Ambas são repassadas pelo Compose local e possuem placeholders/configuração no `.env.example`.
+
 ## 16. Observabilidade
 
 `logback-spring.xml` emite JSON com allowlist de `timestamp`, `level`, `requestId`, `status`, `duracaoMs` e `codigo`. Mensagem, argumentos, exceção e MDC completo não são serializados. `FiltroRequestId` propaga o header `X-Request-Id` e registra metadados operacionais da requisição.
 
-O logger operacional usa nível INFO e o root usa WARN. O INFO emitido pelo scheduler não é uma trilha estruturada completa de geração/tentativa nessa configuração. A auditoria de tentativas é persistida em `tentativa_geracao_analise`.
+O logger operacional usa nível INFO e o root usa WARN. A sincronização Google guarda apenas categoria sanitizada de erro e timestamps/contagem no estado durável; tokens, nomes/e-mails e resposta Google não são registrados. A auditoria de tentativas de análise é persistida em `tentativa_geracao_analise`.
 
 Logs não devem expor conteúdo clínico, respostas integrais da IA, CPF completo, credenciais ou secrets. Há testes de formato/privacidade de logs e erros. A revisão documental não executou uma varredura operacional integrada.
 
@@ -567,7 +597,7 @@ Actuator expõe apenas health/readiness, sem detalhes; OpenAPI é um endpoint se
 
 ## 17. Testes e qualidade
 
-O backend usa JUnit 5, Spring Boot Test, Mockito, ArchUnit e Testcontainers PostgreSQL. `mvnw verify` executa testes unitários/contexto e os `*IT` de APIs, banco, registros, análises e worker. Os testes cobrem contratos, append-only, snapshot, evidências, isolamento, idempotência e falhas/retentativas em camadas específicas.
+O backend usa JUnit 5, Spring Boot Test, Mockito, ArchUnit e Testcontainers PostgreSQL. `mvnw verify` executa testes unitários/contexto e os `*IT` de APIs, banco, registros, análises e workers. Os testes cobrem contratos Calendar fake, intervalos/fuso, privacidade de payload, migração sem backfill, concorrência local, atomicidade, estados de consulta, reconciliação, retry e recuperação de claim expirado.
 
 O frontend usa Vitest/Testing Library para cliente HTTP, formulários, fluxos e polling. Playwright contém sete testes em três arquivos: cadastro/busca, criação de consulta, parecer/complemento/evidência, isolamento de registros, histórico insuficiente após reload, layout responsivo da análise e navegação por teclado no histórico. As fixtures usam a API local; não há interceptação de rede que substitua o backend nessa suíte. Apesar do nome `isolamento-e-falha-ia.spec.ts`, seus testes não simulam falha, timeout ou retry do provider.
 
@@ -590,10 +620,10 @@ Testes comuns usam fake/mock e dados fictícios; não precisam de OpenAI real. T
 | Área | Estado verificável neste checkout |
 |---|---|
 | Pacientes, consultas, prontuário e análise | Backend e frontend implementam os fluxos descritos nas seções anteriores; testes unitários, de integração e E2E estão versionados. A presença dos testes não comprova que passaram nesta revisão. |
-| Integração com Google Agenda | Task 1.0 entrega conexão OAuth server-side com refresh token cifrado. As tasks 2.0 e 3.0 ainda cobrem disponibilidade, sincronização durável e interface; uso permanece restrito a dados fictícios. |
+| Integração com Google Agenda | Tasks 1.0 e 2.0 entregam conexão OAuth, disponibilidade e sincronização durável no backend. Task 3.0 ainda cobre a interface; uso permanece restrito a dados fictícios. |
 | Gates antigos do MVP e da refatoração de nomenclaturas | Os diretórios SDD correspondentes não estão presentes neste checkout. Seus estados históricos de aprovação não podem ser confirmados pelos arquivos atuais. |
 
-A [revisão documental](REVISAO-DOCUMENTAL.md) registra a comparação realizada e seus limites. Os artefatos atuais da integração Google descrevem as entregas concluídas e planejadas.
+A [revisão documental](REVISAO-DOCUMENTAL.md) registra a comparação realizada e seus limites. Os artefatos da integração Google identificam o backend concluído e a interface pendente.
 
 ## 19. Limites técnicos do MVP
 
@@ -625,7 +655,7 @@ Os pontos abaixo foram confirmados por inspeção estática do código e dos art
 - alinhar o prompt OpenAI ao schema e aos modos atuais em português; o texto atual usa chaves/valores em inglês e contém caracteres acentuados corrompidos;
 - encerrar ou recuperar uma geração `EM_EXECUCAO` cuja lease expire já no limite de tentativas; a recuperação atual só reivindica leases expiradas quando `contagem_tentativas < maxTentativas`;
 - definir o comportamento desejado para limite global de tempo e limites de entrada/saída da IA antes de tratar esses controles como garantias existentes;
-- completar a implementação da integração Google Agenda conforme PRD/TechSpec, caso a feature siga adiante;
+- integrar a interface React com disponibilidade, conexão e estado de sincronização Google na task 3.0;
 - executar os checks do CI e documentar evidências atuais antes de declarar aprovação de entrega. Esta revisão não os executou.
 
 Os demais limites da implementação estão descritos nas seções de banco, IA, API, frontend e operação. Fontes e evidências desta revisão estão em [REVISAO-DOCUMENTAL.md](REVISAO-DOCUMENTAL.md).

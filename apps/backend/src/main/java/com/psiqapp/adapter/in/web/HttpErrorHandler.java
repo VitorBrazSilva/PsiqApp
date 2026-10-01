@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.psiqapp.domain.validation.ConflitoException;
 import com.psiqapp.domain.exception.RecursoNaoEncontradoException;
 import com.psiqapp.domain.exception.ValidacaoException;
+import com.psiqapp.application.usecase.GoogleAgendaIndisponivelException;
 import org.slf4j.MDC;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -41,6 +42,12 @@ public class HttpErrorHandler extends ResponseEntityExceptionHandler {
         return resposta(HttpStatus.SERVICE_UNAVAILABLE, HttpHeaders.EMPTY, List.of(), request);
     }
 
+    @ExceptionHandler(GoogleAgendaIndisponivelException.class)
+    ResponseEntity<Object> indisponibilidadeGoogle(WebRequest request) {
+        return resposta(HttpStatus.SERVICE_UNAVAILABLE, HttpHeaders.EMPTY, List.of(), request,
+                "GOOGLE_DISPONIBILIDADE_INDISPONIVEL");
+    }
+
     @ExceptionHandler(ValidacaoException.class)
     ResponseEntity<Object> validationDominio(ValidacaoException ex, WebRequest request) {
         var campos = ex.erros().stream()
@@ -66,6 +73,11 @@ public class HttpErrorHandler extends ResponseEntityExceptionHandler {
 
     private ResponseEntity<Object> resposta(HttpStatusCode status, HttpHeaders headers,
             List<ResponseProblema.ErroDeCampo> campos, WebRequest request) {
+        return resposta(status, headers, campos, request, null);
+    }
+
+    private ResponseEntity<Object> resposta(HttpStatusCode status, HttpHeaders headers,
+            List<ResponseProblema.ErroDeCampo> campos, WebRequest request, String codigoEspecifico) {
         Object atributo = request.getAttribute(FiltroRequestId.ATRIBUTO, RequestAttributes.SCOPE_REQUEST);
         String requestId = atributo instanceof String id ? id : UUID.randomUUID().toString();
         String codigo = switch (status.value()) {
@@ -78,6 +90,7 @@ public class HttpErrorHandler extends ResponseEntityExceptionHandler {
             case 503 -> "SERVICO_INDISPONIVEL";
             default -> status.is5xxServerError() ? "ERRO_INTERNO" : "REQUISICAO_REJEITADA";
         };
+        if (codigoEspecifico != null) codigo = codigoEspecifico;
         String detalhe = switch (status.value()) {
             case 400 -> "Verifique os campos da requisicao.";
             case 404 -> "Recurso nao encontrado.";

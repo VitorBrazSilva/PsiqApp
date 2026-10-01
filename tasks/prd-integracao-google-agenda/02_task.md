@@ -34,11 +34,11 @@ Task 1.0 aprovada: port, configuração e credenciais OAuth disponíveis. A inte
 
 ## Subtarefas
 
-- [ ] 2.1 Adicionar estado durável de sincronização/migration e proteção concorrente da disponibilidade local.
-- [ ] 2.2 Implementar port/adapter FreeBusy, casos de uso e contrato HTTP de disponibilidade.
-- [ ] 2.3 Integrar criação e transição de status com sincronização persistida após commit.
-- [ ] 2.4 Implementar worker, reconciliação idempotente, retries e nova tentativa manual.
-- [ ] 2.5 Cobrir contratos, privacidade, falhas e arquitetura com testes automatizados e fakes.
+- [x] 2.1 Adicionar estado durável de sincronização/migration e proteção concorrente da disponibilidade local.
+- [x] 2.2 Implementar port/adapter FreeBusy, casos de uso e contrato HTTP de disponibilidade.
+- [x] 2.3 Integrar criação e transição de status com sincronização persistida após commit.
+- [x] 2.4 Implementar worker, reconciliação idempotente, retries e nova tentativa manual.
+- [x] 2.5 Cobrir contratos, privacidade, falhas e arquitetura com testes automatizados e fakes.
 
 ## Critérios de sucesso
 
@@ -51,11 +51,11 @@ Task 1.0 aprovada: port, configuração e credenciais OAuth disponíveis. A inte
 - A verificação arquitetural existente confirma dependências em direção `adapter/config -> application -> domain`; documentação técnica e de negócio reflete apenas o que foi implementado e passa pelo `project-documentation-maintainer`.
 
 ## Testes obrigatórios
-- [ ] Unitários: sobreposição, fim exclusivo, uma hora, instantes/fuso, payload por status, mapeamento de erros, retry e reconciliação de IDs estáveis.
-- [ ] Integração: migration/índices/claim com PostgreSQL Testcontainers; conflitos locais concorrentes; atomicidade; idempotência; rotas/status; retry após restart.
-- [ ] E2E/sistema: N/A para tela nesta task; verificar contratos HTTP de disponibilidade, criação, status e retry. Os fluxos de navegador serão cobertos na task 3.0.
-- [ ] Casos de erro/edge cases: consulta local ou Google ocupada, Google indisponível/revogado, timeout ambíguo de criação, erro transitório/permanente, evento já ausente ao remover, falha sem perda de consulta, consulta cancelada antes de criar evento e consulta legada.
-- [ ] Contrato Google por fakes/servidor HTTP fake; nenhum teste usa rede externa ou dados reais.
+- [x] Unitários: sobreposição, fim exclusivo, uma hora, instantes/fuso, payload por status, mapeamento de erros, retry e reconciliação de IDs estáveis.
+- [x] Integração: migration/índices/claim com PostgreSQL Testcontainers; conflitos locais concorrentes; atomicidade; idempotência; rotas/status; retry após restart.
+- [x] E2E/sistema: N/A para tela nesta task; verificar contratos HTTP de disponibilidade, criação, status e retry. Os fluxos de navegador serão cobertos na task 3.0.
+- [x] Casos de erro/edge cases: consulta local ou Google ocupada, Google indisponível/revogado, timeout ambíguo de criação, erro transitório/permanente, evento já ausente ao remover, falha sem perda de consulta, consulta cancelada antes de criar evento e consulta legada.
+- [x] Contrato Google por fakes/servidor HTTP fake; nenhum teste usa rede externa ou dados reais.
 - [ ] Executar ArchUnit existente; não criar ferramenta arquitetural nova.
 
 ## Skills aplicáveis

@@ -15,6 +15,7 @@ import com.psiqapp.domain.modelo.StatusConsulta;
 @Repository
 @ConditionalOnProperty(prefix = "psiqapp.product", name = "enabled", havingValue = "true", matchIfMissing = true)
 class AdapterConsultaJpa implements RepositoryConsultaPort {
+    private static final long LOCK_AGENDA = 1_140_802_026L;
     private final RepositoryConsultaJpaSpring repositorio;
     private final JdbcTemplate jdbc;
 
@@ -75,6 +76,24 @@ class AdapterConsultaJpa implements RepositoryConsultaPort {
     @Override
     public boolean atualizarStatusSeAgendada(UUID id, StatusConsulta status, Instant alteradoEm) {
         return repositorio.atualizarStatusSeAgendada(id, status, alteradoEm) == 1;
+    }
+
+    @Override
+    public void bloquearAgendaParaCriacao() {
+        jdbc.execute("select pg_advisory_xact_lock(" + LOCK_AGENDA + ")");
+    }
+
+    @Override
+    public boolean existeAgendadaSobreposta(Instant inicio, Instant fim) {
+        Boolean conflito = jdbc.queryForObject("""
+                select exists (
+                    select 1 from consulta
+                     where status = 'AGENDADA'
+                       and agendada_para < ?
+                       and agendada_para + interval '1 hour' > ?
+                )
+                """, Boolean.class, java.sql.Timestamp.from(fim), java.sql.Timestamp.from(inicio));
+        return Boolean.TRUE.equals(conflito);
     }
 
     private EntidadeConsultaJpa paraJpa(Consulta consulta) {

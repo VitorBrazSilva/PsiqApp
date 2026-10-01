@@ -1,6 +1,8 @@
 package com.psiqapp.application.usecase;
 
 import com.psiqapp.application.port.out.RepositoryConsultaPort;
+import com.psiqapp.application.port.out.RepositorySincronizacaoConsultaPort;
+import com.psiqapp.application.port.out.ConexaoGoogleAgendaPort;
 import com.psiqapp.application.port.out.TransactionRunnerPort;
 import com.psiqapp.domain.modelo.Consulta;
 import com.psiqapp.domain.modelo.StatusConsulta;
@@ -16,11 +18,16 @@ public class AtualizarStatusConsultaUseCase {
     private final RepositoryConsultaPort consultas;
     private final TransactionRunnerPort transacao;
     private final Clock relogio;
+    private final RepositorySincronizacaoConsultaPort sincronizacoes;
+    private final ConexaoGoogleAgendaPort conexao;
 
-    public AtualizarStatusConsultaUseCase(RepositoryConsultaPort consultas, TransactionRunnerPort transacao, Clock relogio) {
+    public AtualizarStatusConsultaUseCase(RepositoryConsultaPort consultas, TransactionRunnerPort transacao,
+            Clock relogio, RepositorySincronizacaoConsultaPort sincronizacoes, ConexaoGoogleAgendaPort conexao) {
         this.consultas = consultas;
         this.transacao = transacao;
         this.relogio = relogio;
+        this.sincronizacoes = sincronizacoes;
+        this.conexao = conexao;
     }
 
     public Consulta executar(UUID id, StatusConsulta novoStatus) {
@@ -34,7 +41,13 @@ public class AtualizarStatusConsultaUseCase {
             if (atual.status().finalizado()) throw new ConflitoException();
             boolean atualizada = consultas.atualizarStatusSeAgendada(id, novoStatus, relogio.instant());
             if (!atualizada) throw new ConflitoException();
-            return consultas.buscarPorId(id).orElseThrow(RecursoNaoEncontradoException::new);
+            Consulta resultado = consultas.buscarPorId(id).orElseThrow(RecursoNaoEncontradoException::new);
+            String estadoConexao = conexao.estado();
+            var estado = "CONECTADA".equals(estadoConexao)
+                    ? RepositorySincronizacaoConsultaPort.Estado.PENDENTE
+                    : RepositorySincronizacaoConsultaPort.Estado.AGUARDANDO_CONEXAO;
+            sincronizacoes.solicitar(id, estado, relogio.instant());
+            return resultado;
         });
     }
 }

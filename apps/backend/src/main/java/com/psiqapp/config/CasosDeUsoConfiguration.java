@@ -11,6 +11,9 @@ import com.psiqapp.application.port.out.RepositorySequenciaPacientePort;
 import com.psiqapp.application.port.out.TransactionRunnerPort;
 import com.psiqapp.application.port.out.ConexaoGoogleAgendaPort;
 import com.psiqapp.application.port.out.GoogleAgendaAutorizacaoPort;
+import com.psiqapp.application.port.out.GoogleAgendaCalendarioPort;
+import com.psiqapp.application.port.out.GoogleAgendaConfiguracaoPort;
+import com.psiqapp.application.port.out.RepositorySincronizacaoConsultaPort;
 import com.psiqapp.application.usecase.*;
 import java.time.Clock;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -67,8 +70,17 @@ class CasosDeUsoConfiguration {
     @Bean
     CriarConsultaUseCase criarConsultaUseCase(RepositoryPacientePort pacientes,
             RepositoryConsultaPort consultas, IdempotenciaServico idempotencia, TransactionRunnerPort transacao,
-            Clock relogio) {
-        return new CriarConsultaUseCase(pacientes, consultas, idempotencia, transacao, relogio);
+            Clock relogio, VerificarDisponibilidadeConsultaUseCase disponibilidade,
+            RepositorySincronizacaoConsultaPort sincronizacoes, ConexaoGoogleAgendaPort conexao) {
+        return new CriarConsultaUseCase(pacientes, consultas, idempotencia, transacao, relogio,
+                disponibilidade, sincronizacoes, conexao);
+    }
+
+    @Bean
+    VerificarDisponibilidadeConsultaUseCase verificarDisponibilidadeConsultaUseCase(RepositoryConsultaPort consultas,
+            ConexaoGoogleAgendaPort conexao, GoogleAgendaCalendarioPort calendario,
+            GoogleAgendaConfiguracaoPort configuracao, Clock relogio) {
+        return new VerificarDisponibilidadeConsultaUseCase(consultas, conexao, calendario, configuracao, relogio);
     }
 
     @Bean
@@ -78,8 +90,22 @@ class CasosDeUsoConfiguration {
 
     @Bean
     AtualizarStatusConsultaUseCase atualizarStatusConsultaUseCase(RepositoryConsultaPort consultas,
-            TransactionRunnerPort transacao, Clock relogio) {
-        return new AtualizarStatusConsultaUseCase(consultas, transacao, relogio);
+            TransactionRunnerPort transacao, Clock relogio, RepositorySincronizacaoConsultaPort sincronizacoes,
+            ConexaoGoogleAgendaPort conexao) {
+        return new AtualizarStatusConsultaUseCase(consultas, transacao, relogio, sincronizacoes, conexao);
+    }
+
+    @Bean
+    TentarNovamenteSincronizacaoGoogleAgendaUseCase tentarNovamenteSincronizacaoGoogleAgendaUseCase(
+            RepositoryConsultaPort consultas, RepositorySincronizacaoConsultaPort sincronizacoes,
+            ConexaoGoogleAgendaPort conexao, Clock relogio) {
+        return new TentarNovamenteSincronizacaoGoogleAgendaUseCase(consultas, sincronizacoes, conexao, relogio);
+    }
+
+    @Bean
+    ObterEstadosSincronizacaoConsultaUseCase obterEstadosSincronizacaoConsultaUseCase(
+            RepositorySincronizacaoConsultaPort sincronizacoes) {
+        return new ObterEstadosSincronizacaoConsultaUseCase(sincronizacoes);
     }
 
     @Bean
