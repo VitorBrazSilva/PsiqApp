@@ -2,7 +2,7 @@
 
 PsiqApp MVP e uma aplicacao local para desenvolver e validar uma ferramenta de apoio ao prontuario psiquiatrico usando somente dados ficticios.
 
-O repositorio contem documentos SDD, Rules, PostgreSQL local, backend Spring Boot com APIs de pacientes, consultas, integracao server-side com Google Agenda, registros clinicos, nucleo persistente de analises e workers configuraveis, e uma SPA navegavel com aviso persistente de dados ficticios. No frontend, Pacientes, Agenda e Prontuario permitem cadastrar, buscar e abrir pacientes, visualizar dados basicos, criar consultas, atualizar status, registrar pareceres e complementos, consultar linha do tempo clinica, ver analises e seu historico consumindo a API real. A interface Google sera integrada na task 3.0 da feature.
+O repositorio contem documentos SDD, Rules, PostgreSQL local, backend Spring Boot com APIs de pacientes, consultas e integracao server-side com Google Agenda, registros clinicos, nucleo persistente de analises e workers configuraveis, e uma SPA navegavel com aviso persistente de dados ficticios. No frontend, Pacientes, Agenda e Prontuario permitem cadastrar, buscar e abrir pacientes, visualizar dados, criar consultas, conectar Google Agenda, verificar disponibilidade, acompanhar estados de sincronizacao, atualizar status, registrar pareceres e complementos, consultar linha do tempo clinica e ver analises e seu historico.
 
 ## Aviso de seguranca
 
@@ -42,7 +42,7 @@ O worker de analise fica desabilitado por padrao. Para processar geracoes localm
 
 A conexao OAuth opcional com Google Agenda requer `PSIQAPP_GOOGLE_AGENDA_CLIENT_ID`, `PSIQAPP_GOOGLE_AGENDA_CLIENT_SECRET` e `PSIQAPP_GOOGLE_AGENDA_ENCRYPTION_KEY` (Base64 de 32 bytes aleatorios). Configure tambem `PSIQAPP_GOOGLE_AGENDA_REDIRECT_URI` no cliente OAuth Google e `PSIQAPP_GOOGLE_AGENDA_FRONTEND_URI` com o destino fixo `/agenda`. Sem essa configuracao completa, o backend inicia normalmente e informa `NAO_CONFIGURADA`; o fluxo de conexao fica indisponivel. O refresh token e persistido cifrado com AES-256-GCM e a chave deve permanecer fora do repositório. OAuth usa navegação para `/api/v1/integracoes/google-agenda/conectar`; credenciais nunca são retornadas à SPA. Este fluxo não habilita uso com dados reais de pacientes.
 
-O worker de sincronização do Google Agenda usa `PSIQAPP_GOOGLE_AGENDA_WORKER_ENABLED=true` e polling de `PSIQAPP_GOOGLE_AGENDA_WORKER_POLL_INTERVAL=5s` por padrão; ajuste essas opções no `.env` quando necessário. O backend valida disponibilidade local e Google antes de criar consulta, registra a intenção de sincronização junto com a consulta e atualiza eventos depois do commit. Eventos existentes no Google são usados somente como intervalos ocupados; eventos gerenciados pelo PsiqApp contêm nome, e-mail e horário. A interface React para conectar conta, verificar horários e mostrar o estado da sincronização ainda pertence à task 3.0.
+O worker de sincronização do Google Agenda usa `PSIQAPP_GOOGLE_AGENDA_WORKER_ENABLED=true` e polling de `PSIQAPP_GOOGLE_AGENDA_WORKER_POLL_INTERVAL=5s` por padrão; ajuste essas opções no `.env` quando necessário. O backend valida disponibilidade local e Google antes de criar consulta, registra a intenção de sincronização junto com a consulta e atualiza eventos depois do commit. Eventos existentes no Google são usados somente como intervalos ocupados; eventos gerenciados pelo PsiqApp contêm nome, e-mail e horário, e identificam os estados finais `REALIZADA` e `FALTA`. Na Agenda, a interface informa os dados enviados, permite conectar/desconectar, verifica horários e mostra o estado da sincronização por consulta. Este fluxo só deve ser usado com dados fictícios.
 
 ## PostgreSQL
 
@@ -114,11 +114,13 @@ npm test -- --run
 npm run build
 ```
 
-Validar a suite E2E integrada, com o backend em `127.0.0.1:8080` e o provider fake:
+Validar a suite E2E integrada em `127.0.0.1:5173`, com o backend em `127.0.0.1:8080` configurado com o provider fake:
 
 ```bash
 npm run e2e
 ```
+
+Para executar contra uma porta do frontend e um backend locais isolados, configure opcionalmente `E2E_BASE_URL` e `E2E_API_PROXY_TARGET` antes de `npm run e2e`.
 
 Os testes de unidade usam Vitest e Testing Library, sem endpoints reais. A suite E2E usa Playwright contra o frontend e a API locais, com dados ficticios. `npm test` abre o modo watch; `npm run build` valida os tipos e gera `dist`. `npm run preview` permite conferir esse build localmente em 127.0.0.1:5173; para o desenvolvimento com proxy da API, use `npm run dev`.
 
@@ -129,4 +131,4 @@ Os testes de unidade usam Vitest e Testing Library, sem endpoints reais. A suite
 - Rules do projeto: `.agents/rules/`
 - Documentacao de negocio: `docs/BUSINESS.md`
 - Documentacao tecnica: `docs/TECHNICAL.md`
-- Feature SDD da integracao Google Agenda (backend Tasks 1.0/2.0; interface Task 3.0 pendente): `tasks/prd-integracao-google-agenda/`
+- Feature SDD da integracao Google Agenda (backend Tasks 1.0/2.0 e interface Task 3.0): `tasks/prd-integracao-google-agenda/`

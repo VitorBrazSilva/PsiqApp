@@ -6,11 +6,11 @@ O PsiqApp MVP é um sistema de apoio ao atendimento psiquiátrico para um único
 
 O objetivo principal é reduzir o esforço de releitura manual do prontuário antes de uma consulta, mantendo os registros clínicos originais como fonte de verdade. A IA ajuda a organizar acontecimentos, recorrências, padrões e pontos de atenção, mas não decide, diagnostica, prescreve nem substitui o julgamento clínico.
 
-**Capacidade atual:** o backend já permite cadastrar, buscar e visualizar pacientes por API, criar e listar consultas, consultar disponibilidade local e do Google Agenda, sincronizar eventos por worker durável, atualizar consultas para estados finais, criar pareceres originais e complementos, consultar a linha do tempo clínica, processar gerações de IA e consultar análises e seu histórico. A sincronização Google é opcional, usa o calendário principal e mantém a consulta do PsiqApp como fonte de verdade. O provider local padrão da IA é fake e determinístico; o adapter OpenAI pode ser habilitado por ambiente. No frontend, já é possível cadastrar pacientes, buscar por nome, abrir o prontuário, visualizar dados do paciente, criar e consultar consultas, atualizar status finais, registrar pareceres e complementos, consultar a linha do tempo clínica, ver análises e solicitar regeneração manual quando permitida pela API. A interface para conexão, disponibilidade e estado da sincronização Google ainda será integrada.
+**Capacidade atual:** o backend já permite cadastrar, buscar e visualizar pacientes por API, criar e listar consultas, consultar disponibilidade local e do Google Agenda, sincronizar eventos por worker durável, atualizar consultas para estados finais, criar pareceres originais e complementos, consultar a linha do tempo clínica, processar gerações de IA e consultar análises e seu histórico. A sincronização Google é opcional, usa o calendário principal e mantém a consulta do PsiqApp como fonte de verdade. O provider local padrão da IA é fake e determinístico; o adapter OpenAI pode ser habilitado por ambiente. No frontend, já é possível cadastrar, buscar e abrir pacientes, visualizar dados, criar e acompanhar consultas, registrar pareceres e complementos, consultar a linha do tempo clínica, ver análises e solicitar regeneração manual quando permitida pela API. Na Agenda, o médico acompanha a conexão Google, verifica explicitamente a disponibilidade de uma data e hora e vê o estado de sincronização de cada consulta, com nova tentativa quando aplicável.
 
-**Estado do checkout (revisão de 01/10/2026):** as capacidades de backend das tasks 1.0 e 2.0 da integração Google estão implementadas; a integração de interface pertence à task 3.0. Este MVP deve ser usado exclusivamente com dados fictícios. Os relatórios de QA e gates de features anteriores não estão presentes neste checkout; por isso, este documento não declara um estado histórico de aprovação dessas features.
+**Estado do checkout (revisão de 01/10/2026):** as tasks 1.0 e 2.0 integram o backend Google, e a task 3.0 conecta esses fluxos à Agenda. O estado do código e os gates de QA/revisão da feature são evidências distintas. Este MVP deve ser usado exclusivamente com dados fictícios; a ausência de artefatos SDD de features anteriores não comprova aprovação histórica delas.
 
-Este documento descreve as capacidades implementadas e as regras de negócio que elas devem respeitar. As invariantes vigentes estão nas Rules. A [integração com Google Agenda](../tasks/prd-integracao-google-agenda/prd.md) já dispõe de conexão e sincronização no backend; a tela de integração ainda está pendente.
+Este documento descreve as capacidades implementadas e as regras de negócio que elas devem respeitar. As invariantes vigentes estão nas Rules. A [integração com Google Agenda](../tasks/prd-integracao-google-agenda/prd.md) permite conectar a conta, validar disponibilidade e acompanhar a sincronização de consultas pela Agenda.
 
 ## 2. Contexto de uso
 
@@ -85,8 +85,10 @@ Regras funcionais:
 - O MVP não permite alterar diretamente uma consulta de um estado final para outro estado final.
 - Observações de consulta não entram como fonte clínica da IA.
 - Cada consulta ocupa uma hora; a disponibilidade local compara instantes em intervalos com fim exclusivo.
+- Na Agenda, uma data/hora candidata exige verificação explícita antes da criação. Alterar a data ou a hora invalida a verificação; conflito e falha de disponibilidade são apresentados como estados distintos.
 - Sem conexão Google ativa por escolha do médico, o agendamento considera somente consultas `AGENDADA` do PsiqApp. Com conexão ativa, a disponibilidade Google também é consultada; falha nessa verificação impede novo agendamento e é distinta de conflito.
 - Consulta nova e sua intenção de sincronização são persistidas juntas. Indisponibilidade Google após a criação não desfaz a consulta; o estado de sincronização fica visível pela API e o worker tenta novamente.
+- A Agenda apresenta o estado Google por consulta e permite solicitar nova tentativa para sincronização pendente ou falha. Consultas legadas sem evento correspondente continuam locais e aparecem como `NAO_APLICAVEL`.
 - O evento gerenciado no calendário principal contém nome, e-mail e horário. Não inclui CPF, observações nem conteúdo clínico. Eventos Google preexistentes contribuem apenas com intervalos ocupados e não aparecem como consultas do PsiqApp.
 - Mudanças para `REALIZADA` e `FALTA` atualizam o evento sem alterar o horário; `CANCELADA` remove o evento após a sincronização.
 - A integração não cria vínculos para consultas legadas. Elas permanecem na agenda local com estado Google `NAO_APLICAVEL`.
@@ -236,13 +238,13 @@ As etapas de cadastro, busca e visualização de dados básicos existem no backe
 
 ### Fluxo 2 - Criação e acompanhamento de consulta
 
-As etapas de criação, listagem de agenda e atualização de status existem no backend por API e já estão disponíveis no frontend. A agenda global exibe paciente, data, hora e status de cada consulta; quando o nome do paciente ainda não foi carregado na página, o frontend exibe o identificador técnico do paciente como fallback.
+As etapas de criação, listagem de agenda e atualização de status estão disponíveis no frontend. A agenda global exibe paciente, data, hora, status da consulta e estado Google; quando o nome do paciente ainda não foi carregado na página, o frontend exibe o identificador técnico do paciente como fallback.
 
-1. O médico cria uma consulta para um paciente, informando data e hora.
-2. A consulta nasce como `AGENDADA`.
-3. A consulta aparece na agenda interna.
-4. O médico pode marcá-la como `REALIZADA`, `CANCELADA` ou `FALTA`.
-5. O status atualizado aparece na agenda e no contexto do paciente.
+1. O médico seleciona o paciente e informa uma data e hora candidatas.
+2. O sistema verifica a disponibilidade local e, quando há conexão ativa, também consulta o Google. Sem conexão, a verificação usa a agenda local; conflito ou falha de disponibilidade impede criar a consulta.
+3. Se a data e hora permanecem disponíveis, o médico cria a consulta, que nasce como `AGENDADA` e aparece na agenda interna.
+4. A agenda mostra o estado de sincronização Google da consulta e permite nova tentativa quando houver pendência ou falha.
+5. O médico pode marcá-la como `REALIZADA`, `CANCELADA` ou `FALTA`; o status atualizado aparece na agenda e no contexto do paciente.
 
 ### Fluxo 3 - Registro de parecer e geração automática
 
@@ -355,7 +357,6 @@ Não fazem parte do MVP:
 - uso em produção com dados reais;
 - infraestrutura completa de segurança para operação clínica real;
 - exportação avançada do prontuário.
-- interface React para conexão e apresentação da disponibilidade/estado Google, ainda pendente da task 3.0.
 
 ## 10. Métricas de validação
 
@@ -373,10 +374,10 @@ Indicadores de validação:
 
 ### Situação da validação
 
-Esses indicadores não são resultados já medidos. O checkout atual contém testes unitários, de integração e E2E, mas esta revisão documental não executou as suítes nem encontrou relatórios atuais de QA ou de aprovação da feature principal. A revisão estática identificou pontos técnicos pendentes na migração V004 e na minimização do payload OpenAI, detalhados em [REVISAO-DOCUMENTAL.md](REVISAO-DOCUMENTAL.md). A decisão clínica final continua pertencendo ao médico.
+Esses indicadores não são resultados já medidos. A presença de testes não substitui os relatórios de QA e os gates de aprovação da feature. O QA e o gate final da integração Google estão registrados em [qa-report.md](../tasks/prd-integracao-google-agenda/qa-report.md) e [feature-review.md](../tasks/prd-integracao-google-agenda/feature-review.md). A revisão estática identificou pontos técnicos pendentes na migração V004 e na minimização do payload OpenAI, detalhados em [REVISAO-DOCUMENTAL.md](REVISAO-DOCUMENTAL.md). A decisão clínica final continua pertencendo ao médico.
 
 ## 11. Fontes canônicas
 
-Este documento foi conferido com a implementação em `apps/backend` e `apps/frontend`, as migrations, os testes versionados e as Rules. As tasks 1.0 e 2.0 do backend Google estão implementadas; a task 3.0 da interface permanece pendente. Relatórios e artefatos SDD das features anteriores não estão disponíveis neste checkout e não são usados aqui como evidência de aprovação.
+Este documento foi conferido com a implementação em `apps/backend` e `apps/frontend`, as migrations, os testes versionados e as Rules. As tasks 1.0, 2.0 e 3.0 da integração Google estão implementadas. Relatórios e artefatos SDD de features anteriores não estão disponíveis neste checkout e não são usados como evidência de aprovação histórica.
 
 Fontes adicionais: `docs/TECHNICAL.md`, `README.md`, `.agents/rules/product-invariants.md`, `.agents/rules/clinical-data-privacy.md`, `.agents/rules/clinical-ai-safety.md` e `.agents/rules/documentation-maintenance.md`.

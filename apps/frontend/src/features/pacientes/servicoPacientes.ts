@@ -27,10 +27,10 @@ export interface CriarPaciente {
 }
 
 export const servicoPacientes = {
-  buscar(q: string, signal?: AbortSignal, size = 25, pagina = 0) {
+  buscar(q: string, signal?: AbortSignal, size = 25, pagina = 0, opcoes: { usarApiReal?: boolean } = {}) {
     const params = new URLSearchParams({ pagina: String(pagina), tamanho: String(size) })
     if (q.trim()) params.set('nome', q.trim())
-    return api.requisitar<Pagina<Paciente>>(`/pacientes?${params}`, { signal })
+    return api.requisitar<Pagina<Paciente>>(`/pacientes?${params}`, { signal, usarApiReal: opcoes.usarApiReal })
   },
 
   obter(id: string, signal?: AbortSignal) {

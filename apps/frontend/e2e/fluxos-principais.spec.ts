@@ -13,8 +13,8 @@ test('cria consulta e exibe paciente associado na agenda', async ({ page, reques
   const paciente = await criarPaciente(request)
   await criarConsulta(request, paciente.id)
   await page.goto('/agenda')
-  await expect(page.getByRole('heading', { name: 'Agenda' })).toBeVisible()
-  await expect(page.getByRole('combobox', { name: 'Filtro da agenda' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Agenda', exact: true })).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Filtrar paciente' })).toBeVisible()
   await expect(page.locator('.lista.consultas')).toContainText(paciente.nome)
 })
 

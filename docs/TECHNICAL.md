@@ -4,11 +4,11 @@
 
 Revisado em 01/10/2026 contra o código, as migrations, os contratos HTTP, o frontend, os testes versionados, o CI e os artefatos SDD presentes no checkout.
 
-O monorepo contém backend Spring Boot, frontend React, PostgreSQL, workers assíncronos configuráveis e execução completa via Docker Compose. Estão implementados cadastro/busca de pacientes, disponibilidade e sincronização de consultas com Google Agenda no backend, pareceres e complementos append-only, linha do tempo e geração/consulta de análises.
+O monorepo contém backend Spring Boot, frontend React, PostgreSQL, workers assíncronos configuráveis e execução completa via Docker Compose. Estão implementados cadastro/busca de pacientes, integração da Agenda com Google (conexão, verificação explícita de disponibilidade e estados de sincronização), pareceres e complementos append-only, linha do tempo e geração/consulta de análises.
 
-**O código e os gates de entrega são evidências diferentes:** os diretórios das tasks do MVP e da refatoração de nomenclaturas não estão presentes neste checkout, portanto seus estados históricos `READY`/`NOT READY` não podem ser confirmados aqui. As tasks 1.0 e 2.0 do backend da integração Google estão implementadas; a interface correspondente permanece na task 3.0. Veja a [revisão documental](REVISAO-DOCUMENTAL.md).
+**O código e os gates de entrega são evidências diferentes:** os diretórios das tasks do MVP e da refatoração de nomenclaturas não estão presentes neste checkout, portanto seus estados históricos `READY`/`NOT READY` não podem ser confirmados aqui. As tasks 1.0, 2.0 e 3.0 da integração Google estão implementadas; os reviews por task e o gate final da feature são registrados separadamente. Veja também a [revisão documental](REVISAO-DOCUMENTAL.md).
 
-Este documento descreve a implementação presente e identifica seus limites. As Rules continuam sendo as invariantes do projeto. Os artefatos da integração Google registram o comportamento entregue e o escopo de interface ainda pendente:
+Este documento descreve a implementação presente e identifica seus limites. As Rules continuam sendo as invariantes do projeto. Os artefatos da integração Google registram as decisões e a implementação de backend e frontend:
 
 - [PRD da integração com Google Agenda](../tasks/prd-integracao-google-agenda/prd.md) e [TechSpec](../tasks/prd-integracao-google-agenda/techspec.md);
 - Rules de [arquitetura](../.agents/rules/architecture-boundaries.md), [produto](../.agents/rules/product-invariants.md), [privacidade](../.agents/rules/clinical-data-privacy.md), [segurança clínica](../.agents/rules/clinical-ai-safety.md) e [qualidade](../.agents/rules/testing-quality.md).
@@ -48,7 +48,7 @@ infra/compose.yaml
 docs/
   redesign/       # protótipos, direção visual e análise de UX
 tasks/
-  prd-integracao-google-agenda/  # backend Tasks 1.0/2.0; interface Task 3.0 pendente
+  prd-integracao-google-agenda/  # backend Tasks 1.0/2.0 e interface Task 3.0
 .agents/rules/
 ```
 
@@ -501,15 +501,17 @@ Capacidades implementadas:
 - `/` redireciona para `/pacientes`; `/pacientes`, `/agenda`, `/prontuario` e `/prontuario/:pacienteId` são navegáveis e consomem a API real. Rotas desconhecidas têm mensagem e link de retorno.
 - Pacientes possuem formulário de cadastro, busca por nome, lista com abertura do prontuário, validação client-side de campos obrigatórios, CPF, e-mail, telefone e nascimento, além de tratamento visual de Problem Details e erros de campo.
 - Agenda e prontuário possuem criação de consultas com `Idempotency-Key`, listagem de consultas, exibição de paciente/data/hora/status, estados carregando/vazio/erro e atualização de status final (`REALIZADA`, `CANCELADA`, `FALTA`). No prontuário, a criação usa sempre o paciente da rota atual.
+- A Agenda apresenta o estado seguro de conexão Google e suas ações, inicia OAuth por navegação ao backend, divulga os dados do evento e as permissões de compartilhamento, verifica cada data/hora antes da criação e invalida o resultado quando essa data/hora ou o estado da conexão muda. Conflito e falha de disponibilidade permanecem estados distintos.
+- A lista local apresenta estado Google por consulta (`SINCRONIZADA`, `AGUARDANDO_CONEXAO`, `PENDENTE`, `FALHA`, `NAO_APLICAVEL`) e permite nova tentativa para itens pendentes ou falhos. A integração não adiciona eventos Google existentes à lista local.
 - Prontuário clínico possui formulários de parecer original e complemento com `Idempotency-Key`, data/hora clínica, texto obrigatório, humor e medicações opcionais. A linha do tempo exibe originais e complementos com metadados e referência ao parecer original.
 - Análise clínica possui painel de análise atual, limitações persistentes, seções de timeline resumida, padrões e pontos de atenção, mensagens fixas para seções vazias, evidências clicáveis para abrir a fonte do registro clínico, histórico de gerações e regeneração manual quando `podeRegenerar` permite.
 - O histórico da UI lista metadados de gerações e abre uma versão concluída quando o contrato fornece `analiseId`; a tela valida paciente e geração antes de exibir o conteúdo histórico. Gerações sem vínculo permanecem indisponíveis explicitamente e não substituem a análise atual.
 - Polling de análise ocorre a cada 3 segundos somente enquanto houver geração ativa e a aba estiver visível; ao retornar à aba, consulta imediatamente. O hook evita requisições sobrepostas, descarta respostas de paciente anterior e não sobrescreve formulários clínicos em edição.
 - Aviso de uso exclusivo de dados fictícios no layout comum, sem dispensa e com posicionamento sticky; CSS responsivo simples, navegação semântica e foco visível.
-- `ClienteApi.requisitar<T>` usa base relativa `/api/v1`, JSON, `Accept` comum, `Idempotency-Key` opcional e `AbortSignal`. Não mantém cache de paciente, não faz retry automático e usa `cache: no-store`.
+- `ClienteApi.requisitar<T>` usa base relativa `/api/v1`, JSON, `Accept` comum, `Idempotency-Key` opcional e `AbortSignal`. Não mantém cache de paciente, não faz retry automático e usa `cache: no-store`. As chamadas da Agenda optam por `usarApiReal` para ignorar o mock e o fallback local de demonstração; as demais telas mantêm o comportamento padrão.
 - O chamador cria a chave UUID com `chaveDeIdempotencia()` uma vez por operação e mantém a mesma chave e corpo ao repetir um envio. No backend, criação de pacientes, consultas, pareceres, complementos e regeneração manual persiste idempotência.
 - `ErroApi` contém status HTTP e metadados de Problem Details (`codigo`, `idRequisicao` UUID e `errosDeCampo` com mensagens locais). Mensagens locais substituem texto remoto; `title`, `detail`, `instance`, mensagens de campo e valores rejeitados não são retidos. O cliente trata falha de transporte, JSON inválido e sucesso 204.
-- A configuração de desenvolvimento fixa 127.0.0.1:5173, `strictPort` e proxy `/api` para 127.0.0.1:8080. Nenhum secret ou acesso a provider é necessário para iniciar a SPA.
+- A configuração de desenvolvimento fixa 127.0.0.1:5173, `strictPort` e proxy `/api` para 127.0.0.1:8080. Nos testes, `E2E_BASE_URL` pode escolher a porta do Vite e `E2E_API_PROXY_TARGET` o backend local isolado. Nenhum secret ou acesso a provider é necessário para iniciar a SPA.
 
 Não usar Redux, framework CSS pesado ou biblioteca de cache/estado de servidor no MVP.
 
@@ -599,7 +601,7 @@ Actuator expõe apenas health/readiness, sem detalhes; OpenAPI é um endpoint se
 
 O backend usa JUnit 5, Spring Boot Test, Mockito, ArchUnit e Testcontainers PostgreSQL. `mvnw verify` executa testes unitários/contexto e os `*IT` de APIs, banco, registros, análises e workers. Os testes cobrem contratos Calendar fake, intervalos/fuso, privacidade de payload, migração sem backfill, concorrência local, atomicidade, estados de consulta, reconciliação, retry e recuperação de claim expirado.
 
-O frontend usa Vitest/Testing Library para cliente HTTP, formulários, fluxos e polling. Playwright contém sete testes em três arquivos: cadastro/busca, criação de consulta, parecer/complemento/evidência, isolamento de registros, histórico insuficiente após reload, layout responsivo da análise e navegação por teclado no histórico. As fixtures usam a API local; não há interceptação de rede que substitua o backend nessa suíte. Apesar do nome `isolamento-e-falha-ia.spec.ts`, seus testes não simulam falha, timeout ou retry do provider.
+O frontend usa Vitest/Testing Library para cliente HTTP, formulários, fluxos e polling. Playwright contém doze testes em quatro arquivos. Cinco verificam os fluxos Google com uma API fake local; os demais cobrem cadastro/busca, criação de consulta, parecer/complemento/evidência, isolamento de registros, histórico insuficiente após reload, layout responsivo da análise e navegação por teclado no histórico. As fixtures de sistema usam dados fictícios e backend local. Apesar do nome `isolamento-e-falha-ia.spec.ts`, seus testes não simulam falha, timeout ou retry do provider.
 
 ### CI configurado
 
@@ -611,7 +613,7 @@ O frontend usa Vitest/Testing Library para cliente HTTP, formulários, fluxos e 
 
 ### Evidências e seus limites
 
-O workflow de CI define jobs de backend, frontend e E2E, mas esta revisão documental não executou esses jobs nem as suítes locais. A pasta `tasks/` atual não contém relatórios de QA ou feature review do MVP; por isso, este documento não atribui um gate de aprovação à feature. A inspeção dos testes encontrou sete casos Playwright, sem cenário E2E de falha, timeout ou retry do provider. `BackendBootstrapIT` verifica V001–V004 em banco novo; não foi encontrado teste versionado que prepare V003 com dados e valide o upgrade para V004.
+O workflow de CI define jobs de backend, frontend e E2E; esta documentação não equivale à execução desses jobs. O [relatório QA](../tasks/prd-integracao-google-agenda/qa-report.md) e o [feature review](../tasks/prd-integracao-google-agenda/feature-review.md) registram os resultados/gates locais da integração Google. Os testes Playwright de disponibilidade Google usam respostas locais, sem conta Google ou rede externa. `BackendBootstrapIT` verifica V001–V004 em banco novo; não foi encontrado teste versionado que prepare V003 com dados e valide o upgrade para V004.
 
 Testes comuns usam fake/mock e dados fictícios; não precisam de OpenAI real. Testes contra provider externo exigem autorização explícita.
 
@@ -620,10 +622,10 @@ Testes comuns usam fake/mock e dados fictícios; não precisam de OpenAI real. T
 | Área | Estado verificável neste checkout |
 |---|---|
 | Pacientes, consultas, prontuário e análise | Backend e frontend implementam os fluxos descritos nas seções anteriores; testes unitários, de integração e E2E estão versionados. A presença dos testes não comprova que passaram nesta revisão. |
-| Integração com Google Agenda | Tasks 1.0 e 2.0 entregam conexão OAuth, disponibilidade e sincronização durável no backend. Task 3.0 ainda cobre a interface; uso permanece restrito a dados fictícios. |
+| Integração com Google Agenda | Tasks 1.0 e 2.0 entregam conexão OAuth, disponibilidade e sincronização durável no backend; Task 3.0 integra conexão, verificação e estado de sincronização à Agenda. O uso permanece restrito a dados fictícios. Os gates de task e feature têm evidências SDD próprias. |
 | Gates antigos do MVP e da refatoração de nomenclaturas | Os diretórios SDD correspondentes não estão presentes neste checkout. Seus estados históricos de aprovação não podem ser confirmados pelos arquivos atuais. |
 
-A [revisão documental](REVISAO-DOCUMENTAL.md) registra a comparação realizada e seus limites. Os artefatos da integração Google identificam o backend concluído e a interface pendente.
+A [revisão documental](REVISAO-DOCUMENTAL.md) registra a comparação realizada e seus limites. Os artefatos da integração Google identificam os requisitos, tasks e evidências de implementação e validação.
 
 ## 19. Limites técnicos do MVP
 
@@ -655,7 +657,6 @@ Os pontos abaixo foram confirmados por inspeção estática do código e dos art
 - alinhar o prompt OpenAI ao schema e aos modos atuais em português; o texto atual usa chaves/valores em inglês e contém caracteres acentuados corrompidos;
 - encerrar ou recuperar uma geração `EM_EXECUCAO` cuja lease expire já no limite de tentativas; a recuperação atual só reivindica leases expiradas quando `contagem_tentativas < maxTentativas`;
 - definir o comportamento desejado para limite global de tempo e limites de entrada/saída da IA antes de tratar esses controles como garantias existentes;
-- integrar a interface React com disponibilidade, conexão e estado de sincronização Google na task 3.0;
-- executar os checks do CI e documentar evidências atuais antes de declarar aprovação de entrega. Esta revisão não os executou.
+- executar os checks de CI e manter as evidências atuais de QA/revisão da feature. Esta documentação não declara que os jobs remotos de CI foram executados.
 
 Os demais limites da implementação estão descritos nas seções de banco, IA, API, frontend e operação. Fontes e evidências desta revisão estão em [REVISAO-DOCUMENTAL.md](REVISAO-DOCUMENTAL.md).

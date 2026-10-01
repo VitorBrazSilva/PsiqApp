@@ -1,10 +1,16 @@
 import { ClienteApi } from '../../shared/api/clienteApi'
 import { chaveDeIdempotencia } from '../../shared/idempotencia/chaveDeIdempotencia'
 import type { Pagina } from '../pacientes/servicoPacientes'
+import type { EstadoSincronizacaoGoogleAgenda } from './servicoGoogleAgenda'
 
 const api = new ClienteApi()
 
 export type StatusConsulta = 'AGENDADA' | 'REALIZADA' | 'CANCELADA' | 'FALTA'
+
+export interface SincronizacaoGoogleAgenda {
+  estado: EstadoSincronizacaoGoogleAgenda
+  ultimaTentativa: string | null
+}
 
 export interface Consulta {
   id: string
@@ -14,6 +20,7 @@ export interface Consulta {
   observacoes: string | null
   criadaEm: string
   statusAlteradoEm: string | null
+  sincronizacaoGoogleAgenda?: SincronizacaoGoogleAgenda | null
 }
 
 export interface CriarConsulta {
@@ -32,27 +39,29 @@ export function rotuloStatus(status: StatusConsulta) {
 }
 
 export const servicoConsultas = {
-  listar(filtros: { pacienteId?: string, de?: string, ate?: string, pagina?: number, tamanho?: number } = {}, signal?: AbortSignal) {
+  listar(filtros: { pacienteId?: string, de?: string, ate?: string, pagina?: number, tamanho?: number } = {}, signal?: AbortSignal, opcoes: { usarApiReal?: boolean } = {}) {
     const params = new URLSearchParams({ pagina: String(filtros.pagina ?? 0), tamanho: String(filtros.tamanho ?? 50) })
     if (filtros.pacienteId) params.set('pacienteId', filtros.pacienteId)
     if (filtros.de) params.set('de', filtros.de)
     if (filtros.ate) params.set('ate', filtros.ate)
-    return api.requisitar<Pagina<Consulta>>(`/consultas?${params}`, { signal })
+    return api.requisitar<Pagina<Consulta>>(`/consultas?${params}`, { signal, usarApiReal: opcoes.usarApiReal })
   },
 
-  criar(dados: CriarConsulta) {
+  criar(dados: CriarConsulta, opcoes: { usarApiReal?: boolean } = {}) {
     return api.requisitar<Consulta>(`/pacientes/${dados.pacienteId}/consultas`, {
       metodo: 'POST',
       corpo: { agendadaPara: dados.agendadaPara, observacoes: dados.observacoes },
       chaveDeIdempotencia: chaveDeIdempotencia(),
+      usarApiReal: opcoes.usarApiReal,
     })
   },
 
-  atualizarStatus(id: string, status: Exclude<StatusConsulta, 'AGENDADA'>) {
+  atualizarStatus(id: string, status: Exclude<StatusConsulta, 'AGENDADA'>, opcoes: { usarApiReal?: boolean } = {}) {
     return api.requisitar<Consulta>(`/consultas/${id}/status`, {
       metodo: 'POST',
       corpo: { status },
       chaveDeIdempotencia: chaveDeIdempotencia(),
+      usarApiReal: opcoes.usarApiReal,
     })
   },
 }
