@@ -105,3 +105,11 @@ O gate só passa quando a feature mantém as responsabilidades e fronteiras exis
 As convenções de nomenclatura descritas em `docs/TECHNICAL.md` estão parcialmente padronizadas. Não generalize uma regra a partir de um nome isolado. Se uma feature precisar fixar uma convenção compartilhada ausente, registre-a na TechSpec e atualize a fonte canônica após aprovação.
 
 Documentação e prompts ajudam a orientar a consistência, mas não a garantem sozinhos. Quando uma fronteira puder ser expressa por teste arquitetural, lint ou outra verificação existente, a TechSpec deve apontar essa verificação e o QA deve reportar seu resultado. Não declarar conformidade automatizada sem evidência.
+
+## Separação entre andamento da feature e documentação do sistema
+
+PRD, TechSpec, Tasks, reviews e QA pertencem a `tasks/prd-[feature-slug]/`. Mantenha e versione esses arquivos enquanto a feature estiver em execução. Cada commit de implementação deve continuar ligado à task correspondente e incluir as atualizações dos artefatos SDD afetados por ela, junto com as mudanças de código e testes da task.
+
+`docs/BUSINESS.md`, `docs/TECHNICAL.md` e `README.md` descrevem o produto implementado e como operá-lo. Não coloque neles status de tasks, andamento de QA/reviews ou links para os artefatos de uma feature. Atualize-os somente para registrar comportamento, arquitetura, configuração ou operação que fazem parte do estado atual do sistema.
+
+Mantenha os artefatos da feature até a conclusão da última task e do fluxo de QA e reviews finais. Ao alcançar `READY` e atualizar as fontes canônicas aplicáveis, informe que `tasks/prd-[feature-slug]/` está elegível para exclusão. A exclusão é uma decisão de encerramento da feature; não apague a pasta ao concluir uma task intermediária.

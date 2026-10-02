@@ -8,9 +8,7 @@ O objetivo principal é reduzir o esforço de releitura manual do prontuário an
 
 **Capacidade atual:** o backend já permite cadastrar, buscar e visualizar pacientes por API, criar e listar consultas, consultar disponibilidade local e do Google Agenda, sincronizar eventos por worker durável, atualizar consultas para estados finais, criar pareceres originais e complementos, consultar a linha do tempo clínica, processar gerações de IA e consultar análises e seu histórico. A sincronização Google é opcional, usa o calendário principal e mantém a consulta do PsiqApp como fonte de verdade. O provider local padrão da IA é fake e determinístico; o adapter OpenAI pode ser habilitado por ambiente. No frontend, já é possível cadastrar, buscar e abrir pacientes, visualizar dados, criar e acompanhar consultas, registrar pareceres e complementos, consultar a linha do tempo clínica, ver análises e solicitar regeneração manual quando permitida pela API. Na Agenda, o médico acompanha a conexão Google, verifica explicitamente a disponibilidade de uma data e hora e vê o estado de sincronização de cada consulta, com nova tentativa quando aplicável.
 
-**Estado do checkout (revisão de 01/10/2026):** as tasks 1.0 e 2.0 integram o backend Google, e a task 3.0 conecta esses fluxos à Agenda. O estado do código e os gates de QA/revisão da feature são evidências distintas. Este MVP deve ser usado exclusivamente com dados fictícios; a ausência de artefatos SDD de features anteriores não comprova aprovação histórica delas.
-
-Este documento descreve as capacidades implementadas e as regras de negócio que elas devem respeitar. As invariantes vigentes estão nas Rules. A [integração com Google Agenda](../tasks/prd-integracao-google-agenda/prd.md) permite conectar a conta, validar disponibilidade e acompanhar a sincronização de consultas pela Agenda.
+Este documento descreve as capacidades implementadas e as regras de negócio que elas devem respeitar. As invariantes vigentes estão nas Rules. O MVP deve ser usado exclusivamente com dados fictícios.
 
 ## 2. Contexto de uso
 
@@ -333,8 +331,6 @@ As etapas de criação, listagem de agenda e atualização de status estão disp
 
 ## 9. Fora do escopo do MVP
 
-O backend já consulta disponibilidade e sincroniza consultas com o calendário principal Google. A integração da interface React para conexão, verificação e apresentação do estado ainda pertence à task 3.0.
-
 Não fazem parte do MVP:
 
 - múltiplos médicos;
@@ -372,12 +368,8 @@ Indicadores de validação:
 - capacidade de rastrear observações da IA até os registros originais;
 - comportamento com volumes de validação entre 100 e 500 pacientes, 20 a 100 registros por paciente e casos longos com 200 ou mais registros.
 
-### Situação da validação
+Esses indicadores orientam a avaliação de utilidade e funcionamento do MVP. A decisão clínica final continua pertencendo ao médico.
 
-Esses indicadores não são resultados já medidos. A presença de testes não substitui os relatórios de QA e os gates de aprovação da feature. O QA e o gate final da integração Google estão registrados em [qa-report.md](../tasks/prd-integracao-google-agenda/qa-report.md) e [feature-review.md](../tasks/prd-integracao-google-agenda/feature-review.md). A revisão estática identificou pontos técnicos pendentes na migração V004 e na minimização do payload OpenAI, detalhados em [REVISAO-DOCUMENTAL.md](REVISAO-DOCUMENTAL.md). A decisão clínica final continua pertencendo ao médico.
+## 11. Fontes relacionadas
 
-## 11. Fontes canônicas
-
-Este documento foi conferido com a implementação em `apps/backend` e `apps/frontend`, as migrations, os testes versionados e as Rules. As tasks 1.0, 2.0 e 3.0 da integração Google estão implementadas. Relatórios e artefatos SDD de features anteriores não estão disponíveis neste checkout e não são usados como evidência de aprovação histórica.
-
-Fontes adicionais: `docs/TECHNICAL.md`, `README.md`, `.agents/rules/product-invariants.md`, `.agents/rules/clinical-data-privacy.md`, `.agents/rules/clinical-ai-safety.md` e `.agents/rules/documentation-maintenance.md`.
+Arquitetura e detalhes de implementação: `docs/TECHNICAL.md`. Configuração e execução: `README.md`. Invariantes: `.agents/rules/product-invariants.md`, `.agents/rules/clinical-data-privacy.md`, `.agents/rules/clinical-ai-safety.md` e `.agents/rules/documentation-maintenance.md`.

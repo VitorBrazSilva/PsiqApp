@@ -1,17 +1,10 @@
 # PsiqApp MVP - Documentação Técnica
 
-## 1. Estado técnico atual
+## 1. Arquitetura e comportamento atuais
 
-Revisado em 01/10/2026 contra o código, as migrations, os contratos HTTP, o frontend, os testes versionados, o CI e os artefatos SDD presentes no checkout.
+O monorepo contém backend Spring Boot, frontend React, PostgreSQL, workers assíncronos configuráveis e execução completa via Docker Compose. A implementação inclui cadastro/busca de pacientes, integração da Agenda com Google (conexão, verificação explícita de disponibilidade e estados de sincronização), pareceres e complementos append-only, linha do tempo e geração/consulta de análises.
 
-O monorepo contém backend Spring Boot, frontend React, PostgreSQL, workers assíncronos configuráveis e execução completa via Docker Compose. Estão implementados cadastro/busca de pacientes, integração da Agenda com Google (conexão, verificação explícita de disponibilidade e estados de sincronização), pareceres e complementos append-only, linha do tempo e geração/consulta de análises.
-
-**O código e os gates de entrega são evidências diferentes:** os diretórios das tasks do MVP e da refatoração de nomenclaturas não estão presentes neste checkout, portanto seus estados históricos `READY`/`NOT READY` não podem ser confirmados aqui. As tasks 1.0, 2.0 e 3.0 da integração Google estão implementadas; os reviews por task e o gate final da feature são registrados separadamente. Veja também a [revisão documental](REVISAO-DOCUMENTAL.md).
-
-Este documento descreve a implementação presente e identifica seus limites. As Rules continuam sendo as invariantes do projeto. Os artefatos da integração Google registram as decisões e a implementação de backend e frontend:
-
-- [PRD da integração com Google Agenda](../tasks/prd-integracao-google-agenda/prd.md) e [TechSpec](../tasks/prd-integracao-google-agenda/techspec.md);
-- Rules de [arquitetura](../.agents/rules/architecture-boundaries.md), [produto](../.agents/rules/product-invariants.md), [privacidade](../.agents/rules/clinical-data-privacy.md), [segurança clínica](../.agents/rules/clinical-ai-safety.md) e [qualidade](../.agents/rules/testing-quality.md).
+Este documento descreve a arquitetura e o comportamento técnico atuais. As Rules de [arquitetura](../.agents/rules/architecture-boundaries.md), [produto](../.agents/rules/product-invariants.md), [privacidade](../.agents/rules/clinical-data-privacy.md), [segurança clínica](../.agents/rules/clinical-ai-safety.md) e [qualidade](../.agents/rules/testing-quality.md) registram as invariantes do projeto.
 
 ## 2. Stack configurada no repositório
 
@@ -47,8 +40,6 @@ apps/
 infra/compose.yaml
 docs/
   redesign/       # protótipos, direção visual e análise de UX
-tasks/
-  prd-integracao-google-agenda/  # backend Tasks 1.0/2.0 e interface Task 3.0
 .agents/rules/
 ```
 
@@ -172,7 +163,7 @@ O schema de produto contém dez tabelas após V006, além do histórico do Flywa
 | `conexao_google_agenda` | `id`, `estado`, `refresh_token_iv`, `refresh_token_cifrado`, `atualizada_em` | Estado da conexão e refresh token cifrado; não persiste access token. |
 | `sincronizacao_consulta_google` | `consulta_id`, `google_event_id`, `estado`, `tentativas`, `proxima_tentativa`, `ultima_tentativa`, `ultimo_erro`, `versao`, `atualizada_em` | Intenção durável de sincronização, claim/lease e categoria de falha por consulta nova. |
 
-Não existe tabela de heartbeat do worker. A geração não armazena versões de prompt/schema/modelo; a análise armazena `versao_regras_seguranca`. Não se deve inferir essa auditoria adicional a partir da TechSpec original.
+Não existe tabela de heartbeat do worker. A geração não armazena versões de prompt/schema/modelo; a análise armazena `versao_regras_seguranca`.
 
 ### Enumerações e contratos de domínio
 
@@ -207,7 +198,7 @@ A criação de consultas também usa um `pg_advisory_xact_lock` dedicado à agen
 - V005: tabela de estado da conexão Google, com validação de estado/credencial cifrada.
 - V006: tabela de sincronização Google, índice parcial de itens vencidos e índice parcial de consultas `AGENDADA` por horário; não faz backfill de consultas existentes.
 
-V001–V004 permanecem como histórico. V006 é executada também em base nova e não cria estado para consultas anteriores. `GoogleAgendaCalendarIT` valida upgrade de V005 para V006 com consulta preexistente, além de bootstrap em base vazia. O upgrade V003 → V004 permanece sem validação: a migration reativa o trigger append-only de `analise_clinica` antes de normalizar JSONB, não converte valores antigos de `evidencia_analise.campo` antes de adicionar o novo CHECK e só normaliza objetos internos de `linhaDoTempo`. A [revisão documental](REVISAO-DOCUMENTAL.md) detalha a inspeção anterior.
+V001–V004 permanecem como histórico. V006 é executada também em base nova e não cria estado para consultas anteriores. `GoogleAgendaCalendarIT` valida upgrade de V005 para V006 com consulta preexistente, além de bootstrap em base vazia. Na atualização de uma base V003 populada, V004 reativa o trigger append-only de `analise_clinica` antes de normalizar JSONB, não converte valores antigos de `evidencia_analise.campo` antes de adicionar o novo CHECK e só normaliza objetos internos de `linhaDoTempo`; essa atualização pode falhar ou deixar campos JSONB inconsistentes.
 
 ## 7. Índices, constraints e proteção dos dados
 
@@ -308,7 +299,7 @@ O worker processa gerações de IA fora do fluxo de salvamento clínico. Ele usa
 
 O adapter OpenAI classifica falhas de conexão, erros transitórios do SDK, HTTP 429 e HTTP 5xx para retentativa. Credenciais ausentes, configuração inválida, outros erros HTTP e resposta vazia são tratados como permanentes. O SDK é configurado com `maxRetries(0)`; a política de retentativa fica no worker.
 
-O worker também repete `INVALID_RESPONSE_QUOTE` (citação não literal), respeitando o limite de tentativas. Outras falhas de validação encerram a geração. Essa exceção para citações difere da política geral de não repetir respostas inválidas descrita na TechSpec original do MVP. Nenhuma análise parcial é publicada. O backend respeita `Retry-After` numérico quando disponível; caso contrário, aplica backoff com jitter.
+O worker também repete `INVALID_RESPONSE_QUOTE` (citação não literal), respeitando o limite de tentativas. Outras falhas de validação encerram a geração. Nenhuma análise parcial é publicada. O backend respeita `Retry-After` numérico quando disponível; caso contrário, aplica backoff com jitter.
 
 Retentativa técnica mantém o snapshot; regeneração manual cria outra geração. Reservas expiradas podem ser recuperadas enquanto a contagem estiver abaixo do máximo. O código atual não encerra automaticamente uma geração cuja última reserva expire já no limite de tentativas; esse cenário permanece uma lacuna de recuperação.
 
@@ -318,7 +309,7 @@ Retentativa técnica mantém o snapshot; regeneração manual cria outra geraç�
 
 `SnapshotAnaliseAssembler` consulta todos os registros do paciente com `revision <= revisao_snapshot`, ordenados clinicamente, atribui aliases temporários `R1`, `R2` etc. e mantém o vínculo com os IDs internos para validar evidências. Complementos apontam para o alias do parecer original. Dados cadastrais, observações de consultas e análises anteriores não são buscados para compor esse contexto.
 
-O requisito é enviar ao provider apenas alias, tipo, referência ao original, data/hora clínica, texto, humor e medicamentos. **A implementação ainda diverge:** `OpenAiAnaliseClinicaAdapter.montarPayload` serializa `snapshot.registros()` diretamente; cada `RegistroSnapshot` inclui `id` e `revisao`. Assim, UUIDs internos dos registros também entram no payload. O envelope usa `model`, `mode`, `snapshotRevision` e `records`. A correção dessa minimização permanece pendente.
+`OpenAiAnaliseClinicaAdapter.montarPayload` serializa `snapshot.registros()` diretamente. Cada `RegistroSnapshot` inclui `id` e `revisao`, portanto o payload atual envia também os UUIDs internos dos registros. O envelope usa `model`, `mode`, `snapshotRevision` e `records`.
 
 ### Saída estruturada e persistida
 
@@ -593,7 +584,7 @@ Variáveis do worker Calendar: `PSIQAPP_GOOGLE_AGENDA_WORKER_ENABLED` (padrão `
 
 O logger operacional usa nível INFO e o root usa WARN. A sincronização Google guarda apenas categoria sanitizada de erro e timestamps/contagem no estado durável; tokens, nomes/e-mails e resposta Google não são registrados. A auditoria de tentativas de análise é persistida em `tentativa_geracao_analise`.
 
-Logs não devem expor conteúdo clínico, respostas integrais da IA, CPF completo, credenciais ou secrets. Há testes de formato/privacidade de logs e erros. A revisão documental não executou uma varredura operacional integrada.
+Logs não devem expor conteúdo clínico, respostas integrais da IA, CPF completo, credenciais ou secrets. Testes cobrem o formato dos logs e mensagens de erro.
 
 Actuator expõe apenas health/readiness, sem detalhes; OpenAPI é um endpoint separado. Não há plataforma externa de observabilidade nem heartbeat persistente implementado.
 
@@ -611,23 +602,9 @@ O frontend usa Vitest/Testing Library para cliente HTTP, formulários, fluxos e 
 - `frontend`: Node de `.nvmrc`, `npm ci`, typecheck, lint, Vitest e build;
 - `e2e-integrado`: valida Compose, instala Chromium, sobe PostgreSQL/backend com worker habilitado e provider fake, executa Playwright via Vite e desmonta o ambiente ao final.
 
-### Evidências e seus limites
+Testes comuns usam fake/mock e dados fictícios; não precisam de OpenAI real. Testes contra provider externo exigem autorização explícita. Os testes Playwright de disponibilidade Google usam respostas locais, sem conta Google ou rede externa.
 
-O workflow de CI define jobs de backend, frontend e E2E; esta documentação não equivale à execução desses jobs. O [relatório QA](../tasks/prd-integracao-google-agenda/qa-report.md) e o [feature review](../tasks/prd-integracao-google-agenda/feature-review.md) registram os resultados/gates locais da integração Google. Os testes Playwright de disponibilidade Google usam respostas locais, sem conta Google ou rede externa. `BackendBootstrapIT` verifica V001–V004 em banco novo; não foi encontrado teste versionado que prepare V003 com dados e valide o upgrade para V004.
-
-Testes comuns usam fake/mock e dados fictícios; não precisam de OpenAI real. Testes contra provider externo exigem autorização explícita.
-
-## 18. Situação das features
-
-| Área | Estado verificável neste checkout |
-|---|---|
-| Pacientes, consultas, prontuário e análise | Backend e frontend implementam os fluxos descritos nas seções anteriores; testes unitários, de integração e E2E estão versionados. A presença dos testes não comprova que passaram nesta revisão. |
-| Integração com Google Agenda | Tasks 1.0 e 2.0 entregam conexão OAuth, disponibilidade e sincronização durável no backend; Task 3.0 integra conexão, verificação e estado de sincronização à Agenda. O uso permanece restrito a dados fictícios. Os gates de task e feature têm evidências SDD próprias. |
-| Gates antigos do MVP e da refatoração de nomenclaturas | Os diretórios SDD correspondentes não estão presentes neste checkout. Seus estados históricos de aprovação não podem ser confirmados pelos arquivos atuais. |
-
-A [revisão documental](REVISAO-DOCUMENTAL.md) registra a comparação realizada e seus limites. Os artefatos da integração Google identificam os requisitos, tasks e evidências de implementação e validação.
-
-## 19. Limites técnicos do MVP
+## 18. Limites técnicos do MVP
 
 Não implementar no MVP sem nova decisão:
 
@@ -647,16 +624,3 @@ Não implementar no MVP sem nova decisão:
 - CORS amplo;
 - logs com conteúdo clínico;
 - uso de dados reais.
-
-## 20. Pendências técnicas e de validação
-
-Os pontos abaixo foram confirmados por inspeção estática do código e dos artefatos disponíveis; não representam um gate histórico de feature:
-
-- validar e corrigir upgrade V003 → V004 com análises e evidências fictícias já persistidas, incluindo todas as seções do JSONB;
-- minimizar o payload OpenAI: `montarPayload` serializa `RegistroSnapshot` diretamente, incluindo UUID interno e `revisao`;
-- alinhar o prompt OpenAI ao schema e aos modos atuais em português; o texto atual usa chaves/valores em inglês e contém caracteres acentuados corrompidos;
-- encerrar ou recuperar uma geração `EM_EXECUCAO` cuja lease expire já no limite de tentativas; a recuperação atual só reivindica leases expiradas quando `contagem_tentativas < maxTentativas`;
-- definir o comportamento desejado para limite global de tempo e limites de entrada/saída da IA antes de tratar esses controles como garantias existentes;
-- executar os checks de CI e manter as evidências atuais de QA/revisão da feature. Esta documentação não declara que os jobs remotos de CI foram executados.
-
-Os demais limites da implementação estão descritos nas seções de banco, IA, API, frontend e operação. Fontes e evidências desta revisão estão em [REVISAO-DOCUMENTAL.md](REVISAO-DOCUMENTAL.md).

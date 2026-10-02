@@ -17,7 +17,6 @@ apps/
 infra/
   compose.yaml
 docs/
-tasks/prd-integracao-google-agenda/
 .agents/rules/
 ```
 
@@ -131,4 +130,3 @@ Os testes de unidade usam Vitest e Testing Library, sem endpoints reais. A suite
 - Rules do projeto: `.agents/rules/`
 - Documentacao de negocio: `docs/BUSINESS.md`
 - Documentacao tecnica: `docs/TECHNICAL.md`
-- Feature SDD da integracao Google Agenda (backend Tasks 1.0/2.0 e interface Task 3.0): `tasks/prd-integracao-google-agenda/`

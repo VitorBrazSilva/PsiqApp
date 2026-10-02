@@ -58,4 +58,4 @@ Esta verificação cobre o protótipo, não equivale a uma auditoria completa de
 
 ## Próxima etapa
 
-Aplicar a direção A escolhida aos componentes reais em React, documentando PRD/TechSpec/tasks de redesign conforme o workflow SDD do repositório. Preservar o cadastro existente e o contrato de listas/evidências da análise. Incluir os estados de erro e carregamento e a regressão dos fluxos existentes. A presente revisão corrige o protótipo; não corresponde a essa migração.
+Aplicar a direção A escolhida aos componentes reais em React. Preservar o cadastro existente e o contrato de listas/evidências da análise. Incluir os estados de erro e carregamento e a regressão dos fluxos existentes. A presente revisão corrige o protótipo; não corresponde a essa migração.
