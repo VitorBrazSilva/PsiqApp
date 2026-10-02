@@ -171,40 +171,12 @@ nenhum invariante existente foi alterado implicitamente; conflitos ou mudanças 
 
 <prompt_base>
 
+Quero criar uma nova feature para melhorar a experiência de encontrar horários livres ao cadastrar uma consulta na Agenda do PsiqApp.
 
-Quero implementar no PsiqApp a integração da agenda com o Google Agenda do médico.
+Problema atual:
+Hoje preciso escolher uma data e hora e apertar “Verificar disponibilidade”. Esse fluxo só confirma um horário que eu já escolhi. Para agendar a próxima consulta, preciso primeiro descobrir em qual dia e horário minha agenda está livre.
 
-Antes de alterar qualquer código:
-1. Leia as instruções do repositório, incluindo AGENTS.md e os documentos de arquitetura e produto aplicáveis.
-2. Inspecione como consultas e agenda estão implementadas hoje no frontend, backend e banco.
-3. Apresente um plano curto com as etapas e os principais arquivos que pretende alterar. Depois prossiga com a implementação, sem aguardar nova confirmação.
+Objetivo:
+Permitir que eu escolha uma data ou período e veja opções de horários livres, considerando consultas AGENDADAS no PsiqApp e eventos ocupados no Google Agenda, quando houver conexão ativa. Quero selecionar uma opção encontrada e seguir com o cadastro da consulta.
 
-Decisões de produto já definidas:
-- Usar o calendário principal da conta Google conectada pelo médico.
-- Cada consulta do PsiqApp dura exatamente 1 hora.
-- Ao criar uma consulta, verificar se o horário conflita com outra consulta agendada no PsiqApp ou com um evento ocupado no Google Agenda.
-- A interface deve indicar horários ocupados e impedir a criação de consultas nesses horários.
-- Eventos existentes no Google servem apenas para indicar indisponibilidade; não devem ser importados nem exibidos como consultas no PsiqApp.
-- Quando uma consulta for criada no PsiqApp, salvá-la normalmente no banco e criar também um evento correspondente no calendário principal do Google.
-- Mudanças de status no PsiqApp devem refletir no evento correspondente do Google. Para consulta cancelada, atualizar ou remover o evento conforme a abordagem técnica escolhida e documentada.
-- Nesta etapa, não permitir alterar a data ou o horário de consultas já criadas. A agenda atualiza apenas o status da consulta.
-- Guardar no banco os dados necessários para relacionar cada consulta ao evento correspondente do Google.
-- Implementar conexão/autorização segura com Google OAuth. Não armazenar tokens em texto puro; usar configuração por variáveis de ambiente para credenciais e proteger/criptografar tokens persistidos.
-- Considerar falhas temporárias, revogação de acesso e indisponibilidade do Google. Não perder a consulta já salva no PsiqApp; registrar o estado de sincronização e permitir nova tentativa ou sinalizar claramente a falha.
-- Não registrar tokens, segredos OAuth nem dados clínicos desnecessários nos logs.
-
-Requisitos de implementação:
-- Respeitar a arquitetura e os padrões já usados no projeto.
-- Separar a integração Google em adaptadores/serviços próprios, evitando chamadas Google diretamente nos controllers ou componentes de interface.
-- Criar migrations necessárias e documentar novas variáveis de ambiente e configuração OAuth.
-- Atualizar a interface para conectar/desconectar a conta Google, exibir o estado da conexão/sincronização e mostrar indisponibilidade na escolha de data e hora.
-- Validar conflitos no backend, não apenas no frontend. Considerar a duração fixa de 1 hora e o fuso horário corretamente.
-- Evitar condições de corrida que permitam duas consultas sobrepostas no PsiqApp. Se necessário, reforçar com transação, lock ou restrição apropriada no banco.
-- Criar ou atualizar testes unitários, de integração e de interface para conexão, disponibilidade, conflitos, criação/atualização de eventos, falhas de sincronização e estados sem conexão.
-- Atualizar a documentação de produto e técnica.
-
-Ao final:
-1. Execute os testes e verificações relevantes do projeto.
-2. Informe o que foi implementado, as decisões técnicas tomadas, os arquivos principais alterados e os comandos de teste executados.
-3. Liste limitações ou configurações externas ainda necessárias, como credenciais OAuth e URLs de redirecionamento cadastradas no Google Cloud.
 </prompt_base>
