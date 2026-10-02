@@ -11,6 +11,8 @@ public interface RepositoryConsultaPort extends ConsultaResumo {
     Consulta salvar(Consulta consulta);
     Optional<Consulta> buscarPorId(UUID id);
     Pagina<Consulta> listar(Instant de, Instant ate, UUID pacienteId, int pagina, int tamanho);
+    PaginaAgendaConsultas listarAgenda(GrupoAgendaConsulta grupo, UUID pacienteId, Instant de, Instant ate,
+            Instant referenciaEm, int pagina, int tamanho);
     boolean atualizarStatusSeAgendada(UUID id, StatusConsulta status, Instant alteradoEm);
     void bloquearAgendaParaCriacao();
     boolean existeAgendadaSobreposta(Instant inicio, Instant fim);

@@ -7,7 +7,7 @@ import { type AnaliseClinica, type EvidenciaAnalise } from '../analises/servicoA
 import { usePollingAnalise } from '../analises/usePollingAnalise'
 import { servicoAnalises } from '../analises/servicoAnalises'
 import { FormularioConsulta } from '../consultas/FormularioConsulta'
-import { ListaConsultas } from '../consultas/ListaConsultas'
+import { PainelConsultas } from '../consultas/PainelConsultas'
 import { servicoConsultas, type Consulta } from '../consultas/servicoConsultas'
 import { DadosPaciente } from '../pacientes/DadosPaciente'
 import { servicoPacientes, type Paciente } from '../pacientes/servicoPacientes'
@@ -21,7 +21,9 @@ export function PaginaProntuario() {
   const { pacienteId } = useParams()
   const [parametros, setParametros] = useSearchParams()
   const [paciente, setPaciente] = useState<Paciente | null>(null)
-  const [consultas, setConsultas] = useState<Consulta[]>([])
+  const [resumoConsultas, setResumoConsultas] = useState<{ pacienteId: string, proxima: Consulta | null, total: number } | null>(null)
+  const [erroResumoConsultasPacienteId, setErroResumoConsultasPacienteId] = useState<string | null>(null)
+  const [versaoAgenda, setVersaoAgenda] = useState(0)
   const [registros, setRegistros] = useState<RegistroClinico[]>([])
   const [carregando, setCarregando] = useState(!!pacienteId)
   const [erro, setErro] = useState('')
@@ -73,11 +75,9 @@ export function PaginaProntuario() {
     const controle = new AbortController()
     Promise.all([
       servicoPacientes.obter(pacienteId, controle.signal),
-      servicoConsultas.listar({ pacienteId }, controle.signal),
       servicoRegistrosClinicos.listar(pacienteId, controle.signal, paginaRegistros.pagina, 100),
-    ]).then(([pacienteResposta, paginaConsultas, paginaRegistros]) => {
+    ]).then(([pacienteResposta, paginaRegistros]) => {
       setPaciente(pacienteResposta)
-      setConsultas(paginaConsultas.itens)
       setRegistros(paginaRegistros.itens)
       setPaginaRegistros({ pagina: paginaRegistros.pagina, tamanho: paginaRegistros.tamanho, total: paginaRegistros.total })
       setOriginalEmComplemento(null)
@@ -90,6 +90,18 @@ export function PaginaProntuario() {
     }).finally(() => { if (!controle.signal.aborted) setCarregando(false) })
     return () => controle.abort()
   }, [pacienteId, paginaRegistros.pagina])
+
+  useEffect(() => {
+    if (!pacienteId) return
+    const controle = new AbortController()
+    servicoConsultas.listarAgenda({ pacienteId, grupo: 'PROXIMAS', pagina: 0, tamanho: 1 }, controle.signal)
+      .then(resposta => {
+        if (controle.signal.aborted || resposta.itens.some(item => item.pacienteId !== pacienteId)) return
+        setResumoConsultas({ pacienteId, proxima: resposta.itens[0] ?? null, total: Object.values(resposta.contagens).reduce((total, contagem) => total + contagem, 0) })
+        setErroResumoConsultasPacienteId(null)
+      }).catch(() => { if (!controle.signal.aborted) setErroResumoConsultasPacienteId(pacienteId) })
+    return () => controle.abort()
+  }, [pacienteId, versaoAgenda])
 
   useEffect(() => {
     if (!registroEmDestaque || secao !== 'historico') return
@@ -190,25 +202,23 @@ export function PaginaProntuario() {
       <nav className="patient-tabs" aria-label="Seções do prontuário">
         <button type="button" className={secao === 'historico' ? 'active' : ''} aria-current={secao === 'historico' ? 'page' : undefined} onClick={() => mudarSecao('historico')}>Histórico clínico <span className="count">{registros.length}</span></button>
         <button type="button" className={secao === 'analise' ? 'active' : ''} aria-current={secao === 'analise' ? 'page' : undefined} onClick={() => mudarSecao('analise')}>Análise de IA</button>
-        <button type="button" className={secao === 'consultas' ? 'active' : ''} aria-current={secao === 'consultas' ? 'page' : undefined} onClick={() => mudarSecao('consultas')}>Consultas <span className="count">{consultas.length}</span></button>
+        <button type="button" className={secao === 'consultas' ? 'active' : ''} aria-current={secao === 'consultas' ? 'page' : undefined} onClick={() => mudarSecao('consultas')}>Consultas <span className="count">{resumoConsultas?.pacienteId === pacienteId ? resumoConsultas.total : 0}</span></button>
         <button type="button" className={secao === 'dados' ? 'active' : ''} aria-current={secao === 'dados' ? 'page' : undefined} onClick={() => mudarSecao('dados')}>Dados pessoais</button>
       </nav>
       <div className="painel contexto-paciente">
         {erro && <p role="alert" className="erro">{erro}</p>}
+        {erroResumoConsultasPacienteId === pacienteId && <p role="alert" className="erro">Não foi possível carregar as consultas deste paciente.</p>}
         {paciente && secao !== 'historico' && <DadosPaciente paciente={paciente} />}
-        {secao === 'historico' && (() => { const proxima = consultas.filter(consulta => consulta.status === 'AGENDADA' && new Date(consulta.agendadaPara).getTime() >= Date.now()).sort((a, b) => a.agendadaPara.localeCompare(b.agendadaPara))[0]; if (!proxima) return null; const dataLocal = new Date(proxima.agendadaPara); const dia = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', timeZone: 'America/Sao_Paulo' }).format(dataLocal); const mes = new Intl.DateTimeFormat('pt-BR', { month: 'short', timeZone: 'America/Sao_Paulo' }).format(dataLocal).replace('.', ''); const dataHora = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).format(dataLocal).replace('.', ''); return <section className="next-appointment"><span className="calendar-tile"><small>{mes}</small><strong>{dia}</strong></span><div><strong>Pr&#243;xima consulta</strong><span>{dataHora}</span></div><span className="status-badge"><svg className="appointment-clock" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>Agendada</span><Link className="text-button" to="#consultas">Ver consultas&nbsp; &rsaquo;</Link></section> })()}
-        {secao === 'historico' && <div className="compat-consultas"><ListaConsultas consultas={consultas} carregando={false} aoAtualizar={consulta => setConsultas(atuais => atuais.map(item => item.id === consulta.id ? consulta : item))} nomesPacientes={paciente ? { [paciente.id]: paciente.nome } : undefined} /></div>}
+        {secao === 'historico' && (() => { const proxima = resumoConsultas?.pacienteId === pacienteId ? resumoConsultas.proxima : null; if (!proxima) return null; const dataLocal = new Date(proxima.agendadaPara); const dia = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', timeZone: 'America/Sao_Paulo' }).format(dataLocal); const mes = new Intl.DateTimeFormat('pt-BR', { month: 'short', timeZone: 'America/Sao_Paulo' }).format(dataLocal).replace('.', ''); const dataHora = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).format(dataLocal).replace('.', ''); return <section className="next-appointment"><span className="calendar-tile"><small>{mes}</small><strong>{dia}</strong></span><div><strong>Pr&#243;xima consulta</strong><span>{dataHora}</span></div><span className="status-badge"><svg className="appointment-clock" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>Agendada</span><Link className="text-button" to="#consultas">Ver consultas&nbsp; &rsaquo;</Link></section> })()}
         {secao === 'consultas' && <section className="bloco">
           <h2>Consultas do paciente</h2>
-          <ListaConsultas consultas={[...consultas].sort((a, b) => new Date(b.agendadaPara).getTime() - new Date(a.agendadaPara).getTime())} carregando={false} aoAtualizar={consulta =>
-            setConsultas(atuais => atuais.map(item => item.id === consulta.id ? consulta : item))
-          } nomesPacientes={paciente ? { [paciente.id]: paciente.nome } : undefined} />
+          <PainelConsultas key={pacienteId} pacienteId={pacienteId} versaoAtualizacao={versaoAgenda} nomesPacientes={paciente ? { [paciente.id]: paciente.nome } : undefined} />
         </section>}
       </div>
 
       <div className="grade-prontuario acoes-registro">
         <section className="painel">
-          <FormularioConsulta pacienteFixoId={pacienteId} aoCriar={consulta => setConsultas(atuais => [consulta, ...atuais])} />
+          <FormularioConsulta pacienteFixoId={pacienteId} aoCriar={() => { setVersaoAgenda(atual => atual + 1) }} />
         </section>
         <section className="painel">
           <FormularioParecer pacienteId={pacienteId} aoCriar={registrarCriacao} />
@@ -249,7 +259,7 @@ export function PaginaProntuario() {
           <div className="dialog-body"><FormularioComplemento key={originalEmComplemento} pacienteId={pacienteId} originalId={originalEmComplemento} pacienteNome={paciente?.nome ?? ''} dataParecerOriginal={registros.find(registro => registro.id === originalEmComplemento)?.dataHoraClinica ?? ''} aoCancelar={() => setComplementoAberto(false)} aoCriar={registrarCriacao} /></div>
         </dialog>}
         {parecerAberto && <dialog open className="dialog-parecer" aria-labelledby="titulo-parecer" onKeyDown={evento => { if (evento.key === 'Escape') { evento.preventDefault(); setParecerAberto(false) } }}><div className="dialog-header"><h2 id="titulo-parecer">Novo parecer</h2><button className="icon-button" type="button" aria-label="Fechar novo parecer" onClick={() => setParecerAberto(false)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div><div className="dialog-body"><FormularioParecer pacienteId={pacienteId} aoCriar={resposta => { registrarCriacao(resposta); setParecerAberto(false) }} /></div></dialog>}
-        {consultaAberta && <dialog open className="dialog-parecer dialog-consulta" aria-labelledby="titulo-consulta" onKeyDown={evento => { if (evento.key === 'Escape') { evento.preventDefault(); setConsultaAberta(false) } }}><div className="dialog-header"><h2 id="titulo-consulta">Agendar consulta</h2><button className="icon-button" type="button" aria-label="Fechar agendamento" onClick={() => setConsultaAberta(false)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div><div className="dialog-body"><FormularioConsulta pacienteFixoId={pacienteId} pacienteNome={paciente?.nome} emDialogo aoCancelar={() => setConsultaAberta(false)} aoCriar={consulta => { setConsultas(atuais => [consulta, ...atuais]); setConsultaAberta(false) }} /></div></dialog>}
+        {consultaAberta && <dialog open className="dialog-parecer dialog-consulta" aria-labelledby="titulo-consulta" onKeyDown={evento => { if (evento.key === 'Escape') { evento.preventDefault(); setConsultaAberta(false) } }}><div className="dialog-header"><h2 id="titulo-consulta">Agendar consulta</h2><button className="icon-button" type="button" aria-label="Fechar agendamento" onClick={() => setConsultaAberta(false)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div><div className="dialog-body"><FormularioConsulta pacienteFixoId={pacienteId} pacienteNome={paciente?.nome} emDialogo aoCancelar={() => setConsultaAberta(false)} aoCriar={() => { setConsultaAberta(false); setVersaoAgenda(atual => atual + 1) }} /></div></dialog>}
       </div>
     </section>
   )

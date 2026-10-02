@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -19,10 +19,10 @@ const consulta = {
   id: '22222222-2222-4222-8222-222222222222',
   pacienteId: paciente.id,
   agendadaPara: '2026-05-01T15:00:00Z',
-  status: 'AGENDADA',
+  status: 'AGENDADA' as 'AGENDADA' | 'REALIZADA' | 'CANCELADA' | 'FALTA',
   observacoes: null,
   criadaEm: '2026-01-01T12:00:00Z',
-  statusAlteradoEm: null,
+  statusAlteradoEm: null as string | null,
   sincronizacaoGoogleAgenda: { estado: 'NAO_APLICAVEL', ultimaTentativa: null },
 }
 const paginaVazia = { itens: [], pagina: 0, tamanho: 50, total: 0 }
@@ -33,6 +33,7 @@ function configurarApi(opcoes: {
   consultas?: typeof consulta[]
 } = {}) {
   let leituraEstado = 0
+  let consultasAtuais = [...(opcoes.consultas ?? [])]
   fetchMock.mockImplementation(async (url, requisicao) => {
     const caminho = String(url)
     const metodo = requisicao?.method ?? 'GET'
@@ -48,6 +49,11 @@ function configurarApi(opcoes: {
     if (caminho === '/api/v1/pacientes?pagina=0&tamanho=100') {
       return Response.json({ ...paginaVazia, itens: [paciente], total: 1 })
     }
+    if (caminho.startsWith('/api/v1/agenda/consultas?')) {
+      const contagens = { PROXIMAS: 0, AGENDADAS_ANTERIORES: 0, REALIZADAS: 0, CANCELADAS: 0, FALTAS: 0 }
+      consultasAtuais.forEach(item => { contagens[item.status === 'AGENDADA' ? 'PROXIMAS' : item.status === 'REALIZADA' ? 'REALIZADAS' : item.status === 'CANCELADA' ? 'CANCELADAS' : 'FALTAS'] += 1 })
+      return Response.json({ ...paginaVazia, itens: consultasAtuais, total: consultasAtuais.length, contagens })
+    }
     if (caminho === '/api/v1/consultas?pagina=0&tamanho=50') {
       return Response.json({ ...paginaVazia, itens: opcoes.consultas ?? [] })
     }
@@ -55,14 +61,20 @@ function configurarApi(opcoes: {
       return new Response(null, { status: 204 })
     }
     if (metodo === 'POST' && caminho.includes('/sincronizacao-google/tentar-novamente')) {
-      return Response.json({ ...consulta, sincronizacaoGoogleAgenda: { estado: 'PENDENTE', ultimaTentativa: null } }, { status: 202 })
+      const atualizada = { ...consulta, sincronizacaoGoogleAgenda: { estado: 'PENDENTE', ultimaTentativa: null } }
+      consultasAtuais = consultasAtuais.map(item => item.id === consulta.id ? atualizada : item)
+      return Response.json(atualizada, { status: 202 })
     }
     if (metodo === 'POST' && caminho === `/api/v1/consultas/${consulta.id}/status`) {
       const status = JSON.parse(String(requisicao?.body)) as { status: string }
-      return Response.json({ ...consulta, status: status.status, statusAlteradoEm: '2026-05-01T16:00:00Z', sincronizacaoGoogleAgenda: { estado: 'PENDENTE', ultimaTentativa: null } })
+      const atualizada = { ...consulta, status: status.status as typeof consulta.status, statusAlteradoEm: '2026-05-01T16:00:00Z', sincronizacaoGoogleAgenda: { estado: 'PENDENTE' as const, ultimaTentativa: null } }
+      consultasAtuais = consultasAtuais.map(item => item.id === consulta.id ? atualizada : item)
+      return Response.json(atualizada)
     }
     if (metodo === 'POST' && caminho === `/api/v1/pacientes/${paciente.id}/consultas`) {
-      return Response.json({ ...consulta, sincronizacaoGoogleAgenda: { estado: 'AGUARDANDO_CONEXAO', ultimaTentativa: null } }, { status: 201 })
+      const criada = { ...consulta, sincronizacaoGoogleAgenda: { estado: 'AGUARDANDO_CONEXAO' as const, ultimaTentativa: null } }
+      consultasAtuais = [criada, ...consultasAtuais]
+      return Response.json(criada, { status: 201 })
     }
     return Response.json(paginaVazia)
   })
@@ -123,7 +135,7 @@ describe('PaginaAgenda', () => {
     expect(screen.getByRole('button', { name: 'Verificar disponibilidade' })).toBeDisabled()
 
     concluirCriacao?.(Response.json({ ...consulta, sincronizacaoGoogleAgenda: { estado: 'AGUARDANDO_CONEXAO', ultimaTentativa: null } }, { status: 201 }))
-    expect(await screen.findByText('Agendada')).toBeVisible()
+    expect(await screen.findByText('Nenhuma consulta encontrada para o periodo.')).toBeVisible()
   })
 
   it('invalida a disponibilidade quando a data ou a hora muda', async () => {
@@ -219,6 +231,7 @@ describe('PaginaAgenda', () => {
     render(<MemoryRouter><PaginaAgenda /></MemoryRouter>)
     expect(await screen.findByText('Aguardando sincronização com Google Agenda')).toBeVisible()
     expect(screen.getByText('Sem evento Google associado')).toBeVisible()
+    const leiturasAntesDoRetry = fetchMock.mock.calls.filter(([url]) => String(url).startsWith('/api/v1/agenda/consultas?')).length
     const regiaoAnuncios = document.querySelector('.google-agenda-sincronizacao [role="status"]')
     expect(regiaoAnuncios).toHaveAttribute('aria-live', 'polite')
     await usuario.click(screen.getByRole('button', { name: 'Tentar sincronizar novamente' }))
@@ -226,6 +239,7 @@ describe('PaginaAgenda', () => {
     expect(await screen.findByText('Nova tentativa de sincronização solicitada.')).toBeInTheDocument()
     expect(regiaoAnuncios).toHaveTextContent('Nova tentativa de sincronização solicitada.')
     expect(fetchMock.mock.calls.some(([url, opcoes]) => String(url).includes('/sincronizacao-google/tentar-novamente') && opcoes?.method === 'POST')).toBe(true)
+    await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => String(url).startsWith('/api/v1/agenda/consultas?')).length).toBeGreaterThan(leiturasAntesDoRetry))
   })
 
   it('mostra erro seguro quando a solicitação de nova tentativa falha', async () => {
@@ -245,20 +259,16 @@ describe('PaginaAgenda', () => {
     render(<MemoryRouter><PaginaAgenda /></MemoryRouter>)
     await screen.findByText('Falha ao sincronizar com Google Agenda')
     await usuario.click(screen.getByRole('button', { name: 'Tentar sincronizar novamente' }))
-
     expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível solicitar a sincronização. Tente novamente.')
     expect(screen.getByRole('alert')).not.toHaveTextContent('detalhe externo fictício')
   })
 
   it.each([
-    ['REALIZADA', 'Realizada'],
-    ['FALTA', 'Falta'],
-    ['CANCELADA', 'Cancelada'],
+    ['REALIZADA', 'Realizada'], ['FALTA', 'Falta'], ['CANCELADA', 'Cancelada'],
   ])('atualiza o status %s, mantém a data e marca a sincronização pendente', async (_status, rotulo) => {
     configurarApi({ consultas: [consulta] })
     const usuario = userEvent.setup()
     render(<MemoryRouter><PaginaAgenda /></MemoryRouter>)
-
     await usuario.click(await screen.findByRole('button', { name: rotulo }))
     expect(await screen.findByText('Aguardando sincronização com Google Agenda')).toBeVisible()
     expect(screen.getByText(rotulo, { selector: '.consulta-status' })).toBeVisible()
@@ -272,10 +282,10 @@ describe('PaginaAgenda', () => {
       if (String(url) === '/api/v1/integracoes/google-agenda') return Response.json({ estado: 'NAO_CONFIGURADA' })
       if (String(url) === '/api/v1/consultas?pagina=0&tamanho=50') return Response.json({ ...paginaVazia, itens: [consulta] })
       if (String(url) === '/api/v1/pacientes?pagina=0&tamanho=100') return Response.json(paginaVazia)
+      if (String(url).startsWith('/api/v1/agenda/consultas?')) return Response.json({ ...paginaVazia, itens: [consulta], total: 1, contagens: { PROXIMAS: 1, AGENDADAS_ANTERIORES: 0, REALIZADAS: 0, CANCELADAS: 0, FALTAS: 0 } })
       return Response.json(paginaVazia)
     })
     render(<MemoryRouter><PaginaAgenda /></MemoryRouter>)
-
     expect(await screen.findByText(new RegExp(`12:00.*${paciente.id}`))).toBeVisible()
     expect(screen.getByText('Agendada')).toBeVisible()
   })

@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route, Routes } from 'react-router'
+import { MemoryRouter, Route, Routes, useNavigate } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PaginaProntuario } from './PaginaProntuario'
 
@@ -30,9 +30,14 @@ const analiseAnterior = { ...analiseSummary, id: analiseAnteriorId, geracaoId: g
 function renderProntuario(id = pacienteA.id) {
   return render(
     <MemoryRouter initialEntries={[`/prontuario/${id}`]}>
-      <Routes><Route path="/prontuario/:pacienteId" element={<PaginaProntuario />} /></Routes>
+      <Routes><Route path="/prontuario/:pacienteId" element={<><PaginaProntuario /><NavegacaoProntuarioTeste /></>} /></Routes>
     </MemoryRouter>,
   )
+}
+
+function NavegacaoProntuarioTeste() {
+  const navegar = useNavigate()
+  return <button type="button" onClick={() => navegar(`/prontuario/${pacienteB.id}?secao=consultas`)}>Trocar paciente teste</button>
 }
 
 beforeEach(() => {
@@ -42,6 +47,10 @@ beforeEach(() => {
     if (url === `/api/v1/pacientes/${pacienteB.id}`) return json(pacienteB)
     if (url === `/api/v1/consultas?pagina=0&tamanho=50&pacienteId=${pacienteA.id}`) return json(paginaVazia)
     if (url === `/api/v1/consultas?pagina=0&tamanho=50&pacienteId=${pacienteB.id}`) return json(paginaVazia)
+    if (url.toString().startsWith('/api/v1/agenda/consultas?')) {
+      const consultasMock = url.toString().includes(`pacienteId=${pacienteB.id}`) ? [{ id: '77777777-7777-4777-8777-777777777777', pacienteId: pacienteB.id, agendadaPara: '2026-06-01T15:00:00Z', status: 'AGENDADA', observacoes: null, criadaEm: '2026-01-01T12:00:00Z', statusAlteradoEm: null }] : []
+      return json({ ...paginaVazia, itens: consultasMock, total: consultasMock.length, contagens: { PROXIMAS: consultasMock.length, AGENDADAS_ANTERIORES: 0, REALIZADAS: 0, CANCELADAS: 0, FALTAS: 0 } })
+    }
     if (url === `/api/v1/pacientes/${pacienteA.id}/registros-clinicos?pagina=0&tamanho=100`) return json({ ...paginaVazia, itens: [registroOriginal], total: 1 })
     if (url === `/api/v1/pacientes/${pacienteB.id}/registros-clinicos?pagina=0&tamanho=100`) return json(paginaVazia)
     if (url === `/api/v1/pacientes/${pacienteA.id}/estado-analise`) return json({ analiseAtual: analiseSummary, ultimaGeracao: { ...geracao, estado: 'CONCLUIDA' }, geracaoAtiva: null, podeRegenerar: true, motivo: null })
@@ -63,12 +72,50 @@ afterEach(() => {
 })
 
 describe('PaginaProntuario', () => {
+  it('descarta resposta atrasada de consultas ao trocar de paciente', async () => {
+    let resolverAgendaA: ((resposta: Response) => void) | undefined
+    fetchMock.mockImplementation(async url => {
+      if (url === `/api/v1/pacientes/${pacienteA.id}`) return json(pacienteA)
+      if (url === `/api/v1/pacientes/${pacienteB.id}`) return json(pacienteB)
+      if (url.toString().startsWith('/api/v1/agenda/consultas?') && url.toString().includes(`pacienteId=${pacienteA.id}`)) {
+        return new Promise<Response>(resolve => { resolverAgendaA = resolve })
+      }
+      if (url.toString().startsWith('/api/v1/agenda/consultas?')) return json({ ...paginaVazia, contagens: { PROXIMAS: 0, AGENDADAS_ANTERIORES: 0, REALIZADAS: 0, CANCELADAS: 0, FALTAS: 0 } })
+      if (url === `/api/v1/pacientes/${pacienteA.id}/registros-clinicos?pagina=0&tamanho=100`) return json({ ...paginaVazia, itens: [registroOriginal], total: 1 })
+      if (url === `/api/v1/pacientes/${pacienteB.id}/registros-clinicos?pagina=0&tamanho=100`) return json(paginaVazia)
+      if (url === `/api/v1/pacientes/${pacienteA.id}/estado-analise`) return json({ analiseAtual: null, ultimaGeracao: null, geracaoAtiva: null, podeRegenerar: false, motivo: null })
+      if (url === `/api/v1/pacientes/${pacienteB.id}/estado-analise`) return json({ analiseAtual: null, ultimaGeracao: null, geracaoAtiva: null, podeRegenerar: false, motivo: null })
+      if (url.toString().includes('/geracoes-analise')) return json(paginaVazia)
+      return json(paginaVazia)
+    })
+    const usuario = userEvent.setup()
+    renderProntuario()
+    expect(await screen.findByText('Paciente fictício relata melhora do sono.')).toBeVisible()
+    await usuario.click(screen.getByRole('button', { name: 'Trocar paciente teste' }))
+    expect(await screen.findByRole('heading', { name: 'Paciente Atual B' })).toBeVisible()
+    resolverAgendaA?.(json({ ...paginaVazia, itens: [{ id: 'consulta-paciente-a', pacienteId: pacienteA.id, agendadaPara: '2026-06-01T15:00:00Z', status: 'AGENDADA', observacoes: null, criadaEm: '2026-01-01T12:00:00Z', statusAlteradoEm: null }], contagens: { PROXIMAS: 1, AGENDADAS_ANTERIORES: 0, REALIZADAS: 0, CANCELADAS: 0, FALTAS: 0 } }))
+    expect(await screen.findByText('Nenhuma consulta encontrada para o periodo.')).toBeVisible()
+    expect(screen.queryByText('Paciente Atual A')).not.toBeInTheDocument()
+  })
+
+  it('mantém dados clínicos carregados e identifica falha ao buscar consultas', async () => {
+    const respostaPadrao = fetchMock.getMockImplementation()
+    fetchMock.mockImplementation(async (url, opcoes) => {
+      if (url.toString().startsWith('/api/v1/agenda/consultas?')) return json({ title: 'Erro fictício' }, { status: 503 })
+      return respostaPadrao!(url, opcoes)
+    })
+    renderProntuario()
+    expect(await screen.findByText('Paciente fictício relata melhora do sono.')).toBeVisible()
+    expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível carregar as consultas deste paciente.')
+  })
+
   it('cria consulta usando o paciente atual apos navegar entre prontuarios', async () => {
     const usuario = userEvent.setup()
     renderProntuario(pacienteB.id)
     expect(await screen.findByText('Paciente Atual B')).toBeVisible()
     await usuario.type(screen.getByLabelText('Data e hora'), '2026-06-01T12:00')
     await usuario.click(screen.getByRole('button', { name: 'Criar consulta' }))
+    await usuario.click(screen.getByRole('button', { name: /Consultas/ }))
     expect(await screen.findByText(/12:00.*Paciente Atual B/)).toBeVisible()
     expect(fetchMock).toHaveBeenCalledWith(`/api/v1/pacientes/${pacienteB.id}/consultas`, expect.any(Object))
     expect(fetchMock).not.toHaveBeenCalledWith(`/api/v1/pacientes/${pacienteA.id}/consultas`, expect.any(Object))

@@ -112,6 +112,16 @@ button { background: #285c47; min-height: 44px; }
 .filtros-agenda { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: .65rem; margin-bottom: 1rem; padding: .85rem; background: #f1f6f0; border: 1px solid #dbe7dc; border-radius: .55rem; }
 .filtros-agenda label { font-size: .8rem; }
 .filtros-agenda input, .filtros-agenda select { padding: .55rem; background: white; }
+.filtros-consultas { display: grid; gap: 14px; margin-bottom: 16px; }
+.grupos-consultas { display: flex; flex-wrap: wrap; gap: 8px; }
+.grupos-consultas button { min-height: 44px; padding: .55rem .8rem; border: 1px solid #cfdfd2; border-radius: 8px; background: #fff; color: #355343; cursor: pointer; }
+.grupos-consultas button[aria-pressed="true"] { background: #e6f0e8; border-color: #527864; color: #244c36; font-weight: 650; }
+.grupos-consultas .count { display: inline-grid; min-width: 24px; min-height: 24px; place-items: center; margin-left: 4px; border-radius: 999px; background: #edf3ee; font-size: .78rem; }
+.periodo-consultas { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; padding: 12px; border: 1px solid #dbe7dc; border-radius: 8px; background: #f7faf7; }
+.periodo-consultas label { display: grid; gap: 4px; font-size: .82rem; }
+.periodo-consultas input { min-height: 44px; padding: .55rem; background: white; }
+.periodo-consultas button { min-height: 44px; }
+.periodo-consultas .erro { flex-basis: 100%; margin: 0; }
 @media (max-width: 760px) {
   .aplicacao-shell { display: block; }
   .cabecalho { padding: 1rem; gap: 1rem; }
@@ -436,6 +446,10 @@ body { font-size: 13px; }
   .pagina-prontuario .heading-actions .secondary { display: none; }
 }
 @media (max-width: 740px) {
+  .grupos-consultas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grupos-consultas button { text-align: left; }
+  .periodo-consultas { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .periodo-consultas button { width: 100%; }
   .sidebar { justify-content: flex-start; }
   .sidebar-divider { display: none; }
   .primary-nav .nav-count { display: none; }

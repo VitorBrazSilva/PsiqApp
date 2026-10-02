@@ -6,7 +6,7 @@ O PsiqApp MVP é um sistema de apoio ao atendimento psiquiátrico para um único
 
 O objetivo principal é reduzir o esforço de releitura manual do prontuário antes de uma consulta, mantendo os registros clínicos originais como fonte de verdade. A IA ajuda a organizar acontecimentos, recorrências, padrões e pontos de atenção, mas não decide, diagnostica, prescreve nem substitui o julgamento clínico.
 
-**Capacidade atual:** o backend já permite cadastrar, buscar e visualizar pacientes por API, criar e listar consultas, consultar disponibilidade local e do Google Agenda, incluindo uma leitura mensal de datas e horários livres, sincronizar eventos por worker durável, atualizar consultas para estados finais, criar pareceres originais e complementos, consultar a linha do tempo clínica, processar gerações de IA e consultar análises e seu histórico. A sincronização Google é opcional, usa o calendário principal e mantém a consulta do PsiqApp como fonte de verdade. O provider local padrão da IA é fake e determinístico; o adapter OpenAI pode ser habilitado por ambiente. No frontend, já é possível cadastrar, buscar e abrir pacientes, visualizar dados, criar e acompanhar consultas, registrar pareceres e complementos, consultar a linha do tempo clínica, ver análises e solicitar regeneração manual quando permitida pela API. Na Agenda, o médico ainda verifica explicitamente a disponibilidade de uma data e hora e vê o estado de sincronização de cada consulta, com nova tentativa quando aplicável.
+**Capacidade atual:** o backend já permite cadastrar, buscar e visualizar pacientes por API, criar e listar consultas, consultar disponibilidade local e do Google Agenda, incluindo uma leitura mensal de datas e horários livres, sincronizar eventos por worker durável, atualizar consultas para estados finais, criar pareceres originais e complementos, consultar a linha do tempo clínica, processar gerações de IA e consultar análises e seu histórico. A sincronização Google é opcional, usa o calendário principal e mantém a consulta do PsiqApp como fonte de verdade. O provider local padrão da IA é fake e determinístico; o adapter OpenAI pode ser habilitado por ambiente. No frontend, já é possível cadastrar, buscar e abrir pacientes, visualizar dados, criar e acompanhar consultas agrupadas por estado, filtrar as listas por paciente e período, registrar pareceres e complementos, consultar a linha do tempo clínica, ver análises e solicitar regeneração manual quando permitida pela API. Na Agenda, o médico ainda verifica explicitamente a disponibilidade de uma data e hora e vê o estado de sincronização de cada consulta, com nova tentativa quando aplicável.
 
 Este documento descreve as capacidades implementadas e as regras de negócio que elas devem respeitar. As invariantes vigentes estão nas Rules. O MVP deve ser usado exclusivamente com dados fictícios.
 
@@ -76,6 +76,9 @@ Status de consulta no MVP:
 Regras funcionais:
 
 - Consultas retroativas são permitidas.
+- As listas da Agenda e da seção Consultas do prontuário podem ser filtradas por Próximas, Agendadas anteriores, Realizadas, Canceladas e Faltas. Próximas inclui consultas agendadas no instante atual ou depois dele; Agendadas anteriores inclui as agendadas antes do instante atual.
+- As duas listas aceitam período por datas civis inclusivas. No prontuário, itens e contagens ficam limitados ao paciente aberto; na Agenda, também é possível filtrar por paciente.
+- Cada grupo mostra sua contagem completa para o paciente/período atual, mesmo quando os itens são exibidos em páginas.
 - Toda consulta criada inicia como `AGENDADA`.
 - Uma consulta `AGENDADA` pode ser marcada como `REALIZADA`, `CANCELADA` ou `FALTA`.
 - Estados `REALIZADA`, `CANCELADA` e `FALTA` são finais.

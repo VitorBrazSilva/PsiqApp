@@ -101,6 +101,11 @@ class CasosDeUsoConfiguration {
     }
 
     @Bean
+    ListarAgendaConsultasUseCase listarAgendaConsultasUseCase(RepositoryConsultaPort consultas, Clock relogio) {
+        return new ListarAgendaConsultasUseCase(consultas, relogio);
+    }
+
+    @Bean
     AtualizarStatusConsultaUseCase atualizarStatusConsultaUseCase(RepositoryConsultaPort consultas,
             TransactionRunnerPort transacao, Clock relogio, RepositorySincronizacaoConsultaPort sincronizacoes,
             ConexaoGoogleAgendaPort conexao) {
