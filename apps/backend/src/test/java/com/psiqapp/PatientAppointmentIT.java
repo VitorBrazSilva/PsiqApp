@@ -15,23 +15,33 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("local")
 @Testcontainers
 class PatientAppointmentIT {
-    @Container
-    @ServiceConnection
-    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:18.6");
+    private static final Instant REFERENCIA_TESTE = Instant.parse("2026-10-02T18:00:00Z");
 
+    @org.springframework.boot.test.context.TestConfiguration(proxyBeanMethods = false)
+    static class RelogioTeste {
+        @org.springframework.context.annotation.Bean
+        @org.springframework.context.annotation.Primary
+        java.time.Clock relogioTeste() {
+            return java.time.Clock.fixed(REFERENCIA_TESTE, java.time.ZoneOffset.UTC);
+        }
+    }
+
+    @Container
+    @org.springframework.boot.testcontainers.service.connection.ServiceConnection
+    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:18.6");
     @Autowired TestRestTemplate http;
     @Autowired Flyway flyway;
     @Autowired JdbcTemplate jdbc;
@@ -102,16 +112,40 @@ class PatientAppointmentIT {
         UUID pacienteB = UUID.fromString(criarPaciente(UUID.randomUUID(), "Carlos Lima", "390.533.447-05")
                 .getBody().path("id").asText());
 
-        var consulta = criarConsulta(pacienteA, UUID.randomUUID(), "2026-09-10T10:00:00-03:00");
+        var consulta = criarConsulta(pacienteA, UUID.randomUUID(), "2099-09-10T10:00:00-03:00");
         assertThat(consulta.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         UUID consultaId = UUID.fromString(consulta.getBody().path("id").asText());
         assertThat(consulta.getBody().path("status").asText()).isEqualTo("AGENDADA");
-        assertThat(consulta.getBody().path("agendadaPara").asText()).isEqualTo("2026-09-10T13:00:00Z");
+        assertThat(consulta.getBody().path("agendadaPara").asText()).isEqualTo("2099-09-10T13:00:00Z");
+        jdbc.update("insert into consulta (id, paciente_id, agendada_para, status, observacoes, criada_em) values (?, ?, ?, 'AGENDADA', ?, ?)",
+                UUID.randomUUID(), pacienteA, java.sql.Timestamp.from(Instant.parse("2099-09-11T02:30:00Z")),
+                "HorÃ¡rio fictÃ­cio no limite inclusivo", java.sql.Timestamp.from(REFERENCIA_TESTE));
+        jdbc.update("insert into consulta (id, paciente_id, agendada_para, status, observacoes, criada_em) values (?, ?, ?, 'AGENDADA', ?, ?)",
+                UUID.randomUUID(), pacienteA, java.sql.Timestamp.from(Instant.parse("2099-09-11T03:00:00Z")),
+                "Meia-noite fictÃ­cia fora do perÃ­odo", java.sql.Timestamp.from(REFERENCIA_TESTE));
 
         var agendaA = http.getForEntity("/api/v1/consultas?pacienteId=" + pacienteA + "&pagina=0&tamanho=25", JsonNode.class);
         var agendaB = http.getForEntity("/api/v1/consultas?pacienteId=" + pacienteB + "&pagina=0&tamanho=25", JsonNode.class);
-        assertThat(agendaA.getBody().path("itens")).hasSize(1);
+        assertThat(agendaA.getBody().path("itens")).hasSize(3);
         assertThat(agendaB.getBody().path("itens")).isEmpty();
+
+        var agendaNova = http.getForEntity("/api/v1/agenda/consultas?grupo=PROXIMAS&pacienteId=" + pacienteA
+                + "&dataInicial=2099-09-10&dataFinal=2099-09-10&pagina=0&tamanho=1", JsonNode.class);
+        assertThat(agendaNova.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(agendaNova.getHeaders().getCacheControl()).contains("no-store");
+        assertThat(agendaNova.getBody().path("itens")).hasSize(1);
+        assertThat(agendaNova.getBody().path("total").asLong()).isEqualTo(2);
+        assertThat(agendaNova.getBody().path("contagens").path("PROXIMAS").asLong()).isEqualTo(2);
+        assertThat(agendaNova.getBody().path("contagens").path("REALIZADAS").asLong()).isZero();
+        var agendaLimite = http.getForEntity("/api/v1/agenda/consultas?grupo=PROXIMAS&pacienteId=" + pacienteA
+                + "&dataInicial=2099-09-11&dataFinal=2099-09-11&pagina=0&tamanho=25", JsonNode.class);
+        assertThat(agendaLimite.getBody().path("itens")).hasSize(1);
+        assertThat(agendaLimite.getBody().path("itens").get(0).path("agendadaPara").asText())
+                .isEqualTo("2099-09-11T03:00:00Z");
+        assertThat(agendaLimite.getBody().path("total").asLong()).isEqualTo(1);
+        var agendaPacienteB = http.getForEntity("/api/v1/agenda/consultas?pacienteId=" + pacienteB, JsonNode.class);
+        assertThat(agendaPacienteB.getBody().path("itens")).isEmpty();
+        assertThat(agendaPacienteB.getBody().path("contagens").path("PROXIMAS").asLong()).isZero();
 
         UUID chaveConsulta = UUID.randomUUID();
         var consultaIdempotente = criarConsulta(pacienteA, chaveConsulta, "2026-09-11T10:00:00-03:00");
@@ -136,8 +170,72 @@ class PatientAppointmentIT {
         assertThat(atualizarStatus(canceladaId, "CANCELADA").getBody().path("status").asText()).isEqualTo("CANCELADA");
         assertThat(atualizarStatus(faltaId, "FALTA").getBody().path("status").asText()).isEqualTo("FALTA");
 
+        var realizadas = http.getForEntity("/api/v1/agenda/consultas?grupo=REALIZADAS&pacienteId=" + pacienteA
+                + "&pagina=9&tamanho=1", JsonNode.class);
+        assertThat(realizadas.getBody().path("itens")).isEmpty();
+        assertThat(realizadas.getBody().path("total").asLong()).isEqualTo(1);
+        assertThat(realizadas.getBody().path("contagens").path("REALIZADAS").asLong()).isEqualTo(1);
+
+        var periodoParcial = http.getForEntity("/api/v1/agenda/consultas?dataInicial=2026-09-10", JsonNode.class);
+        assertThat(periodoParcial.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(periodoParcial.getBody().path("codigo").asText()).isEqualTo("ENTRADA_INVALIDA");
+
         var ausente = criarConsulta(UUID.randomUUID(), UUID.randomUUID(), "2026-09-10T10:00:00-03:00");
         assertThat(ausente.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    void paginaAgendaCalculaGruposSobre120ConsultasSemDependerDaPagina() {
+        UUID paciente = UUID.fromString(criarPaciente(UUID.randomUUID(), "Agenda Volume", "529.982.247-25")
+                .getBody().path("id").asText());
+        Instant agora = REFERENCIA_TESTE;
+        Instant futura = agora.plusSeconds(86400 * 60L);
+        Instant passada = agora.minusSeconds(86400 * 60L);
+        for (int i = 0; i < 120; i++) {
+            String status;
+            Instant inicio;
+            if (i < 20) { status = "AGENDADA"; inicio = futura.plusSeconds(i * 3600L); }
+            else if (i < 40) { status = "AGENDADA"; inicio = passada.minusSeconds(i * 3600L); }
+            else { status = switch ((i - 40) / 20) { case 0 -> "REALIZADA"; case 1 -> "CANCELADA"; case 2 -> "FALTA"; default -> "REALIZADA"; }; inicio = futura.plusSeconds(i * 3600L); }
+            jdbc.update("insert into consulta (id, paciente_id, agendada_para, status, observacoes, criada_em) values (?, ?, ?, ?, ?, ?)",
+                    UUID.randomUUID(), paciente, java.sql.Timestamp.from(inicio), status, "Nota fictÃ­cia de teste", java.sql.Timestamp.from(agora));
+        }
+
+        var primeira = http.getForEntity("/api/v1/agenda/consultas?grupo=PROXIMAS&pacienteId=" + paciente
+                + "&pagina=0&tamanho=7", JsonNode.class).getBody();
+        var quarta = http.getForEntity("/api/v1/agenda/consultas?grupo=PROXIMAS&pacienteId=" + paciente
+                + "&pagina=2&tamanho=7", JsonNode.class).getBody();
+        var foraDoLimite = http.getForEntity("/api/v1/agenda/consultas?grupo=PROXIMAS&pacienteId=" + paciente
+                + "&pagina=9&tamanho=7", JsonNode.class).getBody();
+        assertThat(primeira.path("itens")).hasSize(7);
+        assertThat(quarta.path("itens")).hasSize(6);
+        assertThat(primeira.path("contagens").path("PROXIMAS").asLong()).isEqualTo(20);
+        assertThat(primeira.path("contagens").path("AGENDADAS_ANTERIORES").asLong()).isEqualTo(20);
+        assertThat(primeira.path("contagens").path("REALIZADAS").asLong()).isEqualTo(40);
+        assertThat(primeira.path("contagens").path("CANCELADAS").asLong()).isEqualTo(20);
+        assertThat(primeira.path("contagens").path("FALTAS").asLong()).isEqualTo(20);
+        assertThat(foraDoLimite.path("itens")).isEmpty();
+        assertThat(foraDoLimite.path("total").asLong()).isEqualTo(20);
+        assertThat(foraDoLimite.path("contagens").path("PROXIMAS").asLong()).isEqualTo(20);
+    }
+
+    @Test
+    void timestampIgualAReferenciaPertenceSomenteAoGrupoProximas() {
+        UUID paciente = UUID.fromString(criarPaciente(UUID.randomUUID(), "Agenda Igualdade", "529.982.247-25")
+                .getBody().path("id").asText());
+        jdbc.update("insert into consulta (id, paciente_id, agendada_para, status, observacoes, criada_em) values (?, ?, ?, 'AGENDADA', ?, ?)",
+                UUID.randomUUID(), paciente, java.sql.Timestamp.from(REFERENCIA_TESTE.minusSeconds(1)), "Consulta fictÃ­cia anterior", java.sql.Timestamp.from(REFERENCIA_TESTE));
+        jdbc.update("insert into consulta (id, paciente_id, agendada_para, status, observacoes, criada_em) values (?, ?, ?, 'AGENDADA', ?, ?)",
+                UUID.randomUUID(), paciente, java.sql.Timestamp.from(REFERENCIA_TESTE), "Consulta fictÃ­cia na referÃªncia", java.sql.Timestamp.from(REFERENCIA_TESTE));
+        jdbc.update("insert into consulta (id, paciente_id, agendada_para, status, observacoes, criada_em) values (?, ?, ?, 'AGENDADA', ?, ?)",
+                UUID.randomUUID(), paciente, java.sql.Timestamp.from(REFERENCIA_TESTE.plusSeconds(1)), "Consulta fictÃ­cia futura", java.sql.Timestamp.from(REFERENCIA_TESTE));
+
+        var proximas = http.getForEntity("/api/v1/agenda/consultas?grupo=PROXIMAS&pacienteId=" + paciente, JsonNode.class).getBody();
+        var anteriores = http.getForEntity("/api/v1/agenda/consultas?grupo=AGENDADAS_ANTERIORES&pacienteId=" + paciente, JsonNode.class).getBody();
+        assertThat(proximas.path("itens")).hasSize(2);
+        assertThat(proximas.path("contagens").path("PROXIMAS").asLong()).isEqualTo(2);
+        assertThat(anteriores.path("itens")).hasSize(1);
+        assertThat(anteriores.path("contagens").path("AGENDADAS_ANTERIORES").asLong()).isEqualTo(1);
     }
 
     @Test
@@ -197,3 +295,5 @@ class PatientAppointmentIT {
         return first == HttpStatus.CREATED || second == HttpStatus.CREATED ? HttpStatus.CREATED : first;
     }
 }
+
+\r\n

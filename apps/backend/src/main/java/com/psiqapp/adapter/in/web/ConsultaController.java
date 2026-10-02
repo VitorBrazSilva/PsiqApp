@@ -7,6 +7,9 @@ import com.psiqapp.application.usecase.VerificarDisponibilidadeConsultaUseCase;
 import com.psiqapp.application.usecase.ConsultarDisponibilidadeMensalUseCase;
 import com.psiqapp.application.usecase.TentarNovamenteSincronizacaoGoogleAgendaUseCase;
 import com.psiqapp.application.usecase.ObterEstadosSincronizacaoConsultaUseCase;
+import com.psiqapp.application.usecase.ListarAgendaConsultasUseCase;
+import com.psiqapp.application.port.out.GrupoAgendaConsulta;
+import java.time.LocalDate;
 import java.net.URI;
 import java.time.Instant;
 import java.util.UUID;
@@ -26,13 +29,15 @@ public class ConsultaController {
     private final ConsultarDisponibilidadeMensalUseCase disponibilidadeMensal;
     private final TentarNovamenteSincronizacaoGoogleAgendaUseCase tentarNovamente;
     private final ObterEstadosSincronizacaoConsultaUseCase estadosSincronizacao;
+    private final ListarAgendaConsultasUseCase listarAgenda;
 
     public ConsultaController(CriarConsultaUseCase criarConsulta, ListarConsultasUseCase listarConsultas,
             AtualizarStatusConsultaUseCase atualizarStatus,
             VerificarDisponibilidadeConsultaUseCase verificarDisponibilidade,
             ConsultarDisponibilidadeMensalUseCase disponibilidadeMensal,
             TentarNovamenteSincronizacaoGoogleAgendaUseCase tentarNovamente,
-            ObterEstadosSincronizacaoConsultaUseCase estadosSincronizacao) {
+            ObterEstadosSincronizacaoConsultaUseCase estadosSincronizacao,
+            ListarAgendaConsultasUseCase listarAgenda) {
         this.criarConsulta = criarConsulta;
         this.listarConsultas = listarConsultas;
         this.atualizarStatus = atualizarStatus;
@@ -40,6 +45,7 @@ public class ConsultaController {
         this.disponibilidadeMensal = disponibilidadeMensal;
         this.tentarNovamente = tentarNovamente;
         this.estadosSincronizacao = estadosSincronizacao;
+        this.listarAgenda = listarAgenda;
     }
 
     @PostMapping("/api/v1/pacientes/{pacienteId}/consultas")
@@ -74,6 +80,22 @@ public class ConsultaController {
     @GetMapping("/api/v1/consultas/disponibilidade")
     DisponibilidadeConsultaResponse disponibilidade(@RequestParam Instant agendadaPara) {
         return DisponibilidadeConsultaResponse.de(verificarDisponibilidade.executar(agendadaPara));
+    }
+
+    @GetMapping("/api/v1/agenda/consultas")
+    ResponseEntity<PaginaAgendaResponse> listarAgenda(
+            @RequestParam(name = "grupo", required = false) GrupoAgendaConsulta grupo,
+            @RequestParam(name = "pacienteId", required = false) UUID pacienteId,
+            @RequestParam(name = "dataInicial", required = false) LocalDate dataInicial,
+            @RequestParam(name = "dataFinal", required = false) LocalDate dataFinal,
+            @RequestParam(name = "pagina", required = false) Integer pagina,
+            @RequestParam(name = "tamanho", required = false) Integer tamanho,
+            HttpServletResponse resposta) {
+        resposta.setHeader("Cache-Control", "no-store");
+        var resultado = listarAgenda.executar(grupo, pacienteId, dataInicial, dataFinal, pagina, tamanho);
+        var estados = estadosSincronizacao.listar(resultado.pagina().itens().stream()
+                .map(consulta -> consulta.id()).toList());
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(PaginaAgendaResponse.de(resultado, estados));
     }
 
     @GetMapping("/api/v1/consultas/disponibilidade/mensal")

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { randomUUID } from 'node:crypto'
 import { aguardarGeracaoConcluida, aguardarRegistroAnalise, criarConsulta, criarPaciente, criarParecer, ficticio } from './fixtures'
 
 test('cadastra, busca, abre paciente e preserva aviso de dados ficticios', async ({ page }) => {
@@ -15,6 +16,70 @@ test('cria consulta e exibe paciente associado na agenda', async ({ page, reques
   await page.goto('/agenda')
   await expect(page.getByRole('heading', { name: 'Agenda', exact: true })).toBeVisible()
   await expect(page.getByRole('combobox', { name: 'Filtrar paciente' })).toBeVisible()
+  await expect(page.locator('.lista.consultas')).toContainText(paciente.nome)
+})
+
+test('filtra grupos e período civil na Agenda e isola a lista do prontuário', async ({ page, request }) => {
+  const pacienteA = await criarPaciente(request)
+  const pacienteB = await criarPaciente(request)
+  const hoje = new Date()
+  const deslocamentoDias = Number.parseInt(randomUUID().slice(0, 8), 16) % 300 + 20
+  const dataPassada = new Date(hoje.getTime() - deslocamentoDias * 86_400_000)
+  const dataFutura = new Date(hoje.getTime() + deslocamentoDias * 86_400_000)
+  const horario = (data: Date, hora: number) => {
+    const local = new Date(data)
+    local.setUTCHours(hora + 3, 0, 0, 0)
+    return local.toISOString()
+  }
+  await criarConsulta(request, pacienteA.id, horario(dataPassada, 9))
+  await criarConsulta(request, pacienteA.id, horario(dataFutura, 15))
+  const consultaPacienteB = await criarConsulta(request, pacienteB.id, horario(dataFutura, 21))
+  await request.post(`/api/v1/consultas/${consultaPacienteB.id}/status`, { data: { status: 'REALIZADA' } })
+
+  await page.goto('/agenda')
+  await page.getByRole('button', { name: /Agendadas anteriores/ }).click()
+  await expect(page.locator('.lista.consultas')).toContainText(pacienteA.nome)
+  await expect(page.getByRole('button', { name: /Agendadas anteriores/ }).locator('.count')).toHaveText(/[1-9]\d*/)
+  await page.getByLabel('Data inicial').fill(dataPassada.toISOString().slice(0, 10))
+  await page.getByLabel('Data final').fill(dataPassada.toISOString().slice(0, 10))
+  await page.getByRole('button', { name: 'Aplicar período' }).click()
+  await expect(page.locator('.lista.consultas')).toContainText(pacienteA.nome)
+  await expect(page.getByRole('button', { name: /Agendadas anteriores/ }).locator('.count')).toHaveText(/[1-9]\d*/)
+  const grupoAnterior = page.getByRole('button', { name: /Agendadas anteriores/ })
+  await grupoAnterior.focus()
+  await page.keyboard.press('Enter')
+  await expect(grupoAnterior).toHaveAttribute('aria-pressed', 'true')
+  await page.setViewportSize({ width: 360, height: 800 })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  await expect(page.getByLabel('Data inicial')).toBeVisible()
+  await page.screenshot({ path: 'test-results/agenda-360.png', fullPage: true })
+  await page.setViewportSize({ width: 1280, height: 800 })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  await page.screenshot({ path: 'test-results/agenda-desktop.png', fullPage: true })
+
+  await page.goto(`/prontuario/${pacienteA.id}?secao=consultas`)
+  await expect(page.locator('.patient-heading h1')).toContainText(pacienteA.nome)
+  await expect(page.locator('.lista.consultas')).toContainText(pacienteA.nome)
+  await expect(page.locator('.lista.consultas')).not.toContainText(pacienteB.nome)
+})
+
+test('pagina a lista de consultas sem perder o paciente selecionado', async ({ page, request }) => {
+  const paciente = await criarPaciente(request)
+  const deslocamentoDias = Number.parseInt(randomUUID().slice(0, 8), 16) % 3000 + 1000
+  const inicio = new Date(Date.now() + deslocamentoDias * 86_400_000)
+  inicio.setUTCHours(12, 0, 0, 0)
+  for (let indice = 0; indice < 51; indice += 1) {
+    await criarConsulta(request, paciente.id, new Date(inicio.getTime() + indice * 3_600_000).toISOString())
+  }
+
+  await page.goto('/agenda')
+  await page.getByLabel('Filtrar paciente').selectOption(paciente.id)
+  await expect(page.locator('.lista.consultas li')).toHaveCount(50)
+  const paginacao = page.getByRole('navigation', { name: 'Paginação' })
+  await expect(paginacao).toContainText('Página 1 de 2')
+  await paginacao.getByRole('button', { name: 'Próxima' }).click()
+  await expect(paginacao).toContainText('Página 2 de 2')
+  await expect(page.locator('.lista.consultas li')).toHaveCount(1)
   await expect(page.locator('.lista.consultas')).toContainText(paciente.nome)
 })
 
