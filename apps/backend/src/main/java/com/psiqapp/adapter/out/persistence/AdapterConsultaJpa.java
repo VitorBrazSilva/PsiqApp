@@ -96,6 +96,18 @@ class AdapterConsultaJpa implements RepositoryConsultaPort {
         return Boolean.TRUE.equals(conflito);
     }
 
+    @Override
+    public java.util.List<Instant> listarIniciosAgendadosSobrepostos(Instant inicio, Instant fim) {
+        return jdbc.query("""
+                select agendada_para from consulta
+                 where status = 'AGENDADA'
+                   and agendada_para < ?
+                   and agendada_para + interval '1 hour' > ?
+                 order by agendada_para
+                """, (rs, rowNum) -> rs.getTimestamp("agendada_para").toInstant(),
+                java.sql.Timestamp.from(fim), java.sql.Timestamp.from(inicio));
+    }
+
     private EntidadeConsultaJpa paraJpa(Consulta consulta) {
         var entidade = new EntidadeConsultaJpa();
         entidade.id = consulta.id();

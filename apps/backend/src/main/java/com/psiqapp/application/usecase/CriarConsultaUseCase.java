@@ -71,7 +71,8 @@ public class CriarConsultaUseCase {
                     return consultas.buscarPorId(existente.get().recursoId()).orElseThrow(ConflitoException::new);
                 }
                 if (pacientes.buscarPorId(comando.pacienteId()).isEmpty()) throw new RecursoNaoEncontradoException();
-                Instant fim = comando.agendadaPara().plusSeconds(3_600);
+                Instant fim = comando.agendadaPara().plusSeconds(
+                        com.psiqapp.domain.modelo.DisponibilidadeAgenda.DURACAO_SEGUNDOS);
                 if (consultas.existeAgendadaSobreposta(comando.agendadaPara(), fim)) throw new ConflitoException();
                 String estadoConexao = conexao.estado();
                 if ("INDISPONIVEL".equals(estadoConexao)

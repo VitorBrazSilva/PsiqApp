@@ -10,6 +10,7 @@ import com.psiqapp.application.port.out.ConexaoGoogleAgendaPort;
 import com.psiqapp.application.port.out.GoogleAgendaCalendarioPort;
 import com.psiqapp.application.port.out.GoogleAgendaConfiguracaoPort;
 import com.psiqapp.application.port.out.RepositoryConsultaPort;
+import com.psiqapp.application.servico.ConsultarOcupacaoGoogleAgendaServico;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -25,8 +26,10 @@ class VerificarDisponibilidadeConsultaUseCaseTest {
     private final GoogleAgendaCalendarioPort calendario = mock(GoogleAgendaCalendarioPort.class);
     private final GoogleAgendaConfiguracaoPort configuracao = mock(GoogleAgendaConfiguracaoPort.class);
     private final Clock relogio = Clock.fixed(INICIO, ZoneOffset.UTC);
+    private final ConsultarOcupacaoGoogleAgendaServico ocupacaoGoogle = new ConsultarOcupacaoGoogleAgendaServico(
+            conexao, calendario, configuracao, relogio);
     private final VerificarDisponibilidadeConsultaUseCase caso = new VerificarDisponibilidadeConsultaUseCase(
-            consultas, conexao, calendario, configuracao, relogio);
+            consultas, ocupacaoGoogle, relogio);
 
     @BeforeEach
     void preparar() {
@@ -62,6 +65,7 @@ class VerificarDisponibilidadeConsultaUseCaseTest {
         when(conexao.estado()).thenReturn("CONECTADA");
         when(configuracao.configurado()).thenReturn(true);
         when(conexao.obter()).thenReturn(Optional.of(new ConexaoGoogleAgendaPort.Conexao("token-ficticio", INICIO)));
+        when(conexao.estado()).thenReturn("CONECTADA", "CONECTADA");
         when(calendario.consultarOcupacao("token-ficticio", INICIO, INICIO.plusSeconds(3_600))).thenReturn(List.of(
                 new GoogleAgendaCalendarioPort.Intervalo(INICIO.minusSeconds(3_600), INICIO),
                 new GoogleAgendaCalendarioPort.Intervalo(INICIO.plusSeconds(3_600), INICIO.plusSeconds(7_200))));
@@ -74,7 +78,7 @@ class VerificarDisponibilidadeConsultaUseCaseTest {
 
     @Test
     void indisponibilidadeGoogleNaoViraConflitoERevogacaoInvalidaConexao() {
-        when(conexao.estado()).thenReturn("CONECTADA");
+        when(conexao.estado()).thenReturn("CONECTADA", "CONECTADA");
         when(configuracao.configurado()).thenReturn(true);
         when(conexao.obter()).thenReturn(Optional.of(new ConexaoGoogleAgendaPort.Conexao("token-ficticio", INICIO)));
         when(calendario.consultarOcupacao("token-ficticio", INICIO, INICIO.plusSeconds(3_600)))

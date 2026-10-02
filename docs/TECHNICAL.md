@@ -367,6 +367,7 @@ Base: `/api/v1`. O contrato usa REST/JSON, DTOs separados das entidades JPA e CP
 | `GET /consultas?de&ate&pacienteId&pagina&tamanho` | Agenda por intervalo/paciente. |
 | `POST /consultas/{id}/status` | 200; transição para status final. |
 | `GET /consultas/disponibilidade?agendadaPara` | `DISPONIVEL`, `OCUPADO` ou `INDISPONIVEL`, fuso `America/Sao_Paulo` e instante de verificação. |
+| `GET /consultas/disponibilidade/mensal?mes=YYYY-MM` | Datas com horários livres para o mês informado ou atual (parâmetro omitido); mês malformado, passado ou fora do limite temporal é rejeitado. Faz uma leitura local e, quando conectada, uma consulta lógica Google para a janela mensal estendida. Retorna somente data e instantes disponíveis, usa `Cache-Control: no-store` e responde 503 sanitizado quando a verificação Google ativa falha, sem resultado parcial. |
 | `POST /consultas/{id}/sincronizacao-google/tentar-novamente` | 202; reinicia o estado durável de sincronização quando existe vínculo. |
 | `GET /pacientes/{pacienteId}/registros-clinicos?pagina&tamanho` | Linha do tempo descendente. |
 | `POST /pacientes/{pacienteId}/registros-clinicos` | 201; parecer e geração; exige `Idempotency-Key`. |
@@ -389,6 +390,7 @@ DTOs efetivos:
 | `CriarConsultaRequest` | `agendadaPara`, `observacoes`. |
 | `ConsultaResponse` | Campos atuais da consulta e objeto aditivo `sincronizacaoGoogleAgenda` (`estado`, `ultimaTentativa`); legado retorna `NAO_APLICAVEL`. |
 | `DisponibilidadeConsultaResponse` | `estado`, `fusoHorario`, `verificadoEm`; não inclui detalhes de eventos Google. |
+| `DisponibilidadeMensalResponse` | `mes`, `dias[]` com `data` e `horarios[]` em instantes UTC; não inclui paciente, observações ou eventos Google. |
 | `CriarRegistroClinicoRequest` | `texto`, `humor`, `medicamentos`, `dataHoraClinica`, `consultaId`. O complemento rejeita `consultaId` preenchido. |
 | `RegistroClinicoResponse` | `id`, `pacienteId`, `tipo`, `parecerOriginalId`, `consultaId`, `dataHoraClinica`, `criadoEm`, `texto`, `humor`, `medicamentos`, `revisao`. |
 | `CriarRegistroClinicoResponse` | `registro`, `geracaoId`, `geracao` inicialmente `ENFILEIRADA`. |
@@ -453,6 +455,7 @@ Política aprovada:
 - exibir na interface em `America/Sao_Paulo`;
 - enviar intervalos de consulta ao Google como instantes e solicitar/gerar eventos no fuso `America/Sao_Paulo`;
 - comparar disponibilidade como intervalo `[início, início + 1 hora)`, mantendo o fim exclusivo;
+- gerar candidatos mensais em passos de 30 minutos, desde 00:00 até 23:30 no calendário civil de `America/Sao_Paulo`, excluindo inícios anteriores ao instante de referência;
 - nascimento usa `DATE`/`LocalDate`;
 - `criadoEm` é gerado pelo servidor;
 - `dataHoraClinica` permanece separado de `criadoEm`;

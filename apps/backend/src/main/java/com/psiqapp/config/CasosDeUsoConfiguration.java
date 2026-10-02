@@ -15,6 +15,7 @@ import com.psiqapp.application.port.out.GoogleAgendaCalendarioPort;
 import com.psiqapp.application.port.out.GoogleAgendaConfiguracaoPort;
 import com.psiqapp.application.port.out.RepositorySincronizacaoConsultaPort;
 import com.psiqapp.application.usecase.*;
+import com.psiqapp.application.servico.ConsultarOcupacaoGoogleAgendaServico;
 import java.time.Clock;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -78,9 +79,20 @@ class CasosDeUsoConfiguration {
 
     @Bean
     VerificarDisponibilidadeConsultaUseCase verificarDisponibilidadeConsultaUseCase(RepositoryConsultaPort consultas,
-            ConexaoGoogleAgendaPort conexao, GoogleAgendaCalendarioPort calendario,
-            GoogleAgendaConfiguracaoPort configuracao, Clock relogio) {
-        return new VerificarDisponibilidadeConsultaUseCase(consultas, conexao, calendario, configuracao, relogio);
+            ConsultarOcupacaoGoogleAgendaServico google, Clock relogio) {
+        return new VerificarDisponibilidadeConsultaUseCase(consultas, google, relogio);
+    }
+
+    @Bean
+    ConsultarOcupacaoGoogleAgendaServico consultarOcupacaoGoogleAgendaServico(ConexaoGoogleAgendaPort conexao,
+            GoogleAgendaCalendarioPort calendario, GoogleAgendaConfiguracaoPort configuracao, Clock relogio) {
+        return new ConsultarOcupacaoGoogleAgendaServico(conexao, calendario, configuracao, relogio);
+    }
+
+    @Bean
+    ConsultarDisponibilidadeMensalUseCase consultarDisponibilidadeMensalUseCase(RepositoryConsultaPort consultas,
+            ConsultarOcupacaoGoogleAgendaServico google, Clock relogio) {
+        return new ConsultarDisponibilidadeMensalUseCase(consultas, google, relogio);
     }
 
     @Bean
