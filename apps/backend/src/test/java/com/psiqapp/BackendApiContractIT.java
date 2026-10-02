@@ -127,6 +127,7 @@ class BackendApiContractIT {
         assertThat(paths.has("/api/v1/consultas")).isTrue();
         assertThat(paths.has("/api/v1/consultas/{id}/status")).isTrue();
         assertThat(paths.has("/api/v1/consultas/disponibilidade")).isTrue();
+        assertThat(paths.has("/api/v1/consultas/disponibilidade/mensal")).isTrue();
         assertThat(paths.has("/api/v1/consultas/{id}/sincronizacao-google/tentar-novamente")).isTrue();
         assertThat(paths.has("/api/v1/pacientes/{pacienteId}/registros-clinicos")).isTrue();
         assertThat(paths.has("/api/v1/pacientes/{pacienteId}/registros-clinicos/{parecerOriginalId}/complementos")).isTrue();
@@ -141,6 +142,45 @@ class BackendApiContractIT {
                 .doesNotContain("EntidadeConsultaJpa")
                 .doesNotContain("EntidadeRegistroClinicoJpa")
                 .doesNotContain("EntidadeGeracaoAnaliseJpa");
+    }
+
+    @Test
+    void disponibilidadeMensalUsaContratoMinimoECacheNoStore() {
+        var resposta = http.getForEntity("/api/v1/consultas/disponibilidade/mensal?mes=2026-10", JsonNode.class);
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resposta.getHeaders().getCacheControl()).contains("no-store");
+        assertThat(resposta.getBody().path("mes").asText()).isEqualTo("2026-10");
+        assertThat(resposta.getBody().path("dias").isArray()).isTrue();
+        assertThat(resposta.getBody().toString()).doesNotContain("paciente", "observacoes", "token");
+    }
+
+    @Test
+    void disponibilidadeMensalExcluiSlotsSobrepostosComConsultaLocalAgendada() {
+        UUID pacienteId = UUID.fromString(criarPaciente(UUID.randomUUID(), "Dani Agenda",
+                "529.982.247-25").getBody().path("id").asText());
+        criarConsulta(pacienteId, UUID.randomUUID(), "2026-10-05T10:00:00-03:00");
+
+        var resposta = http.getForEntity("/api/v1/consultas/disponibilidade/mensal?mes=2026-10", JsonNode.class);
+        var dias = resposta.getBody().path("dias");
+        JsonNode dia = null;
+        for (JsonNode item : dias) {
+            if (item.path("data").asText().equals("2026-10-05")) dia = item;
+        }
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(dia).isNotNull();
+        assertThat(dia.path("horarios").toString())
+                .doesNotContain("2026-10-05T12:30:00Z", "2026-10-05T13:00:00Z",
+                        "2026-10-05T13:30:00Z");
+    }
+
+    @Test
+    void disponibilidadeMensalRejeitaMesInvalidoSemHabilitarCache() {
+        var resposta = http.getForEntity("/api/v1/consultas/disponibilidade/mensal?mes=2026-13", JsonNode.class);
+
+        assertProblem(resposta, HttpStatus.BAD_REQUEST, "ENTRADA_INVALIDA");
+        assertThat(resposta.getHeaders().getCacheControl()).contains("no-store");
     }
 
     private ResponseEntity<JsonNode> criarPaciente(UUID chave, String nome, String cpf) {

@@ -126,6 +126,37 @@ class GoogleAgendaCalendarIT {
     }
 
     @Test
+    void disponibilidadeMensalAtivaRetorna503SanitizadoSemSlotsParciais() {
+        conexao.salvar(TOKEN, Instant.now());
+        when(calendario.consultarOcupacao(anyString(), any(), any()))
+                .thenThrow(new FalhaGoogleAgendaException(FalhaGoogleAgendaException.Tipo.TRANSITORIA));
+
+        var resposta = http.getForEntity("/api/v1/consultas/disponibilidade/mensal?mes=2026-10", JsonNode.class);
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+        assertThat(resposta.getBody().path("codigo").asText())
+                .isEqualTo("GOOGLE_DISPONIBILIDADE_INDISPONIVEL");
+        assertThat(resposta.getHeaders().getCacheControl()).contains("no-store");
+        assertThat(resposta.getBody().toString()).doesNotContain(TOKEN, "dias", "horarios", "freeBusy");
+    }
+
+    @Test
+    void mudancaDaConexaoDuranteFreeBusyInvalidaDisponibilidadeMensal() {
+        conexao.salvar(TOKEN, Instant.now());
+        when(calendario.consultarOcupacao(anyString(), any(), any())).thenAnswer(invocacao -> {
+            conexao.desconectar(Instant.now());
+            return List.of(new GoogleAgendaCalendarioPort.Intervalo(INICIO, INICIO_TRES_DIAS_DEPOIS));
+        });
+
+        var resposta = http.getForEntity("/api/v1/consultas/disponibilidade/mensal?mes=2026-10", JsonNode.class);
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+        assertThat(resposta.getBody().path("codigo").asText())
+                .isEqualTo("GOOGLE_DISPONIBILIDADE_INDISPONIVEL");
+        assertThat(resposta.getBody().toString()).doesNotContain("dias", "horarios", INICIO.toString());
+    }
+
+    @Test
     void concorrenciaDeCriacaoLocalEAtomicidadeDaIntencaoSincronizada() throws Exception {
         UUID paciente = criarPaciente("Carla Concorrente");
         Callable<ResponseEntity<JsonNode>> chamadaA = () -> criarConsulta(paciente, UUID.randomUUID(), "2026-10-02T10:00:00-03:00");

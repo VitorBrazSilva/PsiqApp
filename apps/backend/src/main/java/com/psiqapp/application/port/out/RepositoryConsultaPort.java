@@ -5,6 +5,7 @@ import com.psiqapp.domain.modelo.StatusConsulta;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.List;
 
 public interface RepositoryConsultaPort extends ConsultaResumo {
     Consulta salvar(Consulta consulta);
@@ -13,4 +14,5 @@ public interface RepositoryConsultaPort extends ConsultaResumo {
     boolean atualizarStatusSeAgendada(UUID id, StatusConsulta status, Instant alteradoEm);
     void bloquearAgendaParaCriacao();
     boolean existeAgendadaSobreposta(Instant inicio, Instant fim);
+    List<Instant> listarIniciosAgendadosSobrepostos(Instant inicio, Instant fim);
 }
