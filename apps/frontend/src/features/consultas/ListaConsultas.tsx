@@ -3,13 +3,15 @@ import { EstadoVazio } from '../../shared/componentes/EstadoVazio'
 import { SeletorStatusConsulta } from './SeletorStatusConsulta'
 import { rotuloStatus, type Consulta } from './servicoConsultas'
 import { servicoGoogleAgenda, type EstadoSincronizacaoGoogleAgenda } from './servicoGoogleAgenda'
+import { formatarDataHoraConsulta } from './formatacaoConsulta'
 
-export function ListaConsultas({ consultas, carregando, aoAtualizar, nomesPacientes, usarApiReal = false }: {
+export function ListaConsultas({ consultas, carregando, aoAtualizar, nomesPacientes, usarApiReal = false, visaoProntuario = false }: {
   consultas: Consulta[]
   carregando: boolean
   aoAtualizar: (consulta: Consulta) => void
   nomesPacientes?: Record<string, string>
   usarApiReal?: boolean
+  visaoProntuario?: boolean
 }) {
   if (carregando) return <p className="estado" role="status">Carregando agenda...</p>
   if (!consultas.length) return <EstadoVazio mensagem="Nenhuma consulta encontrada para o periodo." />
@@ -22,8 +24,10 @@ export function ListaConsultas({ consultas, carregando, aoAtualizar, nomesPacien
             <strong>{formatarDia(consulta.agendadaPara)}</strong>
           </span>
           <div className="consulta-detalhes">
-            <strong><svg className="appointment-clock" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 11h18" /></svg>{formatarDataCompleta(consulta.agendadaPara)}</strong>
-            <span><svg className="appointment-clock" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>{formatarHora(consulta.agendadaPara)}{nomesPacientes ? ` · ${nomesPacientes[consulta.pacienteId] ?? consulta.pacienteId}` : ''}</span>
+            {visaoProntuario ? <strong><time dateTime={consulta.agendadaPara}>{formatarDataHoraConsulta(consulta.agendadaPara)}</time></strong> : <>
+              <strong><svg className="appointment-clock" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 11h18" /></svg>{formatarDataCompleta(consulta.agendadaPara)}</strong>
+              <span><svg className="appointment-clock" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>{formatarHora(consulta.agendadaPara)}{nomesPacientes ? ` · ${nomesPacientes[consulta.pacienteId] ?? consulta.pacienteId}` : ''}</span>
+            </>}
             {consulta.observacoes && <p>{consulta.observacoes}</p>}
             <EstadoSincronizacao consulta={consulta} aoAtualizar={aoAtualizar} />
           </div>

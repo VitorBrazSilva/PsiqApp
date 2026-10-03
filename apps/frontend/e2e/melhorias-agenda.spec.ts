@@ -53,7 +53,9 @@ async function selecionar(page: Page) {
   await horario.focus()
   await page.keyboard.press('Space')
   await expect(horario).toBeChecked()
-  await expect(page.getByRole('region', { name: 'Revisão do agendamento' })).toContainText('sábado, 3 de outubro de 2026')
+  await expect(page.getByRole('region', { name: 'Revisão do agendamento' }).locator('time')).toHaveAttribute('datetime', '2026-10-03')
+  await expect(page.getByRole('group', { name: 'Madrugada' })).toHaveCount(0)
+  await expect(page.getByRole('radio', { name: '00:00' })).toHaveCount(0)
 }
 
 for (const timezoneId of ['UTC', 'Pacific/Honolulu']) {
@@ -77,7 +79,7 @@ for (const timezoneId of ['UTC', 'Pacific/Honolulu']) {
       await expect(page.locator('.lista.consultas')).toContainText('Aguardando conexão com Google Agenda')
       expect(JSON.parse(fake.envios[0].corpo!).agendadaPara).toBe('2026-10-03T12:00:00Z')
       await page.goto(`/prontuario/${paciente.id}?secao=consultas`)
-      const acionador = page.getByRole('button', { name: 'Agendar consulta', exact: true })
+      const acionador = page.getByRole('button', { name: `Agendar consulta para ${paciente.nome}`, exact: true })
       await acionador.click()
       const dialogo = page.getByRole('dialog', { name: 'Agendar consulta' })
       await expect(dialogo).toBeVisible()
@@ -140,7 +142,7 @@ test('recupera conflito, falha Google, resposta perdida e cadastro retroativo', 
 test('confirma horário do contrato mensal com backend real e PostgreSQL', async ({ page, request }) => {
   const pacienteReal = await criarPaciente(request)
   await page.goto(`/prontuario/${pacienteReal.id}?secao=consultas`)
-  await page.getByRole('button', { name: 'Agendar consulta', exact: true }).click()
+  await page.getByRole('button', { name: /^Agendar consulta para/ }).click()
   const data = page.getByRole('button', { name: /horários disponíveis/ }).last()
   await data.click()
   const horario = page.getByRole('radio').last()

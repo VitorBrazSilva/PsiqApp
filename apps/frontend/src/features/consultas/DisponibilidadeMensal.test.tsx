@@ -30,14 +30,16 @@ async function escolherHorario() {
 }
 
 describe('busca mensal e confirmação', () => {
-  it('usa mês do servidor, agrupa madrugada/manhã/tarde/noite e revisa antes de confirmar o instante recebido', async () => {
+  it('usa mês do servidor, oculta madrugada, agrupa manhã/tarde/noite e confirma o instante recebido', async () => {
     const aoCriar = vi.fn()
     render(<FormularioConsulta aoCriar={aoCriar} estadoIntegracao="NAO_CONFIGURADA" />)
     const usuario = await escolherHorario()
     expect(screen.getByRole('button', { name: 'Mês anterior' })).toBeDisabled()
     expect(screen.getByRole('button', { name: /1 de outubro.*data passada/ })).toBeDisabled()
-    for (const grupo of ['Madrugada', 'Manhã', 'Tarde', 'Noite']) expect(screen.getByRole('group', { name: grupo })).toBeVisible()
-    expect(screen.getByRole('region', { name: 'Revisão do agendamento' })).toHaveTextContent('sábado, 3 de outubro de 2026')
+    for (const grupo of ['Manhã', 'Tarde', 'Noite']) expect(screen.getByRole('group', { name: grupo })).toBeVisible()
+    expect(screen.queryByRole('group', { name: 'Madrugada' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('radio', { name: '00:00' })).not.toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Revisão do agendamento' }).querySelector('time')).toHaveAttribute('datetime', '2026-10-03')
     await usuario.click(screen.getByRole('button', { name: 'Confirmar agendamento' }))
     expect(screen.getByLabelText('Paciente')).toHaveAttribute('aria-invalid', 'true')
     expect(fetchMock.mock.calls.some(([, opcoes]) => opcoes?.method === 'POST')).toBe(false)
@@ -115,6 +117,19 @@ describe('busca mensal e confirmação', () => {
     render(<HorariosDisponiveis data="2026-10-03" horarios={['2026-10-03T13:00:00Z', '2026-10-03T12:00:00Z', '2026-10-03T12:00:00Z']} selecionado="" aoSelecionar={vi.fn()} />)
     expect(screen.getAllByRole('radio').map(item => item.getAttribute('value'))).toEqual(['2026-10-03T12:00:00Z', '2026-10-03T13:00:00Z'])
     expect(screen.queryByRole('group', { name: 'Noite' })).not.toBeInTheDocument()
+  })
+
+  it('não oferece datas exclusivas de madrugada e mantém o mês navegável quando só há esses horários', async () => {
+    fetchMock.mockResolvedValueOnce(Response.json({ ...disponibilidadeTeste,
+      dias: [{ data: '2026-10-03', horarios: ['2026-10-03T03:00:00Z', '2026-10-03T08:30:00Z'] }] }))
+    render(<FormularioConsulta pacienteFixoId={paciente.id} aoCriar={vi.fn()} />)
+    expect(await screen.findByText(/Não foram encontrados horários livres neste mês/)).toBeVisible()
+    expect(screen.getByRole('button', { name: 'sábado, 3 de outubro de 2026 — sem horários' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: /horários disponíveis/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Confirmar agendamento' })).toBeDisabled()
+    await userEvent.click(screen.getByRole('button', { name: 'Próximo mês' }))
+    expect(await screen.findByRole('button', { name: /3 de outubro.*horários disponíveis/ })).toBeEnabled()
   })
 })
 
