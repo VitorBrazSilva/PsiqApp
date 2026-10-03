@@ -115,6 +115,8 @@ npm run build
 
 Validar a suite E2E integrada em `127.0.0.1:5173`, com o backend em `127.0.0.1:8080` configurado com o provider fake:
 
+Use um backend local isolado e sem conexao Google Agenda ativa para os testes que criam consultas, pois essas consultas ficticias tambem seguem o fluxo de sincronizacao.
+
 ```bash
 npm run e2e
 ```

@@ -79,6 +79,8 @@ Regras funcionais:
 - As listas da Agenda e da seção Consultas do prontuário podem ser filtradas por Próximas, Agendadas anteriores, Realizadas, Canceladas e Faltas. Próximas inclui consultas agendadas no instante atual ou depois dele; Agendadas anteriores inclui as agendadas antes do instante atual.
 - As duas listas aceitam período por datas civis inclusivas. No prontuário, itens e contagens ficam limitados ao paciente aberto; na Agenda, também é possível filtrar por paciente.
 - Cada grupo mostra sua contagem completa para o paciente/período atual, mesmo quando os itens são exibidos em páginas.
+- A seção Consultas do prontuário apresenta a próxima consulta acima da lista e um resumo com total de consultas, próxima consulta e última consulta realizada. Esse resumo considera todo o acompanhamento do paciente aberto, independentemente do grupo, período ou página da lista. Ausências de consultas e falhas de leitura são apresentadas explicitamente.
+- O contexto de próxima consulta é compartilhado com o Histórico clínico. O resumo acompanha criação e atualização de status, retorno à janela e passagem do horário da próxima consulta.
 - Toda consulta criada inicia como `AGENDADA`.
 - Uma consulta `AGENDADA` pode ser marcada como `REALIZADA`, `CANCELADA` ou `FALTA`.
 - Estados `REALIZADA`, `CANCELADA` e `FALTA` são finais.

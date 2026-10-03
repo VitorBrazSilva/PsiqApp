@@ -1,5 +1,5 @@
 import { disponibilidadeTeste } from '../../test/disponibilidadeTeste'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useNavigate } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -75,6 +75,48 @@ afterEach(() => {
 })
 
 describe('PaginaProntuario', () => {
+  it('compartilha próxima consulta com histórico e mantém resumo completo após filtros e atualização de status', async () => {
+    const padrao = fetchMock.getMockImplementation()!
+    const proxima = { id: 'consulta-proxima-ficticia', pacienteId: pacienteA.id, agendadaPara: '2099-09-24T17:30:00Z',
+      status: 'AGENDADA', observacoes: 'Sessão de acompanhamento fictícia.', criadaEm: '2026-09-01T12:00:00Z', statusAlteradoEm: null }
+    const anterior = { ...proxima, id: 'consulta-anterior-ficticia', status: 'REALIZADA', agendadaPara: '2026-09-10T17:30:00Z' }
+    let realizada = false
+    fetchMock.mockImplementation(async (url, opcoes) => {
+      if (String(url).startsWith('/api/v1/agenda/consultas?')) {
+        const parametros = new URL(String(url), 'http://localhost').searchParams
+        const tamanho = Number(parametros.get('tamanho'))
+        const itens = parametros.get('grupo') === 'REALIZADAS'
+          ? (realizada ? [{ ...proxima, status: 'REALIZADA' }, anterior] : [anterior])
+          : (realizada ? [] : [proxima])
+        return json({ ...paginaVazia, tamanho, itens: itens.slice(0, tamanho), total: itens.length,
+          contagens: { PROXIMAS: realizada ? 0 : 1, AGENDADAS_ANTERIORES: 0, REALIZADAS: realizada ? 2 : 1, CANCELADAS: 0, FALTAS: 0 } })
+      }
+      if (url === `/api/v1/consultas/${proxima.id}/status` && opcoes?.method === 'POST') {
+        realizada = true
+        return json({ ...proxima, status: 'REALIZADA' })
+      }
+      return padrao(url, opcoes)
+    })
+    const usuario = userEvent.setup()
+    renderProntuario()
+    const contextoHistorico = await screen.findByRole('region', { name: 'Próxima consulta' })
+    const dataHora = contextoHistorico.querySelector('time')!.textContent
+    await usuario.click(within(contextoHistorico).getByRole('link', { name: /Ver consultas/ }))
+    expect(screen.getByRole('region', { name: 'Próxima consulta' }).querySelector('time')).toHaveTextContent(dataHora!)
+    const resumo = screen.getByRole('complementary', { name: 'Resumo das consultas' })
+    expect(resumo.querySelector('data')).toHaveTextContent('2')
+    expect(resumo).toHaveTextContent('10 de set. de 2026 às 14:30')
+    await usuario.click(screen.getByRole('button', { name: /^Realizadas/ }))
+    await waitFor(() => expect(screen.getByRole('region', { name: 'Consultas de Paciente' }).querySelector('.lista.consultas time')).toHaveTextContent('10 de set. de 2026 às 14:30'))
+    expect(resumo.querySelector('data')).toHaveTextContent('2')
+    expect(resumo).toHaveTextContent(dataHora!)
+    await usuario.click(screen.getByRole('button', { name: /^Próximas/ }))
+    await usuario.click(await screen.findByRole('button', { name: 'Realizada' }))
+    await waitFor(() => expect(resumo).toHaveTextContent('Nenhuma consulta agendada.'))
+    expect(resumo.querySelector('data')).toHaveTextContent('2')
+    expect(resumo.querySelector('time')).toHaveTextContent(dataHora!)
+    expect(screen.queryByRole('region', { name: 'Próxima consulta' })).not.toBeInTheDocument()
+  })
   it('renova o resumo de consultas do paciente ao retornar à janela e remove o listener ao desmontar', async () => {
     const { unmount } = renderProntuario()
     await screen.findByText(pacienteA.nome, { selector: 'h1' })
@@ -180,7 +222,7 @@ describe('PaginaProntuario', () => {
     await usuario.click(screen.getByRole('radio', { name: '09:00' }))
     await usuario.click(screen.getByRole('button', { name: 'Confirmar agendamento' }))
     await usuario.click(screen.getByRole('button', { name: /Consultas/ }))
-    expect(await screen.findByText(/12:00.*Paciente Atual B/)).toBeVisible()
+    await waitFor(() => expect(screen.getByRole('region', { name: 'Consultas de Paciente' }).querySelector('.lista.consultas time')).toHaveTextContent('1 de jun. de 2026 às 12:00'))
     expect(fetchMock).toHaveBeenCalledWith(`/api/v1/pacientes/${pacienteB.id}/consultas`, expect.any(Object))
     expect(fetchMock).not.toHaveBeenCalledWith(`/api/v1/pacientes/${pacienteA.id}/consultas`, expect.any(Object))
   })

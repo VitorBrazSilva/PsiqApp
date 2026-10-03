@@ -8,7 +8,9 @@ import { usePollingAnalise } from '../analises/usePollingAnalise'
 import { servicoAnalises } from '../analises/servicoAnalises'
 import { DialogoConsulta } from '../consultas/DialogoConsulta'
 import { PainelConsultas } from '../consultas/PainelConsultas'
-import { servicoConsultas, type Consulta } from '../consultas/servicoConsultas'
+import { ProximaConsulta } from '../consultas/ProximaConsulta'
+import { ResumoConsultas } from '../consultas/ResumoConsultas'
+import { useResumoConsultas } from '../consultas/useResumoConsultas'
 import { DadosPaciente } from '../pacientes/DadosPaciente'
 import { servicoPacientes, type Paciente } from '../pacientes/servicoPacientes'
 import { FormularioParecer } from './FormularioParecer'
@@ -21,9 +23,8 @@ export function PaginaProntuario() {
   const { pacienteId } = useParams()
   const [parametros, setParametros] = useSearchParams()
   const [paciente, setPaciente] = useState<Paciente | null>(null)
-  const [resumoConsultas, setResumoConsultas] = useState<{ pacienteId: string, proxima: Consulta | null, total: number } | null>(null)
-  const [erroResumoConsultasPacienteId, setErroResumoConsultasPacienteId] = useState<string | null>(null)
   const [versaoAgenda, setVersaoAgenda] = useState(0)
+  const { resumo: resumoConsultas, erro: erroResumoConsultas, recarregar: recarregarResumoConsultas } = useResumoConsultas(pacienteId, versaoAgenda)
   const [registros, setRegistros] = useState<RegistroClinico[]>([])
   const [carregando, setCarregando] = useState(!!pacienteId)
   const [erro, setErro] = useState('')
@@ -41,6 +42,8 @@ export function PaginaProntuario() {
   const [erroHistoricoAnalise, setErroHistoricoAnalise] = useState('')
   const [solicitandoAnalise, setSolicitandoAnalise] = useState(false)
   const secao = secaoDaUrl(parametros.get('secao'))
+  const parametrosConsultas = new URLSearchParams(parametros)
+  parametrosConsultas.set('secao', 'consultas')
   const categoriaAnalise = categoriaAnaliseDaUrl(parametros.get('grupo'))
   const [paginaRegistros, setPaginaRegistros] = useState({ pagina: 0, tamanho: 100, total: 0 })
   const { estado, geracoes, carregando: carregandoAnalise, erro: erroAnalise, recarregar } = usePollingAnalise(pacienteId ?? null)
@@ -91,30 +94,6 @@ export function PaginaProntuario() {
     }).finally(() => { if (!controle.signal.aborted) setCarregando(false) })
     return () => controle.abort()
   }, [pacienteId, paginaRegistros.pagina])
-
-  useEffect(() => {
-    if (!pacienteId) return
-    const controle = new AbortController()
-    servicoConsultas.listarAgenda({ pacienteId, grupo: 'PROXIMAS', pagina: 0, tamanho: 1 }, controle.signal)
-      .then(resposta => {
-        if (controle.signal.aborted || resposta.itens.some(item => item.pacienteId !== pacienteId)) return
-        setResumoConsultas({ pacienteId, proxima: resposta.itens[0] ?? null, total: Object.values(resposta.contagens).reduce((total, contagem) => total + contagem, 0) })
-        setErroResumoConsultasPacienteId(null)
-      }).catch(() => { if (!controle.signal.aborted) setErroResumoConsultasPacienteId(pacienteId) })
-    return () => controle.abort()
-  }, [pacienteId, versaoAgenda])
-
-  useEffect(() => {
-    const atualizarResumo = () => {
-      if (document.visibilityState === 'visible') setVersaoAgenda(versao => versao + 1)
-    }
-    window.addEventListener('focus', atualizarResumo)
-    document.addEventListener('visibilitychange', atualizarResumo)
-    return () => {
-      window.removeEventListener('focus', atualizarResumo)
-      document.removeEventListener('visibilitychange', atualizarResumo)
-    }
-  }, [])
 
   useEffect(() => {
     if (!registroEmDestaque || secao !== 'historico') return
@@ -220,19 +199,26 @@ export function PaginaProntuario() {
       <nav className="patient-tabs" aria-label="Seções do prontuário">
         <button type="button" className={secao === 'historico' ? 'active' : ''} aria-current={secao === 'historico' ? 'page' : undefined} onClick={() => mudarSecao('historico')}>Histórico clínico <span className="count">{registros.length}</span></button>
         <button type="button" className={secao === 'analise' ? 'active' : ''} aria-current={secao === 'analise' ? 'page' : undefined} onClick={() => mudarSecao('analise')}>Análise de IA</button>
-        <button type="button" className={secao === 'consultas' ? 'active' : ''} aria-current={secao === 'consultas' ? 'page' : undefined} onClick={() => mudarSecao('consultas')}>Consultas <span className="count">{resumoConsultas?.pacienteId === pacienteId ? resumoConsultas.total : 0}</span></button>
+        <button type="button" className={secao === 'consultas' ? 'active' : ''} aria-current={secao === 'consultas' ? 'page' : undefined} onClick={() => mudarSecao('consultas')}>Consultas {resumoConsultas && <span className="count">{resumoConsultas.total}</span>}</button>
         <button type="button" className={secao === 'dados' ? 'active' : ''} aria-current={secao === 'dados' ? 'page' : undefined} onClick={() => mudarSecao('dados')}>Dados pessoais</button>
       </nav>
       <div className="painel contexto-paciente">
         {erro && <p role="alert" className="erro">{erro}</p>}
-        {erroResumoConsultasPacienteId === pacienteId && <p role="alert" className="erro">Não foi possível carregar as consultas deste paciente.</p>}
-        {paciente && secao !== 'historico' && <DadosPaciente paciente={paciente} />}
-        {secao === 'historico' && (() => { const proxima = resumoConsultas?.pacienteId === pacienteId ? resumoConsultas.proxima : null; if (!proxima) return null; const dataLocal = new Date(proxima.agendadaPara); const dia = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', timeZone: 'America/Sao_Paulo' }).format(dataLocal); const mes = new Intl.DateTimeFormat('pt-BR', { month: 'short', timeZone: 'America/Sao_Paulo' }).format(dataLocal).replace('.', ''); const dataHora = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).format(dataLocal).replace('.', ''); return <section className="next-appointment"><span className="calendar-tile"><small>{mes}</small><strong>{dia}</strong></span><div><strong>Pr&#243;xima consulta</strong><span>{dataHora}</span></div><span className="status-badge"><svg className="appointment-clock" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>Agendada</span><Link className="text-button" to="#consultas">Ver consultas&nbsp; &rsaquo;</Link></section> })()}
-        {secao === 'consultas' && <section className="bloco">
-          <h2>Consultas do paciente</h2>
-          <PainelConsultas key={pacienteId} pacienteId={pacienteId} versaoAtualizacao={versaoAgenda} nomesPacientes={paciente ? { [paciente.id]: paciente.nome } : undefined} />
-        </section>}
+        {erroResumoConsultas && secao === 'historico' && <p role="alert" className="erro">Não foi possível carregar as consultas deste paciente.</p>}
+        {paciente && secao === 'dados' && <DadosPaciente paciente={paciente} />}
+        {(secao === 'historico' || secao === 'consultas') && resumoConsultas?.proxima && <ProximaConsulta consulta={resumoConsultas.proxima} linkConsultas={secao === 'historico' ? `?${parametrosConsultas}` : undefined} />}
       </div>
+
+      {secao === 'consultas' && <>
+        <section id="consultas" className="painel consultas-paciente-painel" aria-labelledby="titulo-consultas-paciente">
+          <header className="consultas-paciente-cabecalho">
+            <div><h2 id="titulo-consultas-paciente">Consultas de {paciente?.nome.split(/\s+/)[0] ?? 'paciente'}</h2><p>Agenda do acompanhamento. Horários de Brasília.</p></div>
+            <button className="primary" type="button" aria-label={`Agendar consulta para ${paciente?.nome ?? 'este paciente'}`} onClick={() => setConsultaAberta(pacienteId)}><svg className="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>Agendar consulta</button>
+          </header>
+          <PainelConsultas key={pacienteId} pacienteId={pacienteId} versaoAtualizacao={versaoAgenda} aoAtualizarConsulta={recarregarResumoConsultas} visaoProntuario />
+        </section>
+        <ResumoConsultas resumo={resumoConsultas} erro={erroResumoConsultas} aoTentarNovamente={recarregarResumoConsultas} />
+      </>}
 
       <div className="grade-prontuario acoes-registro">
         <section className="painel">

@@ -299,7 +299,7 @@ body:has(.dialog-paciente)::before, body:has(.dialog-fonte)::before, body:has(.d
 .dialog-consulta .form-actions .secondary { background: #fff; color: #24382f; border-color: #dde5df; }
 .dialog-consulta .form-actions .secondary:hover { background: #eaf1eb; border-color: #99aea0; }
 .next-appointment { display: flex; align-items: center; gap: 18px; min-height: 80px; margin-bottom: 22px; padding: 16px 20px; border: 1px solid #dbe7dc; border-radius: 12px; background: #fff; }
-.next-appointment > div { display: grid; gap: 4px; flex: 1; }.next-appointment strong { font-size: 14px; }.next-appointment span { color: #62716a; font-size: 12px; }.next-appointment .status-badge { padding: 6px 10px; border-radius: 6px; color: #285c47; background: #eaf1eb; white-space: nowrap; }.next-appointment .text-button { white-space: nowrap; }
+.next-appointment > div { display: grid; gap: 4px; flex: 1; }.next-appointment strong { font-size: 14px; }.next-appointment span, .next-appointment time { color: #62716a; font-size: 12px; }.next-appointment .status-badge { padding: 6px 10px; border-radius: 6px; color: #285c47; background: #eaf1eb; white-space: nowrap; }.next-appointment .text-button { white-space: nowrap; }
 .next-appointment .status-badge { display: inline-flex; align-items: center; gap: 5px; }
 .next-appointment .appointment-clock { width: 12px; height: 12px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .consulta-detalhes .appointment-clock { width: 16px; height: 16px; margin-right: 6px; vertical-align: text-bottom; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
@@ -343,9 +343,9 @@ body:has(.dialog-paciente)::before, body:has(.dialog-fonte)::before, body:has(.d
 .next-appointment { min-height: 80px; margin-bottom: 0; padding: 12px 17px; gap: 14px; }
 .calendar-tile { display: grid; place-items: center; align-content: center; width: 43px; height: 47px; border: 1px solid #cddfce; border-radius: 7px; background: #fff; color: #285c47; line-height: 1.1; }
 .calendar-tile small { font-size: 10px; }.calendar-tile strong { font-size: 18px; }
-.prontuario-secao-consultas .lista.consultas { gap: 0; margin-top: 15px; }
-.prontuario-secao-consultas .lista.consultas > li { display: flex; align-items: center; gap: 16px; padding: 18px 0; border: 0; border-top: 1px solid #dbe7dc; border-radius: 0; background: transparent; }
-.prontuario-secao-consultas .lista.consultas > li:hover { border-color: #dbe7dc; }
+.prontuario-secao-consultas .lista.consultas { gap: 12px; margin-top: 18px; }
+.prontuario-secao-consultas .lista.consultas > li { display: flex; align-items: center; gap: 16px; padding: 16px; border: 1px solid #dde5df; border-radius: 10px; background: #fff; }
+.prontuario-secao-consultas .lista.consultas > li:hover { border-color: #99aea0; }
 .consulta-calendario { display: grid !important; place-content: center; justify-items: center; flex: 0 0 43px; width: 43px; height: 47px; border: 1px solid #cddfce; border-radius: 7px; color: #285c47 !important; line-height: 1.1; }
 .consulta-calendario small { color: #62716a; font-size: 10px; text-transform: lowercase; }
 .consulta-calendario strong { font-size: 18px; }
@@ -361,6 +361,26 @@ body:has(.dialog-paciente)::before, body:has(.dialog-fonte)::before, body:has(.d
 .acoes-status .consulta-status-botao { min-height: 32px; padding: 5px 9px; border: 1px solid #cddfce; border-radius: 6px; background: #fff; color: #52645a; font-family: inherit; font-size: 11px; font-weight: 600; line-height: 18px; }
 .acoes-status .consulta-status-botao:hover:not(:disabled) { border-color: #99aea0; background: #eaf1eb; color: #285c47; }
 .prontuario-secao-consultas .consulta-acoes > .acoes-status { grid-template-columns: repeat(3, auto); }
+.prontuario-secao-consultas > .consultas-paciente-painel { grid-column: 1; grid-row: 4; min-width: 0; padding: 22px; background: #fff; box-shadow: none; }
+.prontuario-secao-consultas > .resumo-consultas { grid-column: 2; grid-row: 4; min-width: 0; padding: 22px; background: #f1f6f0; border-color: #d7e3d4; box-shadow: none; }
+.consultas-paciente-cabecalho { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
+.consultas-paciente-cabecalho h2 { margin: 0; font-size: 20px; color: #24382f; text-wrap: balance; }
+.consultas-paciente-cabecalho p { margin: 4px 0 0; font-size: 13px; color: #62716a; }
+.consultas-paciente-cabecalho .primary { flex-shrink: 0; white-space: nowrap; }
+.consultas-paciente-cabecalho .button-icon { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.resumo-consultas h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 18px; font-size: 16px; color: #24382f; text-wrap: balance; }
+.resumo-consultas h2 svg { width: 20px; height: 20px; flex: none; fill: none; stroke: #527864; stroke-width: 1.7; stroke-linejoin: round; }
+.resumo-consultas dl { margin: 0; }
+.resumo-consultas dl > div + div { margin-top: 18px; padding-top: 18px; border-top: 1px solid #d7e3d4; }
+.resumo-consultas dt { margin-bottom: 5px; color: #62716a; font-size: 13px; }
+.resumo-consultas dd { display: grid; justify-items: start; gap: 8px; margin: 0; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.resumo-consultas .resumo-consultas-total { font-size: 24px; color: #24382f; font-variant-numeric: tabular-nums; }
+.resumo-consultas .resumo-consultas-vazio { color: #62716a; font-size: 13px; font-weight: 400; }
+.resumo-consultas .consulta-status { gap: 6px; }
+.resumo-consultas .consulta-status svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.prontuario-secao-consultas .acoes-status .consulta-status-botao { min-height: 44px; }
+.prontuario-secao-consultas .consulta-detalhes { overflow-wrap: anywhere; }
+.prontuario-secao-consultas .consulta-detalhes > strong { text-transform: none; }
 .analise { padding: 22px 23px !important; border-radius: 12px !important; background: #f1f6f0 !important; border-color: #d7e3d4 !important; }
 .analise-cabecalho { display: flex; align-items: center; gap: 10px; padding-bottom: 17px; border-bottom: 1px solid #d7e3d4; }.analise-cabecalho > div { display: flex; align-items: center; gap: 9px; flex: 1; }.analise-cabecalho h2 { margin: 0; color: #244c36; font-size: 18px; }.spark-icon { color: #527864; font-size: 23px; }.ia-badge { padding: 3px 7px; border-radius: 4px; background: #dcebdd; color: #527864; font-size: 10px; font-weight: 800; letter-spacing: .05em; }
 .analise-meta { display: grid; gap: 2px; padding: 14px 0 5px; color: #718078; font-size: 10px; }.analise-secao { margin-top: 8px; }.analise .limitacoes, .analise-acao { display: none !important; }
@@ -468,6 +488,12 @@ body { font-size: 13px; }
   .next-appointment > div { min-width: 0; }
   .next-appointment .text-button { display: none; }
   .next-appointment .status-badge { padding: 3px 9px; font-size: 10px; }
+  .prontuario-secao-consultas > .contexto-paciente { margin-top: 20px; }
+  .prontuario-secao-consultas > .consultas-paciente-painel { width: 100%; padding: 18px; }
+  .prontuario-secao-consultas > .resumo-consultas { width: 100%; margin-top: 20px; padding: 20px; }
+  .consultas-paciente-cabecalho .primary { width: 100%; }
+  .prontuario-secao-consultas .consulta-acoes { grid-column: 2; justify-items: start; }
+  .prontuario-secao-consultas .lista.consultas > li { display: grid; grid-template-columns: 43px minmax(0, 1fr); gap: 12px; }
 }
 .page-heading .section-intro { margin: 5px 0 0; }
 .lista-pacientes { margin-top: 10px; }
