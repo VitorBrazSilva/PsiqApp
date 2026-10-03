@@ -1,7 +1,7 @@
 # Review — Task 02
 
 ## Status
-CHECKPOINT — backend pendente
+APROVADO
 
 ## Rastreabilidade
 | Origem | ID | Status | Evidência |
@@ -35,7 +35,7 @@ Nenhum.
 - `npm run lint`: passou.
 - `npm test -- --run`: 58/58 testes passaram em 7 arquivos.
 - `npm run build`: passou.
-- `apps/backend/mvnw.cmd verify`: pendente. As integrações anteriores registraram 42 ITs sem falhas; a execução atual falha ao inicializar `PatientAppointmentIT` na suíte (`Container POSTGRES needs to be initialized`). A execução isolada passou; investigar ciclo de vida/cache do Testcontainers antes de aprovar backend.
+- `apps/backend/mvnw.cmd --batch-mode --no-transfer-progress verify`: passou na retomada de 02/10/2026, com 57 testes unitários/contexto/arquitetura e 42 integrações, sem falhas, erros ou skips. `PatientAppointmentIT` passou na suíte completa (6 testes). Corrigidos import de `@Container` e sequência literal `\r\n` ao final do arquivo; não foi necessária mudança no ciclo de vida/cache dos containers.
 - E2Es Playwright focados da Task 2 passaram: grupos, período, isolamento, teclado, responsividade e paginação. A suíte completa tem 14 testes: 9 passaram e 5 falharam nos fluxos de análise e Google, fora do escopo, associados à configuração local/execução concorrente. Screenshots em 360px/1280px foram inspecionados.
 - `git diff --check`: passou sem erros (apenas avisos de conversão LF/CRLF do Git).
 
@@ -50,4 +50,4 @@ Nenhum.
 
 ## Veredito
 
-CHECKPOINT — revisão de escopo aprovada, mas gate de testes backend permanece aberto devido à falha Testcontainers na suíte completa. Não marcar Task 2 como concluída até `mvnw verify` ficar verde.
+APROVADO — gate backend encerrado com `mvnw verify` verde. A retomada também confirmou typecheck, lint, 58 testes frontend, build e os dois E2Es focados com backend atual/PostgreSQL isolados. Screenshots de 360px/1280px inspecionados: labels, contagens e foco visíveis, sem overflow. Evidências e avaliação documental em `02_task_evidence.md`. As observações visuais não bloqueantes permanecem; esta aprovação não substitui QA e review final da feature.

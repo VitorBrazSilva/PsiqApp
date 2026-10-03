@@ -2,6 +2,8 @@
 
 ## Objetivo
 
+Status: CONCLUÍDA em 02/10/2026. Task-review aprovado, code-review aprovado com observações e manutenção documental avaliada. Evidências da retomada em `02_task_evidence.md`. Task 3 e QA final permanecem pendentes.
+
 Permitir localizar consultas pelos cinco grupos e por período civil inclusivo na Agenda geral e na área de consultas do prontuário, com paginação e contagens completas calculadas pelo backend e isolamento pelo paciente quando aplicável.
 
 ## Rastreabilidade
@@ -30,11 +32,11 @@ Task 1.0. A implementação da listagem estende o contrato e o adapter de consul
 - Reestruturação de histórico clínico, registros, análise ou componentes genéricos de `shared`.
 
 ## Subtarefas
-- [ ] 2.1 Implementar `ListarAgendaConsultasUseCase`, validação de período civil, projeção de grupos e paginação/contagens no adapter.
-- [ ] 2.2 Expor e testar a nova rota e seus contratos, preservando compatibilidade da listagem existente.
-- [ ] 2.3 Implementar serviço frontend e painel/filtros compartilhados para grupo, período, contagens e paginação.
-- [ ] 2.4 Integrar o painel à Agenda e ao prontuário, mantendo contexto fixo, resumo da próxima consulta e operações atuais.
-- [ ] 2.5 Cobrir limites, volumes acima de uma página, isolamento, mutações, erros, acessibilidade e estados responsivos; avaliar documentação aplicável.
+- [x] 2.1 Implementar `ListarAgendaConsultasUseCase`, validação de período civil, projeção de grupos e paginação/contagens no adapter.
+- [x] 2.2 Expor e testar a nova rota e seus contratos, preservando compatibilidade da listagem existente.
+- [x] 2.3 Implementar serviço frontend e painel/filtros compartilhados para grupo, período, contagens e paginação.
+- [x] 2.4 Integrar o painel à Agenda e ao prontuário, mantendo contexto fixo, resumo da próxima consulta e operações atuais.
+- [x] 2.5 Cobrir limites, volumes acima de uma página, isolamento, mutações, erros, acessibilidade e estados responsivos; avaliar documentação aplicável.
 
 ## Critérios de sucesso
 
@@ -46,11 +48,11 @@ Task 1.0. A implementação da listagem estende o contrato e o adapter de consul
 - A rota antiga por instantes continua compatível; não há carregamento de todas as consultas no browser nem contagem derivada da página.
 
 ## Testes obrigatórios
-- [ ] Unitários: agrupamento temporal, referência única, validação/resolução das datas e paginação.
-- [ ] Integração: SQL/endpoint com pelo menos 120 consultas fictícias, vários pacientes, status e períodos; percorrer páginas e comparar totais/contagens.
-- [ ] E2E/sistema: fluxos de filtro por grupo/período, paginação, consulta retroativa em Agendadas anteriores e isolamento entre pacientes nas duas origens.
-- [ ] Casos de erro/edge cases relevantes: data final 23:30, 00:00 do dia seguinte excluída, período parcial/invertido, timestamp igual à referência, página vazia ou esvaziada por mutação, resposta de paciente anterior atrasada e falha de API.
-- [ ] Verificar teclado, foco, contagens visíveis em 360 px e desktop; usar somente dados fictícios.
+- [x] Unitários: agrupamento temporal, referência única, validação/resolução das datas e paginação.
+- [x] Integração: SQL/endpoint com pelo menos 120 consultas fictícias, vários pacientes, status e períodos; percorrer páginas e comparar totais/contagens.
+- [x] E2E/sistema: fluxos de filtro por grupo/período, paginação, consulta retroativa em Agendadas anteriores e isolamento entre pacientes nas duas origens.
+- [x] Casos de erro/edge cases relevantes: data final 23:30, 00:00 do dia seguinte excluída, período parcial/invertido, timestamp igual à referência, página vazia ou esvaziada por mutação, resposta de paciente anterior atrasada e falha de API.
+- [x] Verificar teclado, foco, contagens visíveis em 360 px e desktop; usar somente dados fictícios.
 
 ## Skills aplicáveis
 
