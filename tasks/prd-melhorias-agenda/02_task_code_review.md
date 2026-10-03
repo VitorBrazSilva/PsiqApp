@@ -17,11 +17,16 @@ Nenhum blocker pendente.
 
 ## Non-blocking
 
-### BLOCKER DE VALIDAÇÃO — `PatientAppointmentIT` sob `mvnw verify`
+As observações visuais do task-review permanecem: contagens podem piscar durante recarga e o cabeçalho da Agenda não apresenta o antigo contador geral. As contagens completas por grupo continuam disponíveis.
 
-**Problema:** o teste focado passa, mas a execução completa termina com `Container POSTGRES needs to be initialized` antes dos métodos do teste. A causa de ciclo de vida do Testcontainers permanece em investigação.
+## Revalidação — 02/10/2026
 
-**Impacto:** o backend completo não pode ser considerado validado nesta estação.
+- Revisados o diff da retomada e o contexto completo de `PatientAppointmentIT`, além do use case, controller, SQL e hook da agenda.
+- Import explícito de `org.testcontainers.junit.jupiter.Container` adicionado, imports não usados removidos e sequência literal `\r\n` após a classe removida.
+- `@Container`/`@ServiceConnection` permanecem no campo estático, conforme os demais ITs. Não houve mudança arquitetural nem alteração de código produtivo.
+- O fixture de volume já usa `REFERENCIA_TESTE`; a recomendação anterior de substituir `Instant.now()` está atendida no estado atual.
+- Suíte completa: 57 testes unitários/contexto/arquitetura e 42 ITs aprovados; os 6 testes de `PatientAppointmentIT` passaram sem isolamento de suíte. O erro anterior de inicialização não foi reproduzido após as correções e com Docker ativo.
+- Frontend: typecheck, lint, 58 testes e build aprovados; dois E2Es focados aprovados com backend atual e PostgreSQL temporário.
 
 ## Pontos positivos
 
@@ -34,4 +39,4 @@ Nenhum blocker pendente.
 
 ## Veredito
 
-APROVADO COM OBSERVAÇÕES. Não encontrei blocker técnico nos ajustes finais nem no diff revisado. A correção defensiva e a cobertura de integração para paciente sem consultas estão presentes. Observação de precisão: a agregação SQL sem `GROUP BY` já produz uma linha de contagens mesmo para universo vazio, com o `LEFT JOIN LATERAL`; o ramo defensivo resguarda eventual alteração futura da query. Recomendo tornar determinístico o fixture de volume usando `REFERENCIA_TESTE` no lugar de `Instant.now()`. Confirmei estaticamente o diff e as evidências adicionadas; não executei os testes nesta revisão.
+APROVADO COM OBSERVAÇÕES. Nenhum blocker técnico ou de validação permanece na Task 2. A correção defensiva e a cobertura para paciente sem consultas estão presentes; a agregação sem `GROUP BY` já produz uma linha para universo vazio. A retomada executou os checks registrados acima. As observações visuais não bloqueantes ficam registradas no task-review.
