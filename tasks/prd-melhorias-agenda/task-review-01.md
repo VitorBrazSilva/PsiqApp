@@ -23,3 +23,7 @@ A primeira revisão pediu evidências para mês omitido e conexão ausente, alé
 ## Verificação
 
 `./mvnw verify` — BUILD SUCCESS; 55 testes unitários e 40 testes de integração passaram.
+
+## Adendo de QA final — 02/10/2026
+
+QA-004: acrescentada a restrição de dependências com.google.. ao domínio e aplicação no ArquiteturaTest, conforme TS-012. Teste ampliado aprovado (2/2); revisão técnica confirmou compatibilidade com as fronteiras atuais, sem mudança produtiva. Manutenção documental: TECHNICAL já descreve o gate de dependências; BUSINESS/README sem impacto desta correção. Status da Task 1 permanece APROVADO. Evidência: apps/backend/target/feature-qa-architecture.log; achado em bugs.md.

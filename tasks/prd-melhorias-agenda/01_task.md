@@ -67,3 +67,7 @@ N/A para a implementação backend. Seguir as regras e contratos já definidos n
 - `apps/backend/src/main/java/com/psiqapp/adapter/out/persistence/AdapterConsultaJpa.java` e `apps/backend/src/main/java/com/psiqapp/adapter/out/google/`.
 - `apps/backend/src/test/java/com/psiqapp/` — testes unitários, integração de consultas/Google e arquitetura.
 - Avaliar `docs/BUSINESS.md` e `docs/TECHNICAL.md` após confirmar o comportamento implementado; README somente se houver impacto operacional.
+
+## Adendo de QA final — 02/10/2026
+
+QA-004: acrescentada a restrição de dependências com.google.. ao domínio e aplicação no ArquiteturaTest, conforme TS-012. Teste ampliado aprovado (2/2); revisão técnica confirmou compatibilidade com as fronteiras atuais, sem mudança produtiva. Manutenção documental: TECHNICAL já descreve o gate de dependências; BUSINESS/README sem impacto desta correção. Status da Task 1 permanece APROVADO. Evidência: apps/backend/target/feature-qa-architecture.log; achado em bugs.md.
