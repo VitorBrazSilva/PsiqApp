@@ -23,6 +23,11 @@ export interface Consulta {
   sincronizacaoGoogleAgenda?: SincronizacaoGoogleAgenda | null
 }
 
+export type GrupoAgendaConsulta = 'PROXIMAS' | 'AGENDADAS_ANTERIORES' | 'REALIZADAS' | 'CANCELADAS' | 'FALTAS'
+export interface PaginaAgendaConsultas extends Pagina<Consulta> {
+  contagens: Record<GrupoAgendaConsulta, number>
+}
+
 export interface CriarConsulta {
   pacienteId: string
   agendadaPara: string
@@ -39,6 +44,14 @@ export function rotuloStatus(status: StatusConsulta) {
 }
 
 export const servicoConsultas = {
+  listarAgenda(filtros: { grupo?: GrupoAgendaConsulta, pacienteId?: string, dataInicial?: string, dataFinal?: string, pagina?: number, tamanho?: number } = {}, signal?: AbortSignal) {
+    const params = new URLSearchParams({ grupo: filtros.grupo ?? 'PROXIMAS', pagina: String(filtros.pagina ?? 0), tamanho: String(filtros.tamanho ?? 50) })
+    if (filtros.pacienteId) params.set('pacienteId', filtros.pacienteId)
+    if (filtros.dataInicial) params.set('dataInicial', filtros.dataInicial)
+    if (filtros.dataFinal) params.set('dataFinal', filtros.dataFinal)
+    return api.requisitar<PaginaAgendaConsultas>(`/agenda/consultas?${params}`, { signal, usarApiReal: true })
+  },
+
   listar(filtros: { pacienteId?: string, de?: string, ate?: string, pagina?: number, tamanho?: number } = {}, signal?: AbortSignal, opcoes: { usarApiReal?: boolean } = {}) {
     const params = new URLSearchParams({ pagina: String(filtros.pagina ?? 0), tamanho: String(filtros.tamanho ?? 50) })
     if (filtros.pacienteId) params.set('pacienteId', filtros.pacienteId)
