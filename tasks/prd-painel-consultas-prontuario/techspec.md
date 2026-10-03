@@ -146,3 +146,11 @@ Skills: frontend-design para plano/critique visual; ui-ux-pro-max para responsiv
 - [x] Stack, contratos, responsabilidades e modos de falha derivados do projeto.
 - [x] Nenhuma mudança de Rule, fronteira ou convenção global.
 - [x] Testes/evidências previstos, sem antecipar resultados.
+
+## Complemento autorizado — TS-005 / RF-004
+
+Reabrir a task 1.0 na mesma branch para os refinamentos solicitados. `DialogoConsulta` e `FormularioConsulta` recebem e-mail opcional do paciente guardado pela identidade da rota, sem nova leitura ou contrato. Nome/e-mail e instrução compõem um cabeçalho compacto. SVGs decorativos locais a `features/consultas` representam calendário, relógio, paciente, informação, períodos e setas; as etapas recebem conectores em CSS. Radios permanecem nativos, com foco visível e aparência de opções da referência. A revisão usa três informações existentes (data, hora e paciente), sem inventar tipo ou idade.
+
+A apresentação da busca filtra instantes anteriores às 06:00 em `America/Sao_Paulo`, tanto nas datas oferecidas quanto nas opções/revisão. O hook mensal continua responsável pelo contrato, envelhecimento e cancelamento de leituras; API, manual e repetição idempotente permanecem intactos. Aplicar o desenho ao formulário compartilhado nas duas origens. Hover dos grupos reutiliza as cores das ações de status por seletores locais, sem mudar o estilo global dos botões.
+
+Compatibilidade: consultas mantém composição e formatação de agenda; prontuário somente fornece o cadastro atual; shared/backend não recebem regra de apresentação. Rules de isolamento, dados fictícios, integrações simuladas e documentação continuam aplicáveis, sem nova fronteira ou convenção global. Verificar nome/e-mail após troca de paciente, ocultação de madrugada/dias exclusivos/estado vazio, fluxo manual e repetição, teclado, retorno de foco, hover, layouts 360/768/1024/1440 px, typecheck, lint, Vitest e build. Evidências e reviews do complemento devem ser registrados antes de retornar a READY.

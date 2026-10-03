@@ -1,5 +1,9 @@
 # Clinical Safety Review — Painel de consultas do prontuário
 
+## Complemento RF-004 — APROVADO
+
+Alterações limitadas à apresentação da agenda. E-mail pertence ao cadastro fictício do paciente aberto e tem a mesma guarda de identidade do nome; não foi adicionado envio externo ou log. Aviso persistente do MVP preservado. Sem idade/tipo/conclusão clínica inventados. Testes de confirmação usam API fake; conferência final da URL bloqueou toda escrita e simulou disponibilidade/conexão, sem acessar Google ou IA reais. Cadastro manual, persistência e contratos permanecem intactos. Nenhum blocker de segurança clínica/privacidade; registro anterior preservado abaixo.
+
 ## Status
 
 APROVADO

@@ -261,6 +261,7 @@ export function PaginaProntuario() {
         </dialog>}
         {parecerAberto && <dialog open className="dialog-parecer" aria-labelledby="titulo-parecer" onKeyDown={evento => { if (evento.key === 'Escape') { evento.preventDefault(); setParecerAberto(false) } }}><div className="dialog-header"><h2 id="titulo-parecer">Novo parecer</h2><button className="icon-button" type="button" aria-label="Fechar novo parecer" onClick={() => setParecerAberto(false)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div><div className="dialog-body"><FormularioParecer pacienteId={pacienteId} aoCriar={resposta => { registrarCriacao(resposta); setParecerAberto(false) }} /></div></dialog>}
         {consultaAberta === pacienteId && <DialogoConsulta key={pacienteId} pacienteId={pacienteId} pacienteNome={paciente?.id === pacienteId ? paciente.nome : undefined}
+          pacienteEmail={paciente?.id === pacienteId ? paciente.email : undefined}
           aoFechar={() => setConsultaAberta(null)} aoCriar={() => { setConsultaAberta(null); setVersaoAgenda(atual => atual + 1) }} />}
       </div>
     </section>

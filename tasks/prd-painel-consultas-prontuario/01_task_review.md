@@ -1,5 +1,9 @@
 # Review — Task 1.0
 
+## Complemento RF-004 / TS-005 — APROVADO
+
+AC-RF004-01: E2E compara o hover dos cinco grupos com as cores das ações de status. AC-RF004-02/03/05: cabeçalho com cadastro atual, conectores, ícones, orientações e revisão/ações conferidos nas imagens em 360/768/1024/1440 px. AC-RF004-04: teste de integração impede seleção de dias exclusivos de madrugada e mantém navegação do mês; regressão preserva instantes, cadastro manual e repetição idempotente. Nome/e-mail do paciente anterior são recusados após troca de rota no teste do prontuário. Checks finais: 82 Vitest, oito E2E simulados, lint, typecheck/build e leitura da URL atualizada aprovados. Nenhum bloqueador. Revisão do complemento pelo implementador em passagem distinta; os registros abaixo correspondem à composição inicial.
+
 ## Status
 
 APROVADO

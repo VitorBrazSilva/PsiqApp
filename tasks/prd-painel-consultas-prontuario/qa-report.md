@@ -1,5 +1,22 @@
 # QA Report — Painel de consultas do prontuário
 
+## Complemento RF-004 / TS-005 — APROVADO
+
+Validação após os refinamentos autorizados no agendamento e nos grupos:
+
+- `npm test -- --run --maxWorkers=1`: 82 testes / 10 arquivos aprovados. O seletor do novo teste de madrugada foi ajustado para distinguir dia 3 de dias 13/23; run final integral aprovado.
+- `npm run lint`, `npm run build` (inclui typecheck) e `git diff --check`: aprovados.
+- `E2E_BASE_URL=http://127.0.0.1:5174 npm run e2e -- e2e/consultas-prontuario.spec.ts e2e/analysis-redesign.spec.ts e2e/melhorias-agenda.spec.ts --grep-invert 'backend real e PostgreSQL'`: oito testes aprovados. Regressão de análise, agendamento nas duas origens, UTC/Honolulu, conflito, falha Google, idempotência e retroativas preservados.
+- Teste visual do diálogo executado também após melhorar a captura do rodapé: aprovado em 360/768/1024/1440 px, com Voltar e confirmar explicitamente dentro da área visível após rolagem. Nenhum overflow, sobreposição ou alvo inferior a 44 px.
+- Docker: `build frontend` e `up -d --no-deps frontend` aprovados. Bundle servido na porta 5173: `index-B335U7rR.js` / `index-yNvGuvic.css`.
+- Conferência temporária somente leitura da URL solicitada: aprovada em 1440/360 px, nome/e-mail comparados ao cadastro, disponibilidade/conexão simuladas e toda escrita bloqueada. Nenhuma escrita observada; nenhum acesso real ao Google/IA. Script temporário removido.
+
+Rastreabilidade: AC-RF004-01 → comparação de hover dos cinco grupos/ações de status no E2E; 02 → cabeçalho e guarda de nome/e-mail no teste do prontuário; 03/05 → ícones/conectores/orientações/revisão/ações nas imagens e teclado/foco no E2E; 04 → teste de datas exclusivas de madrugada/estado vazio e regressão do caminho manual. RNF-001/002 mantidos. Não há mudança de backend, migrations ou fronteira clínica que exija ampliar as suítes correspondentes.
+
+Evidências inspecionadas: `evidencias/agendamento-{360,768,1024,1440}.png` e `agendamento-rodape-{360,768,1024,1440}.png`; `agendamento-local-{1440,360}.png` e `agendamento-local-rodape-{1440,360}.png`. As evidências locais usam o cadastro fictício existente e opções de horário simuladas.
+
+Sem blocker. Reviews pelo implementador, sem reviewer independente. Os resultados abaixo correspondem à composição inicial.
+
 ## Status
 
 APROVADO

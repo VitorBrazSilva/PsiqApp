@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { chaveDeIdempotencia } from '../../shared/idempotencia/chaveDeIdempotencia'
 import { CalendarioDisponibilidade } from './CalendarioDisponibilidade'
 import { HorariosDisponiveis } from './HorariosDisponiveis'
+import { IconeAgendamento } from './IconeAgendamento'
 import { useDisponibilidadeMensal } from './useDisponibilidadeMensal'
-import { dataCompleta, horaAgenda } from './tempoAgenda'
+import { dataCompleta, dataResumida, diaDaSemana, horaAgenda, horarioExibidoNaBusca } from './tempoAgenda'
 import { ErroApi } from '../../shared/api/erroApi'
 import { errosDeCampo, mensagemErro, type ErrosFormulario } from '../../shared/formularios/errosDeCampo'
 import { servicoPacientes, type Paciente } from '../pacientes/servicoPacientes'
@@ -28,6 +29,7 @@ const mensagensDisponibilidade: Record<EstadoVerificacao, string> = {
 export function FormularioConsulta({
   pacienteFixoId,
   pacienteNome,
+  pacienteEmail,
   aoCriar,
   emDialogo = false,
   aoCancelar,
@@ -37,6 +39,7 @@ export function FormularioConsulta({
 }: {
   pacienteFixoId?: string
   pacienteNome?: string
+  pacienteEmail?: string
   aoCriar: (consulta: Consulta) => void
   emDialogo?: boolean
   aoCancelar?: () => void
@@ -62,9 +65,13 @@ export function FormularioConsulta({
   const [conexaoVerificada, setConexaoVerificada] = useState<EstadoConexaoGoogleAgenda | 'CARREGANDO' | null>(null)
   const pacienteIdAtual = pacienteFixoId ?? pacienteSelecionadoId
   const mensal = useDisponibilidadeMensal(pacienteIdAtual, estadoIntegracao, modo === 'BUSCA')
+  const diasExibidos = mensal.dias.map(dia => ({ ...dia, horarios: dia.horarios.filter(horarioExibidoNaBusca) }))
+  const semHorariosExibidos = mensal.estado === 'SEM_HORARIOS' || (mensal.estado === 'PRONTO' && !diasExibidos.some(dia => dia.horarios.length))
   const selecaoAtual = selecao.contexto === mensal.identificador ? selecao : { data: '', horario: '' }
-  const horariosDia = mensal.dias.find(dia => dia.data === selecaoAtual.data)?.horarios ?? []
+  const horariosDia = diasExibidos.find(dia => dia.data === selecaoAtual.data)?.horarios ?? []
   const horarioSelecionado = horariosDia.includes(selecaoAtual.horario) ? selecaoAtual.horario : ''
+  const pacienteRevisao = pacienteFixoId ? { nome: pacienteNome ?? 'Paciente', email: pacienteEmail }
+    : pacientes.find(paciente => paciente.id === pacienteIdAtual)
   const resumoErros = useRef<HTMLDivElement>(null)
   const requisicaoDisponibilidade = useRef<AbortController | null>(null)
 
@@ -232,7 +239,10 @@ export function FormularioConsulta({
   return (
     <form className="formulario" onSubmit={enviar} noValidate aria-busy={salvando}>
       {!emDialogo && <h2>Nova consulta</h2>}
-      {emDialogo && pacienteFixoId && <div className="form-context">{pacienteNome ?? 'Paciente'} / Paciente fictício</div>}
+      <div className="agendamento-introducao">
+        {emDialogo && pacienteFixoId && <div className="agendamento-paciente"><strong>{pacienteNome ?? 'Paciente'}</strong>{pacienteEmail && <span>{pacienteEmail}</span>}</div>}
+        <p className="section-intro">Selecione uma data e um horário livre para o acompanhamento.</p>
+      </div>
       {quantidadeErros > 1 && (
         <div className="google-agenda-resumo-erros erro" role="alert" tabIndex={-1} ref={resumoErros}>
           <strong>Revise os campos abaixo:</strong>
@@ -242,7 +252,6 @@ export function FormularioConsulta({
           </ul>
         </div>
       )}
-      <p className="section-intro">Selecione uma data e um horário livre para o acompanhamento.</p>
       <ol className="agendamento-etapas" aria-label="Etapas do agendamento">
         <li aria-current={!selecaoAtual.data ? 'step' : undefined}><span>1</span> Data</li>
         <li aria-current={selecaoAtual.data && !horarioSelecionado ? 'step' : undefined}><span>2</span> Horário</li>
@@ -282,24 +291,19 @@ export function FormularioConsulta({
       {erros.pacienteId && <span id="agenda-paciente-erro" className="erro-campo" role={quantidadeErros <= 1 ? 'alert' : undefined}>{erros.pacienteId}</span>}
 
       {modo === 'BUSCA' ? <>
-        <div role="status" aria-live="polite" aria-atomic="true">
+        <div className="agendamento-disponibilidade" role="status" aria-live="polite" aria-atomic="true">
           {mensal.estado === 'CARREGANDO' && 'Buscando horários disponíveis...'}
-          {mensal.estado === 'SEM_HORARIOS' && 'Não foram encontrados horários livres neste mês.'}
+          {semHorariosExibidos && 'Não foram encontrados horários livres neste mês. '}
           {mensal.dados && `Disponibilidade ${mensal.dados.fonteDisponibilidade === 'LOCAL_E_GOOGLE' ? 'local e Google Agenda' : 'local do PsiqApp'}. Horários em São Paulo.`}
         </div>
         {mensal.estado === 'FALHA' && <div><p className="erro" role="alert">{mensal.erro}</p><button type="button" className="secondary" disabled={salvando} onClick={mensal.renovar}>Buscar novamente</button></div>}
         {mensal.dados && <div className="agendamento-busca">
-          <CalendarioDisponibilidade mes={mensal.dados.mes} hoje={mensal.dados.hoje} dias={mensal.dias} selecionada={selecaoAtual.data}
+          <CalendarioDisponibilidade mes={mensal.dados.mes} hoje={mensal.dados.hoje} dias={diasExibidos} selecionada={selecaoAtual.data}
             desabilitado={salvando} aoMudarMes={mes => { limparOperacao(); mensal.mudarMes(mes) }}
             aoSelecionar={data => { limparOperacao(); setSelecao({ contexto: mensal.identificador, data, horario: '' }) }} />
           <HorariosDisponiveis data={selecaoAtual.data} horarios={horariosDia} selecionado={horarioSelecionado} desabilitado={salvando}
             aoSelecionar={horario => { limparOperacao(); setSelecao({ contexto: mensal.identificador, data: selecaoAtual.data, horario }) }} />
         </div>}
-        {horarioSelecionado && <section className="agendamento-resumo" aria-label="Revisão do agendamento">
-          <div><small>Data escolhida</small><strong>{dataCompleta(selecaoAtual.data)}</strong></div>
-          <div><small>Horário escolhido</small><strong>{horaAgenda(horarioSelecionado)} · São Paulo</strong></div>
-          <div><small>Paciente</small><strong>{pacienteNome ?? pacientes.find(paciente => paciente.id === pacienteIdAtual)?.nome ?? 'Selecione um paciente'}</strong></div>
-        </section>}
         {erros.agendadaPara && <span className="erro-campo" role="alert">{erros.agendadaPara}</span>}
       </> : <>
       <label htmlFor="agenda-data-hora">Data e hora
@@ -345,10 +349,25 @@ export function FormularioConsulta({
       <label htmlFor="agenda-observacoes">Observações
         <textarea id="agenda-observacoes" value={observacoes} disabled={salvando} onChange={evento => { limparOperacao(); setObservacoes(evento.target.value) }} />
       </label>
+      {modo === 'BUSCA' && horarioSelecionado && <section className="agendamento-resumo" aria-label="Revisão do agendamento">
+        <div className="agendamento-resumo-item">
+          <span className="agendamento-resumo-icone"><IconeAgendamento nome="calendario" /></span>
+          <div><small>Data escolhida</small><strong><time dateTime={selecaoAtual.data} aria-label={dataCompleta(selecaoAtual.data)}>{dataResumida(selecaoAtual.data)}</time></strong><span>{diaDaSemana(selecaoAtual.data)}</span></div>
+        </div>
+        <div className="agendamento-resumo-item">
+          <span className="agendamento-resumo-icone"><IconeAgendamento nome="relogio" /></span>
+          <div><small>Horário escolhido</small><strong>{horaAgenda(horarioSelecionado)}</strong><span>São Paulo</span></div>
+        </div>
+        <div className="agendamento-resumo-item">
+          <span className="agendamento-resumo-icone"><IconeAgendamento nome="paciente" /></span>
+          <div><small>Paciente</small><strong>{pacienteRevisao?.nome ?? 'Selecione um paciente'}</strong>{pacienteRevisao?.email && <span>{pacienteRevisao.email}</span>}</div>
+        </div>
+      </section>}
       <div className="form-actions">
-        {emDialogo && <button type="button" className="secondary" onClick={aoCancelar} disabled={salvando}>Cancelar</button>}
+        {emDialogo && <button type="button" className="secondary" onClick={aoCancelar} disabled={salvando}><IconeAgendamento nome="seta-esquerda" />Voltar</button>}
         <button className="primary" disabled={!podeCriar}>
           {salvando ? 'Salvando...' : operacaoIncerta ? 'Repetir confirmação' : modo === 'BUSCA' ? 'Confirmar agendamento' : emDialogo ? 'Agendar consulta' : 'Criar consulta'}
+          <IconeAgendamento nome="seta-direita" />
         </button>
       </div>
     </form>

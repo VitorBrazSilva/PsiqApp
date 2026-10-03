@@ -47,6 +47,16 @@ Apresentar à direita da lista o total de consultas, a próxima consulta e a úl
 - AC-RF003-04 — Falha de leitura apresenta erro identificável, sem transformar indisponibilidade em total zero.
 - AC-RF003-05 — Ao trocar de paciente, dados e respostas atrasadas do paciente anterior não entram no resumo atual.
 
+### RF-004 — Refinamentos do agendamento e dos grupos
+
+Aproximar o agendamento da referência `tmp/agenda.png`, conforme o complemento autorizado pelo usuário para a mesma entrega.
+
+- AC-RF004-01 — Os cinco grupos de consultas têm hover suave consistente com as ações de status, mantendo seleção e foco identificáveis.
+- AC-RF004-02 — No diálogo, título, nome do paciente destacado, e-mail, instrução e etapas ficam próximos; Data, Horário e Confirmação têm linhas de ligação.
+- AC-RF004-03 — Calendário, períodos Manhã/Tarde/Noite, orientações, revisão de data/hora/paciente e ações apresentam ícones coerentes com a imagem. Voltar fica à esquerda com seta; confirmar fica à direita com seta.
+- AC-RF004-04 — A busca oculta horários de madrugada (00:00–05:59 em São Paulo) e não anuncia disponibilidade em datas que só possuam esses horários. Mês vazio permanece navegável; cadastro manual conserva seu comportamento.
+- AC-RF004-05 — Exibir a orientação de seleção/duração/fuso com ícone e o texto “Apenas dias e horários com disponibilidade são exibidos.” Não inventar horários ocupados, idade ou tipo de consulta para copiar o protótipo.
+
 ## 7. Jornada e fluxos principais
 
 Abrir o prontuário → selecionar Consultas → ler próxima consulta → consultar lista e resumo → filtrar, agendar ou atualizar status usando os fluxos existentes.
@@ -75,7 +85,7 @@ Aplicam-se product-invariants, clinical-data-privacy, clinical-ai-safety, archit
 
 ## 12. Fora do escopo
 
-Mudar a Agenda global, filtros e regras de negócio; novos gráficos ou métricas clínicas; novas integrações; alterar registros, geração de IA ou backend; adicionar detalhes navegáveis de consulta inexistentes.
+Reorganizar a página da Agenda global além da apresentação do formulário compartilhado; mudar filtros e transições de status; novos gráficos ou métricas clínicas; novas integrações; alterar registros, geração de IA ou backend; adicionar detalhes navegáveis de consulta inexistentes.
 
 ## 13. Riscos de produto e uso
 

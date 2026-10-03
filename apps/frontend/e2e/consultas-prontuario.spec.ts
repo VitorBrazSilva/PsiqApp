@@ -53,6 +53,21 @@ test('painel branco e resumo do paciente mantêm posição e não transbordam em
       expect(caixaResumo.y).toBeGreaterThan(caixaLista.y + caixaLista.height)
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(largura)
+    if (largura === 1440) {
+      const acaoStatus = painel.locator('.consulta-status-botao').first()
+      await acaoStatus.hover()
+      const coresStatus = await acaoStatus.evaluate(elemento => {
+        const estilo = getComputedStyle(elemento)
+        return { fundo: estilo.backgroundColor, borda: estilo.borderColor, texto: estilo.color }
+      })
+      for (const grupo of await painel.getByRole('navigation', { name: 'Grupos de consultas' }).getByRole('button').all()) {
+        await grupo.hover()
+        expect(await grupo.evaluate(elemento => {
+          const estilo = getComputedStyle(elemento)
+          return { fundo: estilo.backgroundColor, borda: estilo.borderColor, texto: estilo.color }
+        })).toEqual(coresStatus)
+      }
+    }
     await page.screenshot({ path: `test-results/consultas-prontuario/consultas-${largura}.png`, fullPage: true })
     await painel.getByRole('button', { name: /^Realizadas/ }).click()
     await expect(painel.locator('.lista.consultas > li')).toHaveCount(3)
@@ -68,9 +83,56 @@ test('a ação do painel abre agendamento para o paciente atual com teclado e re
   await page.keyboard.press('Enter')
   const dialogo = page.getByRole('dialog', { name: 'Agendar consulta' })
   await expect(dialogo).toBeVisible()
-  await expect(dialogo).toContainText('Helena Duarte / Paciente fictício')
+  await expect(dialogo.locator('.agendamento-paciente')).toContainText(paciente.nome)
+  await expect(dialogo.locator('.agendamento-paciente')).toContainText(paciente.email)
   await expect(dialogo.getByLabel('Paciente', { exact: true })).toHaveCount(0)
   await page.keyboard.press('Escape')
   await expect(dialogo).toHaveCount(0)
   await expect(acionador).toBeFocused()
+  await acionador.click()
+  await dialogo.getByRole('button', { name: 'Voltar' }).click()
+  await expect(dialogo).toHaveCount(0)
+  await expect(acionador).toBeFocused()
+})
+
+test('agendamento segue a referência com revisão, conectores, ícones e ações responsivas', async ({ page }) => {
+  await page.route('**/api/v1/consultas/disponibilidade/mensal*', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+    mes: '2026-09', hoje: '2026-09-15', fusoHorario: 'America/Sao_Paulo', verificadoEm: '2026-09-15T12:00:00Z', fonteDisponibilidade: 'LOCAL',
+    dias: [16, 17, 21, 22, 23, 24, 28, 29, 30].map(dia => ({ data: `2026-09-${dia}`, horarios: dia === 23 ? ['2026-09-23T03:00:00Z']
+      : ['09:00', '10:00', '10:30', '14:00', '14:30', '15:00', '15:30', '16:00', '18:00', '18:30', '19:00'].map(hora => `2026-09-${dia}T${hora}:00-03:00`) })),
+  }) }))
+  for (const largura of [1440, 1024, 768, 360]) {
+    await page.setViewportSize({ width: largura, height: 1080 })
+    await page.goto(`/prontuario/${pacienteId}?secao=consultas`)
+    await page.getByRole('button', { name: 'Agendar consulta para Helena Duarte' }).click()
+    const dialogo = page.getByRole('dialog', { name: 'Agendar consulta' })
+    await expect(dialogo.getByRole('button', { name: /23 de setembro.*sem horários/ })).toBeDisabled()
+    await dialogo.getByRole('button', { name: /24 de setembro.*horários disponíveis/ }).click()
+    await dialogo.getByRole('radio', { name: '14:30' }).check()
+    await expect(dialogo.getByRole('radio', { name: '14:30' })).toBeChecked()
+    await expect(dialogo.getByRole('group', { name: 'Madrugada' })).toHaveCount(0)
+    await expect(dialogo.getByText('Apenas dias e horários com disponibilidade são exibidos.')).toBeVisible()
+    const etapas = dialogo.getByRole('list', { name: 'Etapas do agendamento' })
+    await expect(etapas.locator('[aria-current="step"]')).toContainText('Confirmação')
+    expect(await etapas.locator('li').first().evaluate(elemento => parseFloat(getComputedStyle(elemento, '::after').width))).toBeGreaterThan(0)
+    const revisao = dialogo.getByRole('region', { name: 'Revisão do agendamento' })
+    await expect(revisao).toContainText('24 de set. de 2026')
+    await expect(revisao).toContainText('14:30')
+    await expect(revisao).toContainText(paciente.email)
+    expect(await dialogo.evaluate(elemento => elemento.scrollWidth)).toBeLessThanOrEqual(await dialogo.evaluate(elemento => elemento.clientWidth))
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(largura)
+    await dialogo.evaluate(elemento => { elemento.scrollTop = 0 })
+    await page.screenshot({ path: `test-results/consultas-prontuario/agendamento-${largura}.png` })
+    await dialogo.getByRole('button', { name: 'Confirmar agendamento' }).scrollIntoViewIfNeeded()
+    await expect(dialogo.getByRole('button', { name: 'Voltar' })).toBeInViewport()
+    await expect(dialogo.getByRole('button', { name: 'Confirmar agendamento' })).toBeInViewport()
+    const voltar = (await dialogo.getByRole('button', { name: 'Voltar' }).boundingBox())!
+    const confirmar = (await dialogo.getByRole('button', { name: 'Confirmar agendamento' }).boundingBox())!
+    expect(voltar.x + voltar.width).toBeLessThan(confirmar.x)
+    expect(Math.abs(voltar.y - confirmar.y)).toBeLessThan(2)
+    expect(voltar.height).toBeGreaterThanOrEqual(44)
+    expect(confirmar.height).toBeGreaterThanOrEqual(44)
+    await page.screenshot({ path: `test-results/consultas-prontuario/agendamento-rodape-${largura}.png` })
+    await page.keyboard.press('Escape')
+  }
 })

@@ -50,3 +50,7 @@ Renovação após mudança de estado e isolamento de respostas assíncronas exig
 ## Veredito
 
 TechSpec pode avançar no escopo autorizado pelo usuário.
+
+## Complemento de escopo — RF-004
+
+APROVADO. O pedido adicional autoriza refinamentos na mesma entrega: hover, composição do diálogo, ícones e ocultação de madrugada na busca compartilhada. O e-mail vem do paciente atual; o aviso persistente do MVP permanece. A mudança é de apresentação, sem alteração do contrato mensal, cadastro manual, transições ou Rules. Os cinco ACs distinguem fidelidade visual de dados inexistentes no produto. Nenhum bloqueador ou decisão material pendente.

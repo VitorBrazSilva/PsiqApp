@@ -1,5 +1,6 @@
 import type { DisponibilidadeMensal } from './servicoConsultas'
 import { dataCompleta, deslocarMes } from './tempoAgenda'
+import { IconeAgendamento } from './IconeAgendamento'
 
 export function CalendarioDisponibilidade({ mes, hoje, dias, selecionada, aoSelecionar, aoMudarMes, desabilitado = false }: {
   mes: string, hoje: string, dias: DisponibilidadeMensal['dias'], selecionada: string,
@@ -15,9 +16,9 @@ export function CalendarioDisponibilidade({ mes, hoje, dias, selecionada, aoSele
   const titulo = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(primeiro)
   return <section className="calendario-disponibilidade" aria-label="Selecione uma data">
     <div className="calendario-cabecalho">
-      <button className="secondary" type="button" aria-label="Mês anterior" disabled={desabilitado || mes <= hoje.slice(0, 7)} onClick={() => aoMudarMes(deslocarMes(mes, -1))}>‹</button>
+      <button className="secondary" type="button" aria-label="Mês anterior" disabled={desabilitado || mes <= hoje.slice(0, 7)} onClick={() => aoMudarMes(deslocarMes(mes, -1))}><IconeAgendamento nome="mes-anterior" /></button>
       <h3>{titulo}</h3>
-      <button className="secondary" type="button" aria-label="Próximo mês" disabled={desabilitado} onClick={() => aoMudarMes(deslocarMes(mes, 1))}>›</button>
+      <button className="secondary" type="button" aria-label="Próximo mês" disabled={desabilitado} onClick={() => aoMudarMes(deslocarMes(mes, 1))}><IconeAgendamento nome="proximo-mes" /></button>
     </div>
     <table><caption className="sr-only">{titulo}: datas disponíveis para consulta</caption>
       <thead><tr>{['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'].map(dia => <th scope="col" key={dia}><abbr title={dia}>{dia.slice(0, 3)}</abbr></th>)}</tr></thead>
@@ -28,6 +29,7 @@ export function CalendarioDisponibilidade({ mes, hoje, dias, selecionada, aoSele
           onClick={() => aoSelecionar(data)}>{Number(data.slice(-2))}{livre && <span className="sr-only"> disponível</span>}</button>}</td>
       })}</tr>)}</tbody>
     </table>
-    <p className="calendario-ajuda">Selecione uma data com horários livres. Consultas de uma hora, em São Paulo.</p>
+    <p className="calendario-instrucao"><IconeAgendamento nome="informacao" />Selecione uma data com horários livres. Consultas de uma hora, em São Paulo.</p>
+    <p className="calendario-ajuda"><IconeAgendamento nome="informacao" />Apenas dias e horários com disponibilidade são exibidos.</p>
   </section>
 }

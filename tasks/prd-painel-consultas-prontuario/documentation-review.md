@@ -1,5 +1,9 @@
 # Documentation Review — Painel de consultas do prontuário
 
+## Complemento RF-004 — APROVADO
+
+BUSINESS atualizado com três períodos visíveis, corte de madrugada apenas na busca, contexto nome/e-mail e Voltar. TECHNICAL atualizado com apresentação compartilhada, SVGs locais, radios/foco, corte/formatador, isolamento do cadastro, áreas seguras e 21 testes Playwright em seis arquivos (confirmados por `--list`). README: NO_CHANGE no complemento, pois configuração e restrição de testes externos permanecem vigentes. Descrições confirmadas no código, testes e evidências; fontes canônicas não referenciam artefatos da feature. As alterações abaixo correspondem à entrega inicial.
+
 ## Documentation impact
 
 - BUSINESS.md: UPDATED.

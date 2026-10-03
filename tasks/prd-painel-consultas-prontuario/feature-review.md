@@ -1,5 +1,9 @@
 # Feature Review — Painel de consultas do prontuário
 
+## Complemento RF-004 — READY
+
+RF-004 / TS-005 / task 1.0: cinco ACs atendidos com teste de hover, contexto do paciente, exclusão de madrugada/dias exclusivos/estado vazio e evidências do diálogo nas quatro larguras. Gates de Task Review, Code Review, Documentation Maintenance, QA, UI e Clinical Safety aprovados em passagens distintas pelo implementador. Resultado: 82 Vitest, oito E2E simulados, checks estáticos/build e conferência somente leitura da URL Docker atualizada. Sem divergência, blocker ou pendência local. Mesmo escopo/branch de entrega; `gh pr view` confirmou ausência de PR remoto para essa branch. A pasta permanece elegível para exclusão por decisão de encerramento; foi preservada. Os registros abaixo documentam a composição inicial.
+
 ## Status
 
 READY

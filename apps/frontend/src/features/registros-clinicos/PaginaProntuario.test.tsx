@@ -149,8 +149,11 @@ describe('PaginaProntuario', () => {
     await screen.findByRole('button', { name: /3 de outubro.*dispon/ })
     concluirA?.(json({ ...disponibilidadeTeste, dias: [] }))
     expect(screen.getByRole('button', { name: /3 de outubro.*dispon/ })).toBeEnabled()
-    expect(screen.getByText('Paciente Atual B / Paciente fictício')).toBeVisible()
-    expect(screen.queryByText('Paciente Atual A / Paciente fictício')).not.toBeInTheDocument()
+    const dialogo = screen.getByRole('dialog', { name: 'Agendar consulta' })
+    expect(dialogo).toHaveTextContent('Paciente Atual B')
+    expect(dialogo).toHaveTextContent('b@example.test')
+    expect(dialogo).not.toHaveTextContent('Paciente Atual A')
+    expect(dialogo).not.toHaveTextContent(pacienteA.email)
   })
 
   it('não aplica criação de A concluída depois da troca de rota para B', async () => {
