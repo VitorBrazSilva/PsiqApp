@@ -31,8 +31,9 @@ test('filtra grupos e período civil na Agenda e isola a lista do prontuário', 
     local.setUTCHours(hora + 3, 0, 0, 0)
     return local.toISOString()
   }
+  const horarioProximaPacienteA = horario(dataFutura, 15)
   await criarConsulta(request, pacienteA.id, horario(dataPassada, 9))
-  await criarConsulta(request, pacienteA.id, horario(dataFutura, 15))
+  await criarConsulta(request, pacienteA.id, horarioProximaPacienteA)
   const consultaPacienteB = await criarConsulta(request, pacienteB.id, horario(dataFutura, 21))
   await request.post(`/api/v1/consultas/${consultaPacienteB.id}/status`, { data: { status: 'REALIZADA' } })
 
@@ -59,8 +60,16 @@ test('filtra grupos e período civil na Agenda e isola a lista do prontuário', 
 
   await page.goto(`/prontuario/${pacienteA.id}?secao=consultas`)
   await expect(page.locator('.patient-heading h1')).toContainText(pacienteA.nome)
-  await expect(page.locator('.lista.consultas')).toContainText(pacienteA.nome)
-  await expect(page.locator('.lista.consultas')).not.toContainText(pacienteB.nome)
+  const painelConsultas = page.getByRole('region', { name: /^Consultas de / })
+  const listaConsultas = painelConsultas.locator('.lista.consultas')
+  await expect(listaConsultas.locator('li')).toHaveCount(1)
+  await expect(listaConsultas.locator('time')).toHaveAttribute('datetime')
+  expect(await listaConsultas.locator('time').evaluate(elemento => Date.parse(elemento.getAttribute('datetime')!)))
+    .toBe(Date.parse(horarioProximaPacienteA))
+  // A consulta realizada de B não pode aparecer ao abrir esse grupo no prontuário de A.
+  await painelConsultas.getByRole('button', { name: /^Realizadas/ }).click()
+  await expect(painelConsultas.getByText('Nenhuma consulta encontrada para o periodo.', { exact: true })).toBeVisible()
+  await expect(listaConsultas).toHaveCount(0)
 })
 
 test('pagina a lista de consultas sem perder o paciente selecionado', async ({ page, request }) => {
