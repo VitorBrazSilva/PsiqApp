@@ -1,3 +1,4 @@
+import { disponibilidadeTeste } from '../../test/disponibilidadeTeste'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
@@ -37,6 +38,7 @@ function configurarApi(opcoes: {
   fetchMock.mockImplementation(async (url, requisicao) => {
     const caminho = String(url)
     const metodo = requisicao?.method ?? 'GET'
+    if (caminho.startsWith('/api/v1/consultas/disponibilidade/mensal')) return Response.json(disponibilidadeTeste)
     if (caminho === '/api/v1/integracoes/google-agenda') {
       const estados = opcoes.estados ?? ['NAO_CONFIGURADA']
       const estado = estados[Math.min(leituraEstado, estados.length - 1)]
@@ -94,6 +96,7 @@ describe('PaginaAgenda', () => {
     expect(await screen.findByText('Nenhuma consulta encontrada para o periodo.')).toBeVisible()
 
     await usuario.selectOptions(screen.getByLabelText('Paciente'), paciente.id)
+    await usuario.click(screen.getByRole('button', { name: 'Informar data e hora' }))
     await usuario.type(screen.getByLabelText('Data e hora'), '2026-05-01T12:00')
     const criar = screen.getByRole('button', { name: 'Criar consulta' })
     expect(criar).toBeDisabled()
@@ -124,6 +127,7 @@ describe('PaginaAgenda', () => {
     render(<MemoryRouter><PaginaAgenda /></MemoryRouter>)
     await screen.findByText('Nenhuma consulta encontrada para o periodo.')
     await usuario.selectOptions(screen.getByLabelText('Paciente'), paciente.id)
+    await usuario.click(screen.getByRole('button', { name: 'Informar data e hora' }))
     await usuario.type(screen.getByLabelText('Data e hora'), '2026-05-01T12:00')
     await usuario.click(screen.getByRole('button', { name: 'Verificar disponibilidade' }))
     await screen.findByText('Este horário está disponível para agendamento.')
@@ -143,6 +147,7 @@ describe('PaginaAgenda', () => {
     const usuario = userEvent.setup()
     render(<MemoryRouter><PaginaAgenda /></MemoryRouter>)
     await screen.findByText('Nenhuma consulta encontrada para o periodo.')
+    await usuario.click(screen.getByRole('button', { name: 'Informar data e hora' }))
     const campoDataHora = screen.getByLabelText('Data e hora')
     await usuario.type(campoDataHora, '2026-05-01T12:00')
     await usuario.click(screen.getByRole('button', { name: 'Verificar disponibilidade' }))
@@ -159,6 +164,7 @@ describe('PaginaAgenda', () => {
     const usuario = userEvent.setup()
     render(<MemoryRouter><PaginaAgenda /></MemoryRouter>)
     await screen.findByText('Nenhuma consulta encontrada para o periodo.')
+    await usuario.click(screen.getByRole('button', { name: 'Informar data e hora' }))
     await usuario.type(screen.getByLabelText('Data e hora'), '2026-05-01T12:00')
     await usuario.click(screen.getByRole('button', { name: 'Verificar disponibilidade' }))
     await screen.findByText('Este horário está disponível para agendamento.')
@@ -177,6 +183,7 @@ describe('PaginaAgenda', () => {
     const usuario = userEvent.setup()
     render(<MemoryRouter><PaginaAgenda /></MemoryRouter>)
     await screen.findByText('Nenhuma consulta encontrada para o periodo.')
+    await usuario.click(screen.getByRole('button', { name: 'Informar data e hora' }))
     await usuario.type(screen.getByLabelText('Data e hora'), '2026-05-01T12:00')
     await usuario.click(screen.getByRole('button', { name: 'Verificar disponibilidade' }))
 
@@ -210,6 +217,7 @@ describe('PaginaAgenda', () => {
     render(<MemoryRouter><PaginaAgenda /></MemoryRouter>)
     expect(await screen.findByRole('button', { name: 'Desconectar Google Agenda' })).toBeVisible()
     expect(screen.getByText(/nome, o e-mail e o horário da consulta\. Quando marcada como realizada ou falta/)).toBeVisible()
+    await usuario.click(screen.getByRole('button', { name: 'Informar data e hora' }))
     await usuario.type(screen.getByLabelText('Data e hora'), '2026-05-01T12:00')
     await usuario.click(screen.getByRole('button', { name: 'Verificar disponibilidade' }))
     expect(await screen.findByText('Este horário está disponível para agendamento.')).toBeVisible()
@@ -279,6 +287,7 @@ describe('PaginaAgenda', () => {
 
   it('mantém o identificador do paciente quando o nome não veio na página carregada', async () => {
     fetchMock.mockImplementation(async url => {
+      if (String(url).startsWith('/api/v1/consultas/disponibilidade/mensal')) return Response.json(disponibilidadeTeste)
       if (String(url) === '/api/v1/integracoes/google-agenda') return Response.json({ estado: 'NAO_CONFIGURADA' })
       if (String(url) === '/api/v1/consultas?pagina=0&tamanho=50') return Response.json({ ...paginaVazia, itens: [consulta] })
       if (String(url) === '/api/v1/pacientes?pagina=0&tamanho=100') return Response.json(paginaVazia)

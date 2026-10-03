@@ -54,14 +54,23 @@ export function PaginaAgenda() {
   }, [])
 
   useEffect(() => {
-    const controlador = new AbortController()
-    void consultarEstadoIntegracao(controlador.signal).then(resultado => {
-      if (controlador.signal.aborted) return
-      setEstadoIntegracao(resultado.estado)
-      setErroIntegracao(resultado.erro)
-      setCarregandoIntegracao(false)
-    })
-    return () => controlador.abort()
+    let controlador: AbortController | null = null
+    const atualizar = () => {
+      if (document.visibilityState !== 'visible') return
+      controlador?.abort()
+      const controle = new AbortController()
+      controlador = controle
+      void consultarEstadoIntegracao(controle.signal).then(resultado => {
+        if (controle.signal.aborted) return
+        setEstadoIntegracao(resultado.estado)
+        setErroIntegracao(resultado.erro)
+        setCarregandoIntegracao(false)
+      })
+    }
+    atualizar()
+    window.addEventListener('focus', atualizar)
+    document.addEventListener('visibilitychange', atualizar)
+    return () => { controlador?.abort(); window.removeEventListener('focus', atualizar); document.removeEventListener('visibilitychange', atualizar) }
   }, [])
 
   async function desconectarGoogle() {

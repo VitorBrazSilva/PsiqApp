@@ -6,11 +6,13 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 
-public record DisponibilidadeMensalResponse(YearMonth mes, List<Dia> dias) {
+public record DisponibilidadeMensalResponse(YearMonth mes, LocalDate hoje, String fusoHorario,
+        Instant verificadoEm, String fonteDisponibilidade, List<Dia> dias) {
     public record Dia(LocalDate data, List<Instant> horarios) {}
 
     static DisponibilidadeMensalResponse de(ConsultarDisponibilidadeMensalUseCase.Resultado resultado) {
-        return new DisponibilidadeMensalResponse(resultado.mes(), resultado.dias().stream()
+        return new DisponibilidadeMensalResponse(resultado.mes(), resultado.hoje(), resultado.fusoHorario(),
+                resultado.verificadoEm(), resultado.fonteDisponibilidade(), resultado.dias().stream()
                 .map(dia -> new Dia(dia.data(), dia.horarios())).toList());
     }
 }

@@ -1,3 +1,4 @@
+import { disponibilidadeTeste } from '../../test/disponibilidadeTeste'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useNavigate } from 'react-router'
@@ -43,6 +44,8 @@ function NavegacaoProntuarioTeste() {
 beforeEach(() => {
   vi.stubGlobal('fetch', fetchMock)
   fetchMock.mockImplementation(async (url, opcoes) => {
+    if (String(url).startsWith('/api/v1/consultas/disponibilidade/mensal')) return json(disponibilidadeTeste)
+    if (url === '/api/v1/integracoes/google-agenda') return json({ estado: 'NAO_CONFIGURADA' })
     if (url === `/api/v1/pacientes/${pacienteA.id}`) return json(pacienteA)
     if (url === `/api/v1/pacientes/${pacienteB.id}`) return json(pacienteB)
     if (url === `/api/v1/consultas?pagina=0&tamanho=50&pacienteId=${pacienteA.id}`) return json(paginaVazia)
@@ -72,6 +75,51 @@ afterEach(() => {
 })
 
 describe('PaginaProntuario', () => {
+  it('fecha agendamento e descarta disponibilidade de A atrasada ao navegar para B', async () => {
+    const padrao = fetchMock.getMockImplementation()!
+    let concluirA: ((resposta: Response) => void) | undefined
+    let numero = 0
+    fetchMock.mockImplementation((url, opcoes) => {
+      if (String(url).includes('/disponibilidade/mensal') && numero++ === 0) return new Promise(resolve => { concluirA = resolve })
+      return padrao(url, opcoes)
+    })
+    const usuario = userEvent.setup()
+    renderProntuario()
+    await usuario.click(await screen.findByRole('button', { name: 'Agendar consulta' }))
+    await waitFor(() => expect(concluirA).toBeDefined())
+    await usuario.click(screen.getByRole('button', { name: 'Trocar paciente teste' }))
+    expect(await screen.findByRole('heading', { name: 'Paciente Atual B' })).toBeVisible()
+    expect(screen.queryByRole('dialog', { name: 'Agendar consulta' })).not.toBeInTheDocument()
+    await usuario.click(screen.getByRole('button', { name: 'Agendar consulta' }))
+    await screen.findByRole('button', { name: /3 de outubro.*dispon/ })
+    concluirA?.(json({ ...disponibilidadeTeste, dias: [] }))
+    expect(screen.getByRole('button', { name: /3 de outubro.*dispon/ })).toBeEnabled()
+    expect(screen.getByText('Paciente Atual B / Paciente fictício')).toBeVisible()
+    expect(screen.queryByText('Paciente Atual A / Paciente fictício')).not.toBeInTheDocument()
+  })
+
+  it('não aplica criação de A concluída depois da troca de rota para B', async () => {
+    const padrao = fetchMock.getMockImplementation()!
+    let concluir: ((resposta: Response) => void) | undefined
+    fetchMock.mockImplementation((url, opcoes) => {
+      if (opcoes?.method === 'POST' && String(url) === `/api/v1/pacientes/${pacienteA.id}/consultas`) return new Promise(resolve => { concluir = resolve })
+      return padrao(url, opcoes)
+    })
+    const usuario = userEvent.setup()
+    renderProntuario()
+    await usuario.click(await screen.findByRole('button', { name: 'Agendar consulta' }))
+    await usuario.click(await screen.findByRole('button', { name: /3 de outubro.*dispon/ }))
+    await usuario.click(screen.getByRole('radio', { name: '09:00' }))
+    await usuario.click(screen.getByRole('button', { name: 'Confirmar agendamento' }))
+    await usuario.click(screen.getByRole('button', { name: 'Trocar paciente teste' }))
+    await screen.findByRole('heading', { name: 'Paciente Atual B' })
+    const chamada = fetchMock.mock.calls.find(([url, opcoes]) => opcoes?.method === 'POST' && String(url).includes('/consultas'))!
+    expect(chamada[1]?.signal?.aborted).toBe(true)
+    concluir?.(json({ pacienteId: pacienteA.id, id: 'consulta-a-tardia' }))
+    await waitFor(() => expect(screen.queryByText('consulta-a-tardia')).not.toBeInTheDocument())
+    expect(screen.queryByRole('dialog', { name: 'Agendar consulta' })).not.toBeInTheDocument()
+  })
+
   it('descarta resposta atrasada de consultas ao trocar de paciente', async () => {
     let resolverAgendaA: ((resposta: Response) => void) | undefined
     fetchMock.mockImplementation(async url => {
@@ -113,8 +161,11 @@ describe('PaginaProntuario', () => {
     const usuario = userEvent.setup()
     renderProntuario(pacienteB.id)
     expect(await screen.findByText('Paciente Atual B')).toBeVisible()
-    await usuario.type(screen.getByLabelText('Data e hora'), '2026-06-01T12:00')
-    await usuario.click(screen.getByRole('button', { name: 'Criar consulta' }))
+    await usuario.click(screen.getByRole('button', { name: 'Agendar consulta' }))
+    expect(screen.queryByLabelText('Paciente')).not.toBeInTheDocument()
+    await usuario.click(await screen.findByRole('button', { name: /3 de outubro.*dispon/ }))
+    await usuario.click(screen.getByRole('radio', { name: '09:00' }))
+    await usuario.click(screen.getByRole('button', { name: 'Confirmar agendamento' }))
     await usuario.click(screen.getByRole('button', { name: /Consultas/ }))
     expect(await screen.findByText(/12:00.*Paciente Atual B/)).toBeVisible()
     expect(fetchMock).toHaveBeenCalledWith(`/api/v1/pacientes/${pacienteB.id}/consultas`, expect.any(Object))

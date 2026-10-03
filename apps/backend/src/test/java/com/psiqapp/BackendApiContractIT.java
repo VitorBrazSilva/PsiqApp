@@ -151,6 +151,11 @@ class BackendApiContractIT {
         assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(resposta.getHeaders().getCacheControl()).contains("no-store");
         assertThat(resposta.getBody().path("mes").asText()).isEqualTo("2026-10");
+        assertThat(resposta.getBody().path("fusoHorario").asText()).isEqualTo("America/Sao_Paulo");
+        var referencia = java.time.Instant.parse(resposta.getBody().path("verificadoEm").asText());
+        assertThat(resposta.getBody().path("hoje").asText()).isEqualTo(
+                referencia.atZone(java.time.ZoneId.of("America/Sao_Paulo")).toLocalDate().toString());
+        assertThat(resposta.getBody().path("fonteDisponibilidade").asText()).isEqualTo("LOCAL");
         assertThat(resposta.getBody().path("dias").isArray()).isTrue();
         assertThat(resposta.getBody().toString()).doesNotContain("paciente", "observacoes", "token");
     }
