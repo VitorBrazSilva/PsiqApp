@@ -22,8 +22,8 @@ export function ListaConsultas({ consultas, carregando, aoAtualizar, nomesPacien
             <strong>{formatarDia(consulta.agendadaPara)}</strong>
           </span>
           <div className="consulta-detalhes">
-            <strong>{formatarDataCompleta(consulta.agendadaPara)}</strong>
-            <span>{formatarHora(consulta.agendadaPara)}{nomesPacientes ? ` · ${nomesPacientes[consulta.pacienteId] ?? consulta.pacienteId}` : ''}</span>
+            <strong><svg className="appointment-clock" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 11h18" /></svg>{formatarDataCompleta(consulta.agendadaPara)}</strong>
+            <span><svg className="appointment-clock" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>{formatarHora(consulta.agendadaPara)}{nomesPacientes ? ` · ${nomesPacientes[consulta.pacienteId] ?? consulta.pacienteId}` : ''}</span>
             {consulta.observacoes && <p>{consulta.observacoes}</p>}
             <EstadoSincronizacao consulta={consulta} aoAtualizar={aoAtualizar} />
           </div>

@@ -69,3 +69,7 @@ Task 1.0. A implementação da listagem estende o contrato e o adapter de consul
 - Frontend: novos `PainelConsultas.tsx`, `FiltrosConsultas.tsx`, `useAgendaConsultas.ts`; `servicoConsultas.ts`, `PaginaAgenda.tsx`, `PaginaProntuario.tsx`, `ListaConsultas.tsx` e CSS local.
 - Testes backend de use case/integração e testes frontend das duas páginas; Playwright para os fluxos cobertos.
 - Avaliar atualizações localizadas em `docs/BUSINESS.md` e `docs/TECHNICAL.md`; README somente se configuração ou operação mudar.
+
+## Adendo de QA final — 02/10/2026
+
+QA-001/002/003 corrigidos conforme TS-008/009/010: GET da lista ao atravessar início de consulta visível, renovação do resumo ao retornar à janela/aba e SVGs decorativos de dia/hora nas listas. Revisão funcional e técnica APROVADAS: classificação/contagens no backend, cleanup de timer/listeners, contextos preservados e ícones aria-hidden sem alterar texto/ações. Testes de regressão no hook/prontuário; frontend final com typecheck/lint/build e 75 testes aprovados, 18 E2Es aprovados e imagens finais inspecionadas. Manutenção documental: BUSINESS/TECHNICAL atualizados; README sem necessidade. Detalhes em bugs.md e qa-report.md. Status da Task 2 permanece APROVADO, com observações visuais anteriores não bloqueantes.

@@ -51,3 +51,7 @@ Nenhum.
 ## Veredito
 
 APROVADO — gate backend encerrado com `mvnw verify` verde. A retomada também confirmou typecheck, lint, 58 testes frontend, build e os dois E2Es focados com backend atual/PostgreSQL isolados. Screenshots de 360px/1280px inspecionados: labels, contagens e foco visíveis, sem overflow. Evidências e avaliação documental em `02_task_evidence.md`. As observações visuais não bloqueantes permanecem; esta aprovação não substitui QA e review final da feature.
+
+## Adendo de QA final — 02/10/2026
+
+QA-001/002/003 corrigidos conforme TS-008/009/010: GET da lista ao atravessar início de consulta visível, renovação do resumo ao retornar à janela/aba e SVGs decorativos de dia/hora nas listas. Revisão funcional e técnica APROVADAS: classificação/contagens no backend, cleanup de timer/listeners, contextos preservados e ícones aria-hidden sem alterar texto/ações. Testes de regressão no hook/prontuário; frontend final com typecheck/lint/build e 75 testes aprovados, 18 E2Es aprovados e imagens finais inspecionadas. Manutenção documental: BUSINESS/TECHNICAL atualizados; README sem necessidade. Detalhes em bugs.md e qa-report.md. Status da Task 2 permanece APROVADO, com observações visuais anteriores não bloqueantes.

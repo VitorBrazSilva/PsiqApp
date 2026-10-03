@@ -35,3 +35,7 @@ A primeira repetição dos E2Es usou o Compose existente em 8080 e falhou porque
 - README.md: NOT NEEDED nesta retomada.
 
 Avaliação conforme `project-documentation-maintainer`: as fontes canônicas já descrevem os grupos, datas civis, contagens completas, paginação, isolamento e comandos de teste implementados na Task 2. A correção restringe-se à compilação/configuração de um teste existente, sem mudança funcional, arquitetural ou operacional. Não exige atualização artificial das fontes canônicas. A pasta da feature permanece até Task 3, QA e reviews finais.
+
+## Adendo de QA final — 02/10/2026
+
+QA-001/002/003 corrigidos conforme TS-008/009/010: GET da lista ao atravessar início de consulta visível, renovação do resumo ao retornar à janela/aba e SVGs decorativos de dia/hora nas listas. Revisão funcional e técnica APROVADAS: classificação/contagens no backend, cleanup de timer/listeners, contextos preservados e ícones aria-hidden sem alterar texto/ações. Testes de regressão no hook/prontuário; frontend final com typecheck/lint/build e 75 testes aprovados, 18 E2Es aprovados e imagens finais inspecionadas. Manutenção documental: BUSINESS/TECHNICAL atualizados; README sem necessidade. Detalhes em bugs.md e qa-report.md. Status da Task 2 permanece APROVADO, com observações visuais anteriores não bloqueantes.

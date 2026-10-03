@@ -1,5 +1,5 @@
 import { disponibilidadeTeste } from '../../test/disponibilidadeTeste'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useNavigate } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -75,6 +75,19 @@ afterEach(() => {
 })
 
 describe('PaginaProntuario', () => {
+  it('renova o resumo de consultas do paciente ao retornar à janela e remove o listener ao desmontar', async () => {
+    const { unmount } = renderProntuario()
+    await screen.findByText(pacienteA.nome, { selector: 'h1' })
+    const leiturasResumo = () => fetchMock.mock.calls.filter(([url]) => String(url).startsWith('/api/v1/agenda/consultas?') && String(url).includes('tamanho=1')).length
+    await waitFor(() => expect(leiturasResumo()).toBeGreaterThan(0))
+    const antes = leiturasResumo()
+    fireEvent.focus(window)
+    await waitFor(() => expect(leiturasResumo()).toBeGreaterThan(antes))
+    unmount()
+    const depois = leiturasResumo()
+    fireEvent.focus(window)
+    expect(leiturasResumo()).toBe(depois)
+  })
   it('fecha agendamento e descarta disponibilidade de A atrasada ao navegar para B', async () => {
     const padrao = fetchMock.getMockImplementation()!
     let concluirA: ((resposta: Response) => void) | undefined
