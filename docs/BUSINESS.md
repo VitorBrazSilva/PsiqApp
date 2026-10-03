@@ -246,8 +246,8 @@ As etapas de cadastro, busca e visualização de dados básicos existem no backe
 
 As etapas de criação, listagem de agenda e atualização de status estão disponíveis no frontend. A agenda global exibe paciente, data, hora, status da consulta e estado Google; quando o nome do paciente ainda não foi carregado na página, o frontend exibe o identificador técnico do paciente como fallback.
 
-1. O médico seleciona o paciente e informa uma data e hora candidatas.
-2. O sistema verifica a disponibilidade local e, quando há conexão ativa, também consulta o Google. Sem conexão, a verificação usa a agenda local; conflito ou falha de disponibilidade impede criar a consulta.
+1. O médico seleciona o paciente na Agenda ou usa o paciente aberto no prontuário. Busca uma data e um horário livres no calendário mensal e revisa a seleção; também pode informar data e hora pelo caminho manual, inclusive para consultas retroativas.
+2. O sistema consulta a disponibilidade local e, quando há conexão ativa, também o Google. A seleção pela busca dispensa uma verificação separada; o caminho manual exige essa ação. Sem conexão, a disponibilidade usa a agenda local; conflito ou falha de disponibilidade impede criar a consulta.
 3. Se a data e hora permanecem disponíveis, o médico cria a consulta, que nasce como `AGENDADA` e aparece na agenda interna.
 4. A agenda mostra o estado de sincronização Google da consulta e permite nova tentativa quando houver pendência ou falha.
 5. O médico pode marcá-la como `REALIZADA`, `CANCELADA` ou `FALTA`; o status atualizado aparece na agenda e no contexto do paciente.

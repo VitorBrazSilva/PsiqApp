@@ -105,6 +105,18 @@ export function PaginaProntuario() {
   }, [pacienteId, versaoAgenda])
 
   useEffect(() => {
+    const atualizarResumo = () => {
+      if (document.visibilityState === 'visible') setVersaoAgenda(versao => versao + 1)
+    }
+    window.addEventListener('focus', atualizarResumo)
+    document.addEventListener('visibilitychange', atualizarResumo)
+    return () => {
+      window.removeEventListener('focus', atualizarResumo)
+      document.removeEventListener('visibilitychange', atualizarResumo)
+    }
+  }, [])
+
+  useEffect(() => {
     if (!registroEmDestaque || secao !== 'historico') return
     const frame = window.requestAnimationFrame(() => {
       const elemento = document.getElementById(`registro-${registroEmDestaque}`)

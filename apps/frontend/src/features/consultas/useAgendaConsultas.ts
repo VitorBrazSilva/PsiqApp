@@ -54,6 +54,22 @@ export function useAgendaConsultas(pacienteId?: string, tamanho = 50) {
     return () => { window.removeEventListener('focus', atualizar); document.removeEventListener('visibilitychange', atualizar) }
   }, [recarregar])
 
+  useEffect(() => {
+    if (grupo !== 'PROXIMAS' || !resultado) return
+    const agora = Date.now()
+    const proximoInicio = resultado.itens
+      .filter(consulta => consulta.status === 'AGENDADA')
+      .map(consulta => Date.parse(consulta.agendadaPara))
+      .filter(inicio => inicio >= agora)
+      .sort((a, b) => a - b)[0]
+    if (proximoInicio === undefined) return
+    // A igualdade ainda pertence a Próximas; renovar depois de atravessar o início.
+    const temporizador = window.setTimeout(() => {
+      if (document.visibilityState === 'visible') void recarregar()
+    }, Math.min(proximoInicio - agora + 1, 2_147_483_647))
+    return () => window.clearTimeout(temporizador)
+  }, [grupo, resultado, recarregar])
+
   function selecionarGrupo(novoGrupo: GrupoAgendaConsulta) { setGrupo(novoGrupo); setPagina(0) }
   function aplicarPeriodo() {
     if (!dataInicialEditada && !dataFinalEditada) { setErroPeriodo(''); setPeriodo({}); setPagina(0); return }

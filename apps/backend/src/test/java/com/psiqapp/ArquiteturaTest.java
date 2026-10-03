@@ -12,19 +12,18 @@ class ArquiteturaTest {
     private static final ArchRule DOMINIO = noClasses().that().resideInAnyPackage("..domain..", "..dominio..", "com.psiqapp.domain..", "com.psiqapp.dominio..")
             .should().dependOnClassesThat().resideInAnyPackage(
                     "..adapter..", "..adaptador..", "..application..", "..config..", "org.springframework..",
-                    "jakarta.persistence..", "org.hibernate..", "org.postgresql..", "com.openai..")
+                    "jakarta.persistence..", "org.hibernate..", "org.postgresql..", "com.openai..", "com.google..")
             .allowEmptyShould(true);
 
     @Test
     void camadasInternasNaoDependemDeFrameworksOuAdapters() {
         var classes = new ClassFileImporter().withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
                 .importPackages("com.psiqapp");
-        // O bootstrap ainda nao possui modelos ou casos de uso; a regra permanece ativa para as proximas tasks.
         DOMINIO.check(classes);
         noClasses().that().resideInAPackage("..application..")
                 .should().dependOnClassesThat().resideInAnyPackage(
                         "..adapter..", "..config..", "org.springframework..",
-                        "jakarta.persistence..", "org.hibernate..", "org.postgresql..", "com.openai..")
+                        "jakarta.persistence..", "org.hibernate..", "org.postgresql..", "com.openai..", "com.google..")
                 .allowEmptyShould(true).check(classes);
         noClasses().that().resideInAPackage("..domain..")
                 .should().dependOnClassesThat().resideInAnyPackage("..application..", "..adapter..", "..config..")

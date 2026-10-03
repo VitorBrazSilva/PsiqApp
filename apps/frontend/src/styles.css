@@ -302,6 +302,7 @@ body:has(.dialog-paciente)::before, body:has(.dialog-fonte)::before, body:has(.d
 .next-appointment > div { display: grid; gap: 4px; flex: 1; }.next-appointment strong { font-size: 14px; }.next-appointment span { color: #62716a; font-size: 12px; }.next-appointment .status-badge { padding: 6px 10px; border-radius: 6px; color: #285c47; background: #eaf1eb; white-space: nowrap; }.next-appointment .text-button { white-space: nowrap; }
 .next-appointment .status-badge { display: inline-flex; align-items: center; gap: 5px; }
 .next-appointment .appointment-clock { width: 12px; height: 12px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.consulta-detalhes .appointment-clock { width: 16px; height: 16px; margin-right: 6px; vertical-align: text-bottom; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 @media (max-width: 740px) { .direction-picker { margin-left: auto; }.direction-picker button { padding: 5px 8px; font-size: 10px; }.registration-intro { display: block; }.registration-intro .link-botao { margin-bottom: 8px; }.dialog-evidencias { width: calc(100% - 32px); }.dialog-evidencias .dialog-body { padding: 20px 18px; }.dialog-fonte .dialog-body { padding: 20px 18px; }.dialog-complemento .dialog-body { padding: 20px 18px; }.details-grid, .form-grid { grid-template-columns: 1fr; } }
 
 /* Ajustes finais de correspondência com as telas de referência. */
