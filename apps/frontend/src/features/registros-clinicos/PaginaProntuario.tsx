@@ -6,7 +6,7 @@ import { PainelAnaliseAtual, type ChaveSecaoAnalise } from '../analises/PainelAn
 import { type AnaliseClinica, type EvidenciaAnalise } from '../analises/servicoAnalises'
 import { usePollingAnalise } from '../analises/usePollingAnalise'
 import { servicoAnalises } from '../analises/servicoAnalises'
-import { FormularioConsulta } from '../consultas/FormularioConsulta'
+import { DialogoConsulta } from '../consultas/DialogoConsulta'
 import { PainelConsultas } from '../consultas/PainelConsultas'
 import { servicoConsultas, type Consulta } from '../consultas/servicoConsultas'
 import { DadosPaciente } from '../pacientes/DadosPaciente'
@@ -35,7 +35,8 @@ export function PaginaProntuario() {
   const [retornoEvidencias, setRetornoEvidencias] = useState<(() => void) | null>(null)
   const [registroEmDestaque, setRegistroEmDestaque] = useState<string | null>(null)
   const [parecerAberto, setParecerAberto] = useState(false)
-  const [consultaAberta, setConsultaAberta] = useState(false)
+  const [consultaAberta, setConsultaAberta] = useState<string | null>(null)
+  const [contextoConsulta, setContextoConsulta] = useState(pacienteId)
   const [analiseHistorica, setAnaliseHistorica] = useState<AnaliseClinica | null>(null)
   const [erroHistoricoAnalise, setErroHistoricoAnalise] = useState('')
   const [solicitandoAnalise, setSolicitandoAnalise] = useState(false)
@@ -45,15 +46,14 @@ export function PaginaProntuario() {
   const { estado, geracoes, carregando: carregandoAnalise, erro: erroAnalise, recarregar } = usePollingAnalise(pacienteId ?? null)
 
   useEffect(() => {
-    if (!parecerAberto && !consultaAberta) return
+    if (!parecerAberto) return
     const fecharComEscape = (evento: KeyboardEvent) => {
       if (evento.key !== 'Escape') return
       setParecerAberto(false)
-      setConsultaAberta(false)
     }
     window.addEventListener('keydown', fecharComEscape)
     return () => window.removeEventListener('keydown', fecharComEscape)
-  }, [parecerAberto, consultaAberta])
+  }, [parecerAberto])
 
   useEffect(() => {
     const dialog = complementoDialogRef.current
@@ -77,6 +77,7 @@ export function PaginaProntuario() {
       servicoPacientes.obter(pacienteId, controle.signal),
       servicoRegistrosClinicos.listar(pacienteId, controle.signal, paginaRegistros.pagina, 100),
     ]).then(([pacienteResposta, paginaRegistros]) => {
+      if (controle.signal.aborted) return
       setPaciente(pacienteResposta)
       setRegistros(paginaRegistros.itens)
       setPaginaRegistros({ pagina: paginaRegistros.pagina, tamanho: paginaRegistros.tamanho, total: paginaRegistros.total })
@@ -113,6 +114,11 @@ export function PaginaProntuario() {
     })
     return () => window.cancelAnimationFrame(frame)
   }, [registroEmDestaque, secao, registros])
+
+  if (contextoConsulta !== pacienteId) {
+    setContextoConsulta(pacienteId)
+    setConsultaAberta(null)
+  }
 
   if (!pacienteId) {
     return (
@@ -197,7 +203,7 @@ export function PaginaProntuario() {
       <header className="patient-heading">
         <span className="patient-avatar" aria-hidden="true">{paciente?.nome.split(/\s+/).slice(0, 2).map(parte => parte[0]).join('').toUpperCase()}</span>
         <div className="patient-name"><h1>{paciente?.nome}</h1><p className="patient-subtitle"><span>{formatarIdade(paciente?.dataNascimento ?? '')} anos</span><span>{registros.filter(registro => !registros.find(original => original.id === registro.parecerOriginalId)).length} pareceres originais</span></p></div>
-        <div className="heading-actions"><button className="secondary" type="button" onClick={() => setConsultaAberta(true)}><svg className="button-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2" /></svg>Agendar consulta</button><button className="primary" type="button" onClick={() => setParecerAberto(true)}>+&nbsp; Novo parecer</button></div>
+        <div className="heading-actions"><button className="secondary" type="button" onClick={() => setConsultaAberta(pacienteId)}><svg className="button-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2" /></svg>Agendar consulta</button><button className="primary" type="button" onClick={() => setParecerAberto(true)}>+&nbsp; Novo parecer</button></div>
       </header>
       <nav className="patient-tabs" aria-label="Seções do prontuário">
         <button type="button" className={secao === 'historico' ? 'active' : ''} aria-current={secao === 'historico' ? 'page' : undefined} onClick={() => mudarSecao('historico')}>Histórico clínico <span className="count">{registros.length}</span></button>
@@ -217,9 +223,6 @@ export function PaginaProntuario() {
       </div>
 
       <div className="grade-prontuario acoes-registro">
-        <section className="painel">
-          <FormularioConsulta pacienteFixoId={pacienteId} aoCriar={() => { setVersaoAgenda(atual => atual + 1) }} />
-        </section>
         <section className="painel">
           <FormularioParecer pacienteId={pacienteId} aoCriar={registrarCriacao} />
         </section>
@@ -259,7 +262,8 @@ export function PaginaProntuario() {
           <div className="dialog-body"><FormularioComplemento key={originalEmComplemento} pacienteId={pacienteId} originalId={originalEmComplemento} pacienteNome={paciente?.nome ?? ''} dataParecerOriginal={registros.find(registro => registro.id === originalEmComplemento)?.dataHoraClinica ?? ''} aoCancelar={() => setComplementoAberto(false)} aoCriar={registrarCriacao} /></div>
         </dialog>}
         {parecerAberto && <dialog open className="dialog-parecer" aria-labelledby="titulo-parecer" onKeyDown={evento => { if (evento.key === 'Escape') { evento.preventDefault(); setParecerAberto(false) } }}><div className="dialog-header"><h2 id="titulo-parecer">Novo parecer</h2><button className="icon-button" type="button" aria-label="Fechar novo parecer" onClick={() => setParecerAberto(false)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div><div className="dialog-body"><FormularioParecer pacienteId={pacienteId} aoCriar={resposta => { registrarCriacao(resposta); setParecerAberto(false) }} /></div></dialog>}
-        {consultaAberta && <dialog open className="dialog-parecer dialog-consulta" aria-labelledby="titulo-consulta" onKeyDown={evento => { if (evento.key === 'Escape') { evento.preventDefault(); setConsultaAberta(false) } }}><div className="dialog-header"><h2 id="titulo-consulta">Agendar consulta</h2><button className="icon-button" type="button" aria-label="Fechar agendamento" onClick={() => setConsultaAberta(false)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg></button></div><div className="dialog-body"><FormularioConsulta pacienteFixoId={pacienteId} pacienteNome={paciente?.nome} emDialogo aoCancelar={() => setConsultaAberta(false)} aoCriar={() => { setConsultaAberta(false); setVersaoAgenda(atual => atual + 1) }} /></div></dialog>}
+        {consultaAberta === pacienteId && <DialogoConsulta key={pacienteId} pacienteId={pacienteId} pacienteNome={paciente?.id === pacienteId ? paciente.nome : undefined}
+          aoFechar={() => setConsultaAberta(null)} aoCriar={() => { setConsultaAberta(null); setVersaoAgenda(atual => atual + 1) }} />}
       </div>
     </section>
   )

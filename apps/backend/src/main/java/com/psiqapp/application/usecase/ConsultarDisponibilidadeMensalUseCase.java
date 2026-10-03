@@ -16,7 +16,8 @@ import com.psiqapp.domain.validation.ErroDeValidacao;
 
 public class ConsultarDisponibilidadeMensalUseCase {
     public record Dia(java.time.LocalDate data, List<Instant> horarios) {}
-    public record Resultado(YearMonth mes, List<Dia> dias) {}
+    public record Resultado(YearMonth mes, java.time.LocalDate hoje, String fusoHorario,
+            Instant verificadoEm, String fonteDisponibilidade, List<Dia> dias) {}
 
     private final RepositoryConsultaPort consultas;
     private final ConsultarOcupacaoGoogleAgendaServico google;
@@ -57,6 +58,8 @@ public class ConsultarDisponibilidadeMensalUseCase {
         livres.forEach(horario -> porDia.computeIfAbsent(horario.atZone(DisponibilidadeAgenda.FUSO).toLocalDate(),
                 chave -> new ArrayList<>()).add(horario));
         var dias = porDia.entrySet().stream().map(item -> new Dia(item.getKey(), List.copyOf(item.getValue()))).toList();
-        return new Resultado(mes, dias);
+        return new Resultado(mes, referencia.atZone(DisponibilidadeAgenda.FUSO).toLocalDate(),
+                DisponibilidadeAgenda.FUSO.getId(), referencia,
+                googleResult.conexaoAtiva() ? "LOCAL_E_GOOGLE" : "LOCAL", dias);
     }
 }

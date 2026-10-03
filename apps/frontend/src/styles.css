@@ -760,3 +760,56 @@ body { font-size: 13px; }
   .agenda-page .consulta-acoes { justify-items: start; }
   .agenda-page .acoes-status { justify-content: flex-start; }
 }
+
+/* Busca de disponibilidade compartilhada pelas duas origens. */
+.agenda-form { width: 100%; max-width: none; }
+.agendamento-etapas { display: flex; justify-content: space-between; gap: 12px; list-style: none; padding: 0; margin: 16px 0 24px; }
+.agendamento-etapas li { display: flex; align-items: center; gap: 10px; color: var(--muted); }
+.agendamento-etapas li span { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: #edf1ee; color: #263b33; }
+.agendamento-etapas [aria-current="step"] { color: #245b47; font-weight: 600; }
+.agendamento-etapas [aria-current="step"] span { background: #245b47; color: white; }
+.agendamento-modos { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.agendamento-modos button[aria-pressed="true"] { border-color: #245b47; background: #edf5ef; }
+.formulario .agendamento-modos button.secondary { color: #245b47; background: #fff; }
+.formulario .agendamento-modos button.secondary[aria-pressed="true"] { color: #245b47; background: #edf5ef; border-color: #245b47; }
+.formulario .agendamento-modos button.secondary:disabled { color: #52645a; opacity: 0.65; }
+.agendamento-busca { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 20px; margin: 20px 0; align-items: start; }
+.calendario-disponibilidade, .horarios-disponiveis { min-width: 0; padding: 20px; border: 1px solid var(--border, #dce5df); border-radius: 10px; }
+.calendario-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.calendario-cabecalho h3 { text-align: center; text-transform: capitalize; font-size: 18px; }
+.calendario-cabecalho button { min-width: 44px; min-height: 44px; font-size: 24px; padding: 4px; }
+.calendario-disponibilidade table { width: 100%; table-layout: fixed; border-collapse: collapse; margin: 12px 0; }
+.calendario-disponibilidade th { font-size: 12px; font-weight: 500; padding: 8px 0; }
+.calendario-disponibilidade abbr { text-decoration: none; }
+.calendario-disponibilidade td { padding: 3px 0; text-align: center; }
+.calendario-disponibilidade td button { display: block; width: 100%; max-width: 48px; min-height: 44px; margin: auto; padding: 0; border: 0; border-radius: 50%; background: #edf5ef; color: #245b47; }
+.calendario-disponibilidade td button:disabled { background: transparent; color: #68766f; opacity: 0.65; cursor: default; }
+.calendario-disponibilidade td button[aria-pressed="true"] { background: #245b47; color: white; }
+.calendario-ajuda { padding: 12px; border-radius: 6px; background: #edf5ef; color: #40564b; font-size: 13px; }
+.horarios-disponiveis h3 { font-size: 16px; margin: 0 0 20px; }
+.horarios-disponiveis fieldset { padding: 12px 0 16px; margin: 0; border: 0; border-bottom: 1px solid #dce5df; }
+.horarios-disponiveis legend { font-weight: 600; font-size: 14px; }
+.horarios-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); gap: 8px; }
+.horarios-grade label { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 5px; min-height: 44px; padding: 4px; border: 1px solid #b8c9bf; border-radius: 6px; cursor: pointer; font-size: 14px; }
+.horarios-grade input { width: 14px; height: 14px; min-height: 0; padding: 0; margin: 0; accent-color: #245b47; }
+.agenda-form .horarios-grade input, .dialog-consulta .formulario .horarios-grade input { min-height: 0; padding: 0; }
+.dialog-consulta .formulario .horarios-grade label { display: flex; flex-direction: row; font-size: 14px; }
+.horarios-grade label.horario-selecionado { color: white; background: #245b47; border-color: #245b47; }
+.horarios-grade label:focus-within { outline: 3px solid #78a58d; outline-offset: 3px; }
+.agendamento-resumo { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 20px; padding: 20px; background: #edf5ef; border-radius: 8px; margin-bottom: 20px; }
+.agendamento-resumo div { display: flex; flex-direction: column; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
+.agendamento-resumo small { color: #52645a; }
+.dialog-consulta { width: min(1100px, calc(100vw - 48px)); max-width: none; max-height: calc(100dvh - 48px); }
+.dialog-consulta::backdrop { background: rgb(20 40 30 / 40%); }
+.agendamento-busca button:focus-visible, .agendamento-modos button:focus-visible { outline: 3px solid #78a58d; outline-offset: 2px; }
+@media (max-width: 700px) {
+  .agendamento-busca { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .calendario-disponibilidade, .horarios-disponiveis { padding: 10px; }
+  .agendamento-resumo { grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 16px; }
+  .agendamento-etapas { gap: 5px; font-size: 12px; }
+  .agendamento-etapas li { gap: 4px; }
+  .agendamento-etapas li span { width: 26px; height: 26px; }
+  .dialog-consulta { width: 100vw; height: 100dvh; max-height: 100dvh; max-width: 100vw; margin: 0; border-radius: 0; }
+  .dialog-consulta .dialog-body { padding: 14px; }
+  .agenda-form { padding: 14px; }
+}

@@ -31,6 +31,20 @@ class ConsultarDisponibilidadeMensalUseCaseTest {
                     Clock.fixed(AGORA, ZoneOffset.UTC)), Clock.fixed(AGORA, ZoneOffset.UTC));
 
     @Test
+    void metadadosEHorariosUsamReferenciaCapturadaDepoisDasLeituras() {
+        Clock clock = mock(Clock.class);
+        Instant depois = AGORA.plusSeconds(3601);
+        when(clock.instant()).thenReturn(AGORA, depois);
+        when(conexao.estado()).thenReturn("NAO_CONFIGURADA");
+        var usecase = new ConsultarDisponibilidadeMensalUseCase(consultas,
+                new ConsultarOcupacaoGoogleAgendaServico(conexao, calendario, configuracao, clock), clock);
+        var resultado = usecase.executar(null);
+        assertThat(resultado.verificadoEm()).isEqualTo(depois);
+        assertThat(resultado.dias().stream().flatMap(dia -> dia.horarios().stream()))
+                .allMatch(hora -> !hora.isBefore(depois));
+    }
+
+    @Test
     void buscaUsaUmaLeituraLocalEUmaConsultaGoogleParaMesCompleto() {
         when(conexao.estado()).thenReturn("CONECTADA");
         when(configuracao.configurado()).thenReturn(true);
@@ -45,6 +59,10 @@ class ConsultarDisponibilidadeMensalUseCaseTest {
 
         assertThat(resultado.mes()).isEqualTo(YearMonth.of(2026, 10));
         assertThat(resultado.dias()).isNotEmpty();
+        assertThat(resultado.hoje()).isEqualTo(java.time.LocalDate.of(2026, 10, 2));
+        assertThat(resultado.verificadoEm()).isEqualTo(AGORA);
+        assertThat(resultado.fusoHorario()).isEqualTo("America/Sao_Paulo");
+        assertThat(resultado.fonteDisponibilidade()).isEqualTo("LOCAL_E_GOOGLE");
         verify(consultas).listarIniciosAgendadosSobrepostos(Instant.parse("2026-10-01T03:00:00Z"),
                 Instant.parse("2026-11-01T04:00:00Z"));
         verify(calendario).consultarOcupacao("token-ficticio", Instant.parse("2026-10-01T03:00:00Z"),
@@ -79,6 +97,7 @@ class ConsultarDisponibilidadeMensalUseCaseTest {
                 org.mockito.ArgumentMatchers.any())).thenReturn(List.of());
 
         var resultado = caso.executar(null);
+        assertThat(resultado.fonteDisponibilidade()).isEqualTo("LOCAL");
 
         assertThat(resultado.mes()).isEqualTo(YearMonth.of(2026, 10));
         assertThat(resultado.dias()).isNotEmpty();

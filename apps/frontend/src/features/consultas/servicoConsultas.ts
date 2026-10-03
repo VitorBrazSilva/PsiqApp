@@ -28,6 +28,15 @@ export interface PaginaAgendaConsultas extends Pagina<Consulta> {
   contagens: Record<GrupoAgendaConsulta, number>
 }
 
+export interface DisponibilidadeMensal {
+  mes: string
+  hoje: string
+  fusoHorario: 'America/Sao_Paulo'
+  verificadoEm: string
+  fonteDisponibilidade: 'LOCAL' | 'LOCAL_E_GOOGLE'
+  dias: { data: string, horarios: string[] }[]
+}
+
 export interface CriarConsulta {
   pacienteId: string
   agendadaPara: string
@@ -44,6 +53,10 @@ export function rotuloStatus(status: StatusConsulta) {
 }
 
 export const servicoConsultas = {
+  consultarDisponibilidadeMensal(mes?: string, signal?: AbortSignal) {
+    const parametros = mes ? `?${new URLSearchParams({ mes })}` : ''
+    return api.requisitar<DisponibilidadeMensal>(`/consultas/disponibilidade/mensal${parametros}`, { signal, usarApiReal: true })
+  },
   listarAgenda(filtros: { grupo?: GrupoAgendaConsulta, pacienteId?: string, dataInicial?: string, dataFinal?: string, pagina?: number, tamanho?: number } = {}, signal?: AbortSignal) {
     const params = new URLSearchParams({ grupo: filtros.grupo ?? 'PROXIMAS', pagina: String(filtros.pagina ?? 0), tamanho: String(filtros.tamanho ?? 50) })
     if (filtros.pacienteId) params.set('pacienteId', filtros.pacienteId)
@@ -60,11 +73,12 @@ export const servicoConsultas = {
     return api.requisitar<Pagina<Consulta>>(`/consultas?${params}`, { signal, usarApiReal: opcoes.usarApiReal })
   },
 
-  criar(dados: CriarConsulta, opcoes: { usarApiReal?: boolean } = {}) {
+  criar(dados: CriarConsulta, opcoes: { usarApiReal?: boolean, chaveIdempotencia?: string, signal?: AbortSignal } = {}) {
     return api.requisitar<Consulta>(`/pacientes/${dados.pacienteId}/consultas`, {
       metodo: 'POST',
       corpo: { agendadaPara: dados.agendadaPara, observacoes: dados.observacoes },
-      chaveDeIdempotencia: chaveDeIdempotencia(),
+      chaveDeIdempotencia: opcoes.chaveIdempotencia ?? chaveDeIdempotencia(),
+      signal: opcoes.signal,
       usarApiReal: opcoes.usarApiReal,
     })
   },

@@ -1,9 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
+import { chaveDeIdempotencia } from '../../shared/idempotencia/chaveDeIdempotencia'
+import { CalendarioDisponibilidade } from './CalendarioDisponibilidade'
+import { HorariosDisponiveis } from './HorariosDisponiveis'
+import { useDisponibilidadeMensal } from './useDisponibilidadeMensal'
+import { dataCompleta, horaAgenda } from './tempoAgenda'
 import { ErroApi } from '../../shared/api/erroApi'
 import { errosDeCampo, mensagemErro, type ErrosFormulario } from '../../shared/formularios/errosDeCampo'
 import { servicoPacientes, type Paciente } from '../pacientes/servicoPacientes'
 import { paraIsoComOffset, validarConsulta } from './validacaoConsulta'
-import { servicoConsultas, type Consulta } from './servicoConsultas'
+import { servicoConsultas, type Consulta, type CriarConsulta } from './servicoConsultas'
 import {
   servicoGoogleAgenda,
   type EstadoConexaoGoogleAgenda,
@@ -26,9 +31,9 @@ export function FormularioConsulta({
   aoCriar,
   emDialogo = false,
   aoCancelar,
-  exigirDisponibilidade = false,
+  exigirDisponibilidade = true,
   estadoIntegracao = null,
-  usarApiReal = false,
+  usarApiReal = true,
 }: {
   pacienteFixoId?: string
   pacienteNome?: string
@@ -39,6 +44,11 @@ export function FormularioConsulta({
   estadoIntegracao?: EstadoConexaoGoogleAgenda | 'CARREGANDO' | null
   usarApiReal?: boolean
 }) {
+  const [modo, setModo] = useState<'BUSCA' | 'MANUAL'>('BUSCA')
+  const [selecao, setSelecao] = useState({ contexto: '', data: '', horario: '' })
+  const [operacaoIncerta, setOperacaoIncerta] = useState<{ dados: CriarConsulta, chave: string } | null>(null)
+  const criacaoRef = useRef<AbortController | null>(null)
+  const enviandoRef = useRef(false)
   const [pacientes, setPacientes] = useState<Paciente[]>([])
   const [pacienteSelecionadoId, setPacienteSelecionadoId] = useState('')
   const [dataHora, setDataHora] = useState('')
@@ -50,6 +60,11 @@ export function FormularioConsulta({
   const [estadoDisponibilidade, setEstadoDisponibilidade] = useState<EstadoVerificacao>('NAO_VERIFICADA')
   const [dataHoraVerificada, setDataHoraVerificada] = useState('')
   const [conexaoVerificada, setConexaoVerificada] = useState<EstadoConexaoGoogleAgenda | 'CARREGANDO' | null>(null)
+  const pacienteIdAtual = pacienteFixoId ?? pacienteSelecionadoId
+  const mensal = useDisponibilidadeMensal(pacienteIdAtual, estadoIntegracao, modo === 'BUSCA')
+  const selecaoAtual = selecao.contexto === mensal.identificador ? selecao : { data: '', horario: '' }
+  const horariosDia = mensal.dias.find(dia => dia.data === selecaoAtual.data)?.horarios ?? []
+  const horarioSelecionado = horariosDia.includes(selecaoAtual.horario) ? selecaoAtual.horario : ''
   const resumoErros = useRef<HTMLDivElement>(null)
   const requisicaoDisponibilidade = useRef<AbortController | null>(null)
 
@@ -68,7 +83,7 @@ export function FormularioConsulta({
     requisicaoDisponibilidade.current?.abort()
   }, [estadoIntegracao])
 
-  useEffect(() => () => requisicaoDisponibilidade.current?.abort(), [])
+  useEffect(() => () => { requisicaoDisponibilidade.current?.abort(); criacaoRef.current?.abort() }, [])
 
   useEffect(() => {
     if (Object.keys(erros).length > 1) resumoErros.current?.focus()
@@ -81,10 +96,23 @@ export function FormularioConsulta({
   const disponibilidadeVisivel = conexaoVerificada !== estadoIntegracao && estadoDisponibilidade !== 'NAO_VERIFICADA'
     ? 'NAO_VERIFICADA'
     : estadoDisponibilidade
-  const podeCriar = !salvando && (!exigirDisponibilidade || verificacaoValida)
+  const podeCriar = !salvando && (!!operacaoIncerta || (modo === 'BUSCA'
+    ? !!horarioSelecionado && mensal.estado === 'PRONTO'
+    : !exigirDisponibilidade || verificacaoValida))
+
+  function limparOperacao() { setOperacaoIncerta(null); setErroGeral('') }
+  function alterarModo(novo: 'BUSCA' | 'MANUAL') {
+    requisicaoDisponibilidade.current?.abort()
+    setModo(novo)
+    setSelecao({ contexto: '', data: '', horario: '' })
+    alterarDataHora('')
+    limparOperacao()
+    mensal.renovar()
+  }
 
   function alterarDataHora(valor: string) {
     requisicaoDisponibilidade.current?.abort()
+    limparOperacao()
     setDataHora(valor)
     setEstadoDisponibilidade('NAO_VERIFICADA')
     setDataHoraVerificada('')
@@ -130,20 +158,36 @@ export function FormularioConsulta({
 
   async function enviar(evento: React.FormEvent) {
     evento.preventDefault()
+    if (enviandoRef.current) return
     const pacienteId = pacienteFixoId ?? pacienteSelecionadoId
-    const dados = { pacienteId, agendadaPara: paraIsoComOffset(dataHora), observacoes: observacoes.trim() || null }
+    const dados = operacaoIncerta?.dados ?? { pacienteId, agendadaPara: modo === 'BUSCA' ? horarioSelecionado : paraIsoComOffset(dataHora), observacoes: observacoes.trim() || null }
     const validacao = validarConsulta(dados)
     setErros(validacao)
     setErroGeral('')
     if (Object.keys(validacao).length) return
-    if (exigirDisponibilidade && !verificacaoValida) {
+    if (!operacaoIncerta && modo === 'BUSCA' && (!horarioSelecionado || Date.parse(horarioSelecionado) < mensal.referenciaAtual())) {
+      setSelecao({ contexto: '', data: '', horario: '' })
+      mensal.renovar()
+      setErroGeral('Este horário já passou. Escolha outro horário disponível.')
+      return
+    }
+    if (!operacaoIncerta && modo === 'MANUAL' && exigirDisponibilidade && !verificacaoValida) {
       setErroGeral('Verifique novamente a disponibilidade desta data e hora antes de criar a consulta.')
       return
     }
 
+    const operacao = operacaoIncerta ?? { dados, chave: chaveDeIdempotencia() }
+    const controle = new AbortController()
+    criacaoRef.current = controle
+    enviandoRef.current = true
     setSalvando(true)
     try {
-      const consulta = await servicoConsultas.criar(dados, { usarApiReal })
+      const consulta = await servicoConsultas.criar(operacao.dados, { usarApiReal, chaveIdempotencia: operacao.chave, signal: controle.signal })
+      if (controle.signal.aborted) return
+      if (consulta.pacienteId !== pacienteId) throw new ErroApi(201, 'RESPOSTA_INVALIDA')
+      setOperacaoIncerta(null)
+      setSelecao({ contexto: '', data: '', horario: '' })
+      mensal.renovar()
       setDataHora('')
       setObservacoes('')
       setEstadoDisponibilidade('NAO_VERIFICADA')
@@ -151,22 +195,34 @@ export function FormularioConsulta({
       setConexaoVerificada(null)
       aoCriar(consulta)
     } catch (erro) {
+      if (controle.signal.aborted) return
       if (erro instanceof ErroApi && erro.status === 409) {
+        setOperacaoIncerta(null)
+        setSelecao({ contexto: '', data: '', horario: '' })
+        mensal.renovar()
         setEstadoDisponibilidade('OCUPADO')
         setDataHoraVerificada('')
         setConexaoVerificada(estadoIntegracao)
-        setErroGeral('Este horário deixou de estar disponível. Verifique novamente antes de criar a consulta.')
+        setErroGeral(modo === 'BUSCA' ? 'Este horário deixou de estar disponível. Escolha outro horário.' : 'Este horário deixou de estar disponível. Verifique novamente antes de criar a consulta.')
       } else if (erro instanceof ErroApi && erro.codigo === 'GOOGLE_DISPONIBILIDADE_INDISPONIVEL') {
+        setOperacaoIncerta(null)
+        setSelecao({ contexto: '', data: '', horario: '' })
+        mensal.invalidar('Não foi possível consultar o Google Agenda. Tente buscar novamente.')
         setEstadoDisponibilidade('INDISPONIVEL')
         setDataHoraVerificada('')
         setConexaoVerificada(estadoIntegracao)
         setErroGeral('Não foi possível consultar o Google Agenda. Tente verificar a disponibilidade novamente.')
+      } else if (!(erro instanceof ErroApi) || erro.status === 0 || erro.status >= 500 || erro.codigo === 'RESPOSTA_INVALIDA') {
+        setOperacaoIncerta(operacao)
+        setErroGeral('A resposta da criação não foi recebida. Repita a confirmação para recuperar a mesma consulta com segurança.')
       } else {
+        setOperacaoIncerta(null)
         setErros(errosDeCampo(erro))
         setErroGeral(mensagemErro(erro))
       }
     } finally {
-      setSalvando(false)
+      enviandoRef.current = false
+      if (!controle.signal.aborted) setSalvando(false)
     }
   }
 
@@ -186,11 +242,21 @@ export function FormularioConsulta({
           </ul>
         </div>
       )}
+      <p className="section-intro">Selecione uma data e um horário livre para o acompanhamento.</p>
+      <ol className="agendamento-etapas" aria-label="Etapas do agendamento">
+        <li aria-current={!selecaoAtual.data ? 'step' : undefined}><span>1</span> Data</li>
+        <li aria-current={selecaoAtual.data && !horarioSelecionado ? 'step' : undefined}><span>2</span> Horário</li>
+        <li aria-current={horarioSelecionado ? 'step' : undefined}><span>3</span> Confirmação</li>
+      </ol>
+      <div className="agendamento-modos" aria-label="Forma de agendamento">
+        <button className="secondary" type="button" aria-pressed={modo === 'BUSCA'} disabled={salvando} onClick={() => alterarModo('BUSCA')}>Buscar horários</button>
+        <button className="secondary" type="button" aria-pressed={modo === 'MANUAL'} disabled={salvando} onClick={() => alterarModo('MANUAL')}>Informar data e hora</button>
+      </div>
       {erroGeral && <p role="alert" className="erro">{erroGeral}</p>}
       {erroPacientes && <p role="alert" className="erro">{erroPacientes}</p>}
 
       {!pacienteFixoId && (
-        <label htmlFor="agenda-paciente">Paciente
+        <div><label htmlFor="agenda-paciente">Paciente</label>
           <select
             id="agenda-paciente"
             required
@@ -199,17 +265,43 @@ export function FormularioConsulta({
             aria-invalid={!!erros.pacienteId}
             aria-describedby={erros.pacienteId ? 'agenda-paciente-erro' : undefined}
             onChange={evento => {
+              requisicaoDisponibilidade.current?.abort()
               setPacienteSelecionadoId(evento.target.value)
+              setEstadoDisponibilidade('NAO_VERIFICADA')
+              setDataHoraVerificada('')
+              setSelecao({ contexto: '', data: '', horario: '' })
+              limparOperacao()
               setErros(atuais => { const novos = { ...atuais }; delete novos.pacienteId; return novos })
             }}
           >
             <option value="">Selecione</option>
             {pacientes.map(paciente => <option key={paciente.id} value={paciente.id}>{paciente.nome}</option>)}
           </select>
-        </label>
+        </div>
       )}
       {erros.pacienteId && <span id="agenda-paciente-erro" className="erro-campo" role={quantidadeErros <= 1 ? 'alert' : undefined}>{erros.pacienteId}</span>}
 
+      {modo === 'BUSCA' ? <>
+        <div role="status" aria-live="polite" aria-atomic="true">
+          {mensal.estado === 'CARREGANDO' && 'Buscando horários disponíveis...'}
+          {mensal.estado === 'SEM_HORARIOS' && 'Não foram encontrados horários livres neste mês.'}
+          {mensal.dados && `Disponibilidade ${mensal.dados.fonteDisponibilidade === 'LOCAL_E_GOOGLE' ? 'local e Google Agenda' : 'local do PsiqApp'}. Horários em São Paulo.`}
+        </div>
+        {mensal.estado === 'FALHA' && <div><p className="erro" role="alert">{mensal.erro}</p><button type="button" className="secondary" disabled={salvando} onClick={mensal.renovar}>Buscar novamente</button></div>}
+        {mensal.dados && <div className="agendamento-busca">
+          <CalendarioDisponibilidade mes={mensal.dados.mes} hoje={mensal.dados.hoje} dias={mensal.dias} selecionada={selecaoAtual.data}
+            desabilitado={salvando} aoMudarMes={mes => { limparOperacao(); mensal.mudarMes(mes) }}
+            aoSelecionar={data => { limparOperacao(); setSelecao({ contexto: mensal.identificador, data, horario: '' }) }} />
+          <HorariosDisponiveis data={selecaoAtual.data} horarios={horariosDia} selecionado={horarioSelecionado} desabilitado={salvando}
+            aoSelecionar={horario => { limparOperacao(); setSelecao({ contexto: mensal.identificador, data: selecaoAtual.data, horario }) }} />
+        </div>}
+        {horarioSelecionado && <section className="agendamento-resumo" aria-label="Revisão do agendamento">
+          <div><small>Data escolhida</small><strong>{dataCompleta(selecaoAtual.data)}</strong></div>
+          <div><small>Horário escolhido</small><strong>{horaAgenda(horarioSelecionado)} · São Paulo</strong></div>
+          <div><small>Paciente</small><strong>{pacienteNome ?? pacientes.find(paciente => paciente.id === pacienteIdAtual)?.nome ?? 'Selecione um paciente'}</strong></div>
+        </section>}
+        {erros.agendadaPara && <span className="erro-campo" role="alert">{erros.agendadaPara}</span>}
+      </> : <>
       <label htmlFor="agenda-data-hora">Data e hora
         <input
           id="agenda-data-hora"
@@ -248,13 +340,15 @@ export function FormularioConsulta({
         </div>
       )}
 
+      </>}
+
       <label htmlFor="agenda-observacoes">Observações
-        <textarea id="agenda-observacoes" value={observacoes} disabled={salvando} onChange={evento => setObservacoes(evento.target.value)} />
+        <textarea id="agenda-observacoes" value={observacoes} disabled={salvando} onChange={evento => { limparOperacao(); setObservacoes(evento.target.value) }} />
       </label>
       <div className="form-actions">
-        {emDialogo && <button type="button" className="secondary" onClick={aoCancelar}>Cancelar</button>}
+        {emDialogo && <button type="button" className="secondary" onClick={aoCancelar} disabled={salvando}>Cancelar</button>}
         <button className="primary" disabled={!podeCriar}>
-          {salvando ? 'Salvando...' : emDialogo ? 'Agendar consulta' : 'Criar consulta'}
+          {salvando ? 'Salvando...' : operacaoIncerta ? 'Repetir confirmação' : modo === 'BUSCA' ? 'Confirmar agendamento' : emDialogo ? 'Agendar consulta' : 'Criar consulta'}
         </button>
       </div>
     </form>
