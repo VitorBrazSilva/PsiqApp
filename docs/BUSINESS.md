@@ -81,6 +81,9 @@ Regras funcionais:
 - Cada grupo mostra sua contagem completa para o paciente/período atual, mesmo quando os itens são exibidos em páginas.
 - A seção Consultas do prontuário apresenta a próxima consulta acima da lista e um resumo com total de consultas, próxima consulta e última consulta realizada. Esse resumo considera todo o acompanhamento do paciente aberto, independentemente do grupo, período ou página da lista. Ausências de consultas e falhas de leitura são apresentadas explicitamente.
 - O contexto de próxima consulta é compartilhado com o Histórico clínico. O resumo acompanha criação e atualização de status, retorno à janela e passagem do horário da próxima consulta.
+- A Agenda destaca a próxima consulta com paciente e data/hora de São Paulo no mesmo padrão do prontuário. O destaque acompanha o paciente selecionado, independentemente do grupo, período ou página da lista, e renova ao criar/finalizar consultas, retornar à janela/aba e atravessar o início da próxima consulta. Ausência e falha de leitura são informadas explicitamente.
+- Na Agenda, “Agendar consulta” abre o cadastro em diálogo. Fechar, Voltar ou Escape devolve o foco ao botão; reabrir inicia um cadastro limpo. Confirmar com sucesso fecha o diálogo, informa o resultado e atualiza a Agenda.
+- As informações e ações do Google Agenda ficam na lateral direita da lista em desktop e abaixo dela em telas estreitas, mantendo a divulgação dos dados compartilhados e das consequências da desconexão.
 - Toda consulta criada inicia como `AGENDADA`.
 - Uma consulta `AGENDADA` pode ser marcada como `REALIZADA`, `CANCELADA` ou `FALTA`.
 - Estados `REALIZADA`, `CANCELADA` e `FALTA` são finais.
@@ -249,7 +252,7 @@ As etapas de cadastro, busca e visualização de dados básicos existem no backe
 
 As etapas de criação, listagem de agenda e atualização de status estão disponíveis no frontend. A agenda global exibe paciente, data, hora, status da consulta e estado Google; quando o nome do paciente ainda não foi carregado na página, o frontend exibe o identificador técnico do paciente como fallback.
 
-1. O médico seleciona o paciente na Agenda ou usa o paciente aberto no prontuário. Busca uma data e um horário livres no calendário mensal e revisa a seleção; também pode informar data e hora pelo caminho manual, inclusive para consultas retroativas.
+1. O médico aciona Agendar consulta e seleciona o paciente na Agenda ou usa o paciente aberto no prontuário. Busca uma data e um horário livres no calendário mensal e revisa a seleção; também pode informar data e hora pelo caminho manual, inclusive para consultas retroativas.
 2. O sistema consulta a disponibilidade local e, quando há conexão ativa, também o Google. A seleção pela busca dispensa uma verificação separada; o caminho manual exige essa ação. Sem conexão, a disponibilidade usa a agenda local; conflito ou falha de disponibilidade impede criar a consulta.
 3. Se a data e hora permanecem disponíveis, o médico cria a consulta, que nasce como `AGENDADA` e aparece na agenda interna.
 4. A agenda mostra o estado de sincronização Google da consulta e permite nova tentativa quando houver pendência ou falha.
