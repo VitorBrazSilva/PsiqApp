@@ -1,0 +1,59 @@
+[
+  {
+    "viewport": 360,
+    "data": {
+      "x": 18,
+      "y": 479.421875,
+      "width": 324,
+      "height": 632.8125
+    },
+    "analysis": {
+      "x": 18,
+      "y": 479.421875,
+      "width": 324,
+      "height": 2532.734375
+    },
+    "documentWidth": 360,
+    "personalFields": 6,
+    "aiPanelOnPersonalData": false,
+    "maskedCpf": true
+  },
+  {
+    "viewport": 1440,
+    "data": {
+      "x": 248,
+      "y": 325,
+      "width": 1154,
+      "height": 357.46875
+    },
+    "analysis": {
+      "x": 248,
+      "y": 325,
+      "width": 1154,
+      "height": 1772.390625
+    },
+    "documentWidth": 1440,
+    "personalFields": 6,
+    "aiPanelOnPersonalData": false,
+    "maskedCpf": true
+  },
+  {
+    "viewport": 1920,
+    "data": {
+      "x": 363,
+      "y": 325,
+      "width": 1404,
+      "height": 357.46875
+    },
+    "analysis": {
+      "x": 363,
+      "y": 325,
+      "width": 1404,
+      "height": 1772.390625
+    },
+    "documentWidth": 1920,
+    "personalFields": 6,
+    "aiPanelOnPersonalData": false,
+    "maskedCpf": true
+  }
+]

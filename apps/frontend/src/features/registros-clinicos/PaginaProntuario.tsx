@@ -205,7 +205,7 @@ export function PaginaProntuario() {
       <div className="painel contexto-paciente">
         {erro && <p role="alert" className="erro">{erro}</p>}
         {erroResumoConsultas && secao === 'historico' && <p role="alert" className="erro">Não foi possível carregar as consultas deste paciente.</p>}
-        {paciente && secao === 'dados' && <DadosPaciente paciente={paciente} />}
+        {paciente?.id === pacienteId && secao === 'dados' && <DadosPaciente paciente={paciente} />}
         {(secao === 'historico' || secao === 'consultas') && resumoConsultas?.proxima && <ProximaConsulta consulta={resumoConsultas.proxima} linkConsultas={secao === 'historico' ? `?${parametrosConsultas}` : undefined} />}
       </div>
 
@@ -237,7 +237,7 @@ export function PaginaProntuario() {
       </section>
 
       <div className="analise-coluna">
-        {secao !== 'consultas' && <PainelAnaliseAtual
+        {(secao === 'historico' || secao === 'analise') && <PainelAnaliseAtual
           pacienteId={pacienteId}
           estado={estado}
           geracoes={geracoes}
