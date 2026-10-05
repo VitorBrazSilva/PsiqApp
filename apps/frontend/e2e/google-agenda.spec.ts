@@ -52,7 +52,9 @@ async function prepararApiFake(page: Page, inicio: { estado?: string, disponibil
       const grupo = (status: unknown) => status === 'AGENDADA' ? 'PROXIMAS' : status === 'REALIZADA' ? 'REALIZADAS' : status === 'CANCELADA' ? 'CANCELADAS' : 'FALTAS'
       consultas.forEach(item => contagens[grupo(item.status)]++)
       const itens = consultas.filter(item => grupo(item.status) === (url.searchParams.get('grupo') ?? 'PROXIMAS'))
-      return respostaJson(route, { itens, pagina: 0, tamanho: 50, total: itens.length, contagens })
+        .sort((a, b) => Date.parse(String(a.agendadaPara)) - Date.parse(String(b.agendadaPara)))
+      const tamanho = Number(url.searchParams.get('tamanho') ?? 50)
+      return respostaJson(route, { itens: itens.slice(0, tamanho), pagina: 0, tamanho, total: itens.length, contagens })
     }
     if (caminho === '/api/v1/consultas' && metodo === 'GET') {
       return respostaJson(route, { itens: consultas, pagina: 0, tamanho: 50, total: consultas.length })
@@ -98,18 +100,21 @@ async function prepararApiFake(page: Page, inicio: { estado?: string, disponibil
 test('permite agendamento local após confirmar disponibilidade e mostra o estado pendente', async ({ page }) => {
   const fake = await prepararApiFake(page, { estado: 'NAO_CONECTADA' })
   await page.goto('/agenda')
+  await expect(page.getByText(/Google Agenda: Não conectada/)).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Conectar conta Google' })).toHaveAttribute('href', '/api/v1/integracoes/google-agenda/conectar')
+  await page.getByRole('button', { name: 'Agendar consulta' }).click()
   await page.getByRole('button', { name: 'Informar data e hora' }).click()
 
   await expect(page.locator('#disponibilidade-consulta-mensagem')).toHaveAttribute('role', 'status')
   await expect(page.getByLabel('Data e hora')).toHaveAttribute('aria-describedby', 'disponibilidade-consulta-mensagem')
-  await expect(page.getByText(/Google Agenda: Não conectada/)).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Conectar conta Google' })).toHaveAttribute('href', '/api/v1/integracoes/google-agenda/conectar')
   await page.locator('#agenda-paciente').selectOption(paciente.id)
   await page.getByLabel('Data e hora').fill('2026-09-24T12:00')
   await page.getByRole('button', { name: 'Verificar disponibilidade' }).click()
   await expect(page.getByText('Este horário está disponível para agendamento.')).toBeVisible()
-  await page.getByRole('button', { name: 'Criar consulta' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Agendar consulta' }).click()
 
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.getByText('Consulta agendada com sucesso.')).toBeVisible()
   await expect(page.getByText('Aguardando conexão com Google Agenda')).toBeVisible()
   expect(fake.chamadas).toContainEqual({ caminho: '/api/v1/consultas/disponibilidade', metodo: 'GET' })
   expect(fake.chamadas.some(chamada => chamada.metodo === 'POST' && chamada.caminho.endsWith('/consultas'))).toBe(true)
@@ -118,20 +123,21 @@ test('permite agendamento local após confirmar disponibilidade e mostra o estad
 test('distingue horário ocupado de indisponibilidade e impede o envio nos dois casos', async ({ page }) => {
   const fake = await prepararApiFake(page, { estado: 'CONECTADA', disponibilidade: 'OCUPADO' })
   await page.goto('/agenda')
+  await page.getByRole('button', { name: 'Agendar consulta' }).click()
   await page.getByRole('button', { name: 'Informar data e hora' }).click()
   await page.getByLabel('Data e hora').fill('2026-09-24T12:00')
   await page.getByRole('button', { name: 'Verificar disponibilidade' }).click()
   await expect(page.getByText(/Este horário já está ocupado/)).toBeVisible()
   await expect(page.locator('#disponibilidade-consulta-mensagem')).toHaveAttribute('aria-live', 'polite')
   await expect(page.getByLabel('Data e hora')).toHaveAttribute('aria-invalid', 'true')
-  await expect(page.getByRole('button', { name: 'Criar consulta' })).toBeDisabled()
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Agendar consulta' })).toBeDisabled()
   expect(fake.chamadas.some(chamada => chamada.metodo === 'POST' && chamada.caminho.endsWith('/consultas'))).toBe(false)
 
   fake.definirDisponibilidade('INDISPONIVEL')
   await page.getByLabel('Data e hora').fill('2026-09-25T12:00')
   await page.getByRole('button', { name: 'Verificar disponibilidade' }).click()
   await expect(page.getByText(/Não foi possível verificar a agenda/)).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Criar consulta' })).toBeDisabled()
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'Agendar consulta' })).toBeDisabled()
   expect(fake.chamadas.some(chamada => chamada.metodo === 'POST' && chamada.caminho.endsWith('/consultas'))).toBe(false)
 })
 
@@ -139,7 +145,6 @@ test('simula conexão e desconexão com o redirecionamento OAuth local', async (
   await prepararApiFake(page, { estado: 'NAO_CONECTADA' })
   page.on('dialog', dialog => dialog.accept())
   await page.goto('/agenda')
-  await page.getByRole('button', { name: 'Informar data e hora' }).click()
 
   await page.getByRole('link', { name: 'Conectar conta Google' }).click()
   await expect(page).toHaveURL(/googleAgenda=conectada/)
@@ -172,7 +177,6 @@ test('apresenta os estados de sincronização e mantém o horário ao finalizar 
     consultas: [consultaRealizada, consultaFalta, consultaCancelada, consultaFalha, consultaLegada],
   })
   await page.goto('/agenda')
-  await page.getByRole('button', { name: 'Informar data e hora' }).click()
 
   await expect(page.getByText('Sincronizada com Google Agenda')).toBeVisible()
   await expect(page.getByText('Aguardando conexão com Google Agenda')).toBeVisible()
@@ -210,8 +214,47 @@ test('mantém controles acessíveis por teclado e em viewport estreita', async (
   await expect(page.locator('.skip-link')).toBeFocused()
   await page.keyboard.press('Enter')
   await expect(page.locator('#conteudo')).toBeFocused()
-  await page.getByRole('button', { name: 'Informar data e hora' }).click()
   await expect(page.getByRole('link', { name: 'Conectar novamente' })).toBeVisible()
+  await page.getByRole('button', { name: 'Agendar consulta' }).click()
+  await page.getByRole('button', { name: 'Informar data e hora' }).click()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
   expect(await page.getByRole('button', { name: 'Verificar disponibilidade' }).evaluate(element => getComputedStyle(element).minHeight)).toBe('44px')
+})
+
+test('organiza a Agenda com próxima consulta, integração lateral e cadastro sob demanda', async ({ page }) => {
+  const dataProxima = new Date(Date.now() + 2 * 86_400_000)
+  dataProxima.setUTCHours(12, 0, 0, 0)
+  const proxima = {
+    id: 'consulta-proxima-layout', pacienteId: paciente.id, agendadaPara: dataProxima.toISOString(), status: 'AGENDADA',
+    observacoes: null, criadaEm: '2026-10-01T12:00:00Z', statusAlteradoEm: null,
+    sincronizacaoGoogleAgenda: { estado: 'NAO_APLICAVEL', ultimaTentativa: null },
+  }
+  const fake = await prepararApiFake(page, { estado: 'DESCONECTADA', consultas: [proxima] })
+  await page.goto('/agenda')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Próxima consulta' })).toContainText(paciente.nome)
+  await expect(page.getByRole('region', { name: 'Próxima consulta' }).locator('time')).toHaveAttribute('datetime', proxima.agendadaPara)
+  await expect(page.getByRole('region', { name: 'Próxima consulta' })).toContainText('09:00')
+  expect(fake.chamadas.some(chamada => chamada.caminho.includes('/disponibilidade'))).toBe(false)
+
+  for (const largura of [320, 360, 768, 1024, 1440]) {
+    await page.setViewportSize({ width: largura, height: 900 })
+    const lista = (await page.getByRole('region', { name: 'Consultas', exact: true }).boundingBox())!
+    const google = (await page.getByRole('region', { name: 'Google Agenda', exact: true }).boundingBox())!
+    if (largura >= 1024) expect(google.x).toBeGreaterThanOrEqual(lista.x + lista.width)
+    else expect(google.y).toBeGreaterThanOrEqual(lista.y + lista.height)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    await page.screenshot({ path: `test-results/agenda-layout/agenda-${largura}.png`, fullPage: true })
+  }
+
+  const acionador = page.getByRole('button', { name: 'Agendar consulta' })
+  await acionador.focus()
+  await page.keyboard.press('Enter')
+  const dialogo = page.getByRole('dialog', { name: 'Agendar consulta' })
+  await expect(dialogo).toBeVisible()
+  await expect(dialogo.getByRole('button', { name: 'Fechar agendamento' })).toBeFocused()
+  await expect(dialogo.getByLabel('Paciente', { exact: true })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(dialogo).toHaveCount(0)
+  await expect(acionador).toBeFocused()
 })

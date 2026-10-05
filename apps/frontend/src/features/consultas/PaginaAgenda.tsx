@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router'
 import { servicoPacientes, type Paciente } from '../pacientes/servicoPacientes'
-import { FormularioConsulta } from './FormularioConsulta'
+import { DialogoConsulta } from './DialogoConsulta'
 import { PainelConsultas } from './PainelConsultas'
 import { PainelIntegracaoGoogle } from './PainelIntegracaoGoogle'
+import { ProximaConsultaAgenda } from './ProximaConsultaAgenda'
 import { servicoGoogleAgenda, type EstadoConexaoGoogleAgenda } from './servicoGoogleAgenda'
 
 const estadosConexaoValidos: EstadoConexaoGoogleAgenda[] = [
@@ -44,6 +45,9 @@ export function PaginaAgenda() {
   const [estadoIntegracao, setEstadoIntegracao] = useState<EstadoConexaoGoogleAgenda | null>(null)
   const [pacienteFiltro, setPacienteFiltro] = useState('')
   const [versaoAgenda, setVersaoAgenda] = useState(0)
+  const [versaoProximaConsulta, setVersaoProximaConsulta] = useState(0)
+  const [agendamentoAberto, setAgendamentoAberto] = useState(false)
+  const [mensagemConsulta, setMensagemConsulta] = useState('')
 
   useEffect(() => {
     const controlador = new AbortController()
@@ -97,46 +101,60 @@ export function PaginaAgenda() {
   }
 
   const resultadoOAuthVisivel = resultadoOAuth ? mensagensOAuth[resultadoOAuth] ?? null : null
+  const nomesPacientes = Object.fromEntries(pacientes.map(paciente => [paciente.id, paciente.nome]))
 
   return (
     <section className="agenda-page">
       <div className="page-heading">
         <div>
           <h1>Agenda</h1>
-          <p className="section-intro">Acompanhe consultas e mantenha cada transição registrada.</p>
+          <p className="section-intro">Acompanhe suas consultas e os próximos atendimentos.</p>
         </div>
-        <span className="contador">Agenda de consultas</span>
+        <button className="primary agenda-agendar" type="button" aria-haspopup="dialog" onClick={() => {
+          setMensagemConsulta('')
+          setAgendamentoAberto(true)
+        }}><svg className="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>Agendar consulta</button>
       </div>
 
-      <PainelIntegracaoGoogle
-        estado={estadoIntegracao}
-        carregando={carregandoIntegracao}
-        ocupada={desconectando}
-        erro={erroIntegracao}
-        mensagemResultado={mensagemIntegracao ?? resultadoOAuthVisivel}
-        aoDesconectar={() => void desconectarGoogle()}
-      />
+      {mensagemConsulta && <p className="agenda-feedback" role="status">{mensagemConsulta}</p>}
+      <ProximaConsultaAgenda key={pacienteFiltro || 'todos'} pacienteId={pacienteFiltro || undefined}
+        nomesPacientes={nomesPacientes} versaoAtualizacao={versaoProximaConsulta} />
 
-      <div className="section-panel">
-        <div className="records-heading"><h2>Consultas</h2></div>
-        <div className="filtros-agenda" aria-label="Filtros da agenda">
-          <label htmlFor="filtro-agenda-paciente">Filtrar paciente
-            <select id="filtro-agenda-paciente" value={pacienteFiltro} onChange={evento => setPacienteFiltro(evento.target.value)}>
-              <option value="">Todos os pacientes</option>
-              {pacientes.map(paciente => <option key={paciente.id} value={paciente.id}>{paciente.nome}</option>)}
-            </select>
-          </label>
-        </div>
-        <PainelConsultas key={pacienteFiltro || 'todos'} versaoAtualizacao={versaoAgenda} nomesPacientes={Object.fromEntries(pacientes.map(paciente => [paciente.id, paciente.nome]))} pacienteId={pacienteFiltro || undefined} />
+      <div className="agenda-layout">
+        <section className="section-panel agenda-consultas" aria-labelledby="titulo-consultas-agenda">
+          <div className="records-heading"><h2 id="titulo-consultas-agenda">Consultas</h2><p>Horários de Brasília.</p></div>
+          <div className="filtros-agenda" aria-label="Filtros da agenda">
+            <label htmlFor="filtro-agenda-paciente">Filtrar paciente
+              <select id="filtro-agenda-paciente" value={pacienteFiltro} onChange={evento => setPacienteFiltro(evento.target.value)}>
+                <option value="">Todos os pacientes</option>
+                {pacientes.map(paciente => <option key={paciente.id} value={paciente.id}>{paciente.nome}</option>)}
+              </select>
+            </label>
+          </div>
+          <PainelConsultas key={pacienteFiltro || 'todos'} versaoAtualizacao={versaoAgenda} nomesPacientes={nomesPacientes} pacienteId={pacienteFiltro || undefined}
+            aoAtualizarConsulta={() => setVersaoProximaConsulta(atual => atual + 1)} />
+        </section>
+        <aside className="agenda-lateral" aria-label="Integração da agenda">
+          <PainelIntegracaoGoogle
+            estado={estadoIntegracao}
+            carregando={carregandoIntegracao}
+            ocupada={desconectando}
+            erro={erroIntegracao}
+            mensagemResultado={mensagemIntegracao ?? resultadoOAuthVisivel}
+            aoDesconectar={() => void desconectarGoogle()}
+          />
+        </aside>
       </div>
-      <div className="section-panel agenda-form">
-        <FormularioConsulta
-          aoCriar={() => setVersaoAgenda(atual => atual + 1)}
-          exigirDisponibilidade
+      {agendamentoAberto && <DialogoConsulta
           estadoIntegracao={estadoIntegracao ?? 'CARREGANDO'}
-          usarApiReal
-        />
-      </div>
+          aoFechar={() => setAgendamentoAberto(false)}
+          aoCriar={() => {
+            setAgendamentoAberto(false)
+            setMensagemConsulta('Consulta agendada com sucesso.')
+            setVersaoAgenda(atual => atual + 1)
+            setVersaoProximaConsulta(atual => atual + 1)
+          }}
+        />}
     </section>
   )
 }
