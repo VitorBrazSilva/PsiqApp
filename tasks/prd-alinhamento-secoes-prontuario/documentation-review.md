@@ -5,3 +5,5 @@
 - README.md: NOT NEEDED — setup e comandos permanecem válidos.
 
 Alterações localizadas de estado atual, sem status, cronologia ou links para artefatos de feature nas fontes canônicas. Rules e fronteiras arquiteturais preservadas.
+
+Retorno sobre o ícone: impacto documental adicional **NONE**. Correção cosmética do estilo SVG e espaçamento, sem mudança de comportamento, arquitetura, configuração ou comandos. Fontes canônicas continuam válidas.

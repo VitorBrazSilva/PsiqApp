@@ -19,3 +19,5 @@ Sem achados novos pendentes. A folha de estilos contém regras legadas sobrepost
 ## Testes e veredito
 
 86 testes Vitest da suíte base e, após a proteção da identidade da rota, os 14 testes afetados do prontuário, incluindo o novo cenário, aprovados. Três E2E, typecheck/build e lint aprovados na versão final. Os testes conferem comportamento observável e medidas entre seções, inclusive o caso largo que detecta o antigo limite de 1180 px. Fixtures exclusivamente fictícias e API interceptada localmente. Sem blockers; review revalidado após a proteção da rota.
+
+Review do ícone revalidado: APROVADO, sem blockers. O estilo passa de `.analysis-observation .evidence-link svg` para o seletor semântico `.evidence-link svg`, atendendo também `.analysis-entry` sem duplicação. O tamanho específico redundante foi removido; ícone de ligação 14 px, navegação 12 px e espaço de 6 px seguem o padrão existente. Caminhos SVG, `aria-hidden`, texto e handlers intactos; nenhum import, contrato ou dependência novo. Lint, typecheck/build e três E2E reexecutados com sucesso. Não foram criados testes para reproduzir CSS.

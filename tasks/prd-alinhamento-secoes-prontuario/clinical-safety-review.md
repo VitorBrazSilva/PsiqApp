@@ -15,3 +15,5 @@ O conteúdo, natureza das observações, limitações, snapshot e mecanismo de g
 ## Veredito
 
 Sem bloqueadores de segurança introduzidos pelo diff. O resultado valida apresentação e preservação dos limites existentes, não a correção médica de uma análise nem prontidão para dados reais.
+
+Retorno sobre o ícone revalidado após QA: APROVADO. Diff somente de CSS; nenhum conteúdo, paciente, referência, handler ou processamento alterado. A ação de consultar evidências foi novamente validada; sem impacto adicional de segurança clínica.

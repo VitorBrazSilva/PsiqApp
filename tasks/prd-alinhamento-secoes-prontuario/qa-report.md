@@ -10,6 +10,7 @@ APROVADO — 05/10/2026. Código final validado em Chromium, Vite e frontend Ngi
 |---|---|---|
 | RF-001 / AC-RF001-01 | E2E alterna Dados pessoais, Histórico clínico, Consultas e Análise, comparando cabeçalho/abas; mede conteúdo da Análise contra o cadastro | PASS em 360/768/1024/1440/1920 px; `analysis-redesign.spec.ts` |
 | RF-001 / AC-RF001-02 | E2E compara posição vertical do conteúdo e testa versões, teclado e fontes; inspeção das capturas | PASS; linha vazia removida, três categorias e limites preservados |
+| RF-001 / AC-RF001-03 | Capturas/estilos computados do SVG e abertura/fechamento das evidências nas visões completa/lateral, em 360/1440 px | PASS; `evidencias/icone-evidencias-5173.json` e quatro capturas do botão |
 | RF-002 / AC-RF002-01 | E2E verifica seis campos e queixa ausente; Vitest troca a rota com resposta cadastral pendente | PASS; CPF mascarado; não apresenta cadastro anterior enquanto aguarda o novo paciente |
 | RF-002 / AC-RF002-02 | E2E exige ausência de `.analise`, abre/fecha agendamento e parecer, verifica retorno de foco do agendamento | PASS |
 | RNF-001 | E2E exige largura do documento menor ou igual ao viewport e confere cinco larguras | PASS; captura mobile e desktop inspecionadas |
@@ -46,3 +47,12 @@ A queixa inicial da massa já existente em 5173 contém caracteres `?` no texto 
 ## Bugs e veredito
 
 Problemas reproduzidos e corrigidos em `bugs.md`. Nenhum bloqueador pendente para o escopo. Reviews de task/código revalidados após a proteção da rota e manutenção documental concluída.
+
+## Revalidação do ícone das evidências
+
+- Causa confirmada em 5173: SVG da visão completa com preenchimento preto, sem traço e sem espaço entre ícone/texto; regra correta limitada ao painel lateral.
+- `npm run lint` e `npm run build`: aprovados, incluindo typecheck; build/recriação somente do frontend Compose concluídos.
+- Playwright `analysis-redesign.spec.ts` em 5174: três testes aprovados em 19,9 s, preservando alinhamento, cadastro e navegação das evidências. Não houve alteração de lógica; testes Vitest não foram repetidos para este diff somente de CSS.
+- Em 5173, duas apresentações e duas larguras verificadas: SVG sem preenchimento, traço `rgb(40, 92, 71)`/1,7 px, dimensões 14/12 px, `aria-hidden="true"`, espaço de 6 px e ausência de overflow. Diálogo de evidências aberto e fechado em todos os quatro casos.
+- Capturas `icone-evidencias-analise-360.png`, `icone-evidencias-analise-1440.png`, `icone-evidencias-historico-360.png` e `icone-evidencias-historico-1440.png` inspecionadas. Detalhes técnicos em `icone-evidencias-5173.json`.
+- Task/code review, documentação e segurança clínica revalidados. AC-RF001-03 atendido; QA permanece APROVADO.

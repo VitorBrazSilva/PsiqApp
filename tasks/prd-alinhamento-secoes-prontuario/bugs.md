@@ -7,3 +7,4 @@ Todos corrigidos e validados:
 3. **Alinhamento da Análise:** `row-gap: 20px`, linha 4 e limite centralizado de 1180 px diferenciavam cabeçalho/abas/conteúdo. Espaçamento comum, terceira linha e largura integral restaurados.
 4. **Overflow mobile:** o primeiro E2E em 360 px mediu documento de 457 px. A descrição usava `white-space: nowrap`; regra removida. Na execução final, documento de 360 px.
 5. **Cadastro anterior durante troca de rota:** o estado do paciente pode aguardar a nova leitura. O painel pessoal agora só é apresentado quando a identidade corresponde à rota; teste com resposta pendente aprovado.
+6. **Ícone das evidências preenchido:** na visão completa, SVGs tinham preenchimento preto/sem traço porque os estilos estavam limitados a `.analysis-observation`. Estilo comum de `.evidence-link svg` restaurou os traços verdes e a mesma escala nas duas apresentações; espaço de 6 px adicionado. Capturas, estilos computados e ação validados em 5173.

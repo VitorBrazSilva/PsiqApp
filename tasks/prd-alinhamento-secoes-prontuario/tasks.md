@@ -5,3 +5,5 @@
 Tarefa única apresentada na conversa, dentro das duas correções autorizadas pelo usuário. Branch: `fix/prontuario-secoes`.
 
 Task/code review, manutenção documental, QA e segurança clínica aprovados. Frontend local em 5173 atualizado e validado. Artefatos preservados até decisão de encerramento.
+
+Retorno sobre o ícone das evidências incluído na task 1.0, corrigido e validado; AC-RF001-03 e gates revalidados. READY.

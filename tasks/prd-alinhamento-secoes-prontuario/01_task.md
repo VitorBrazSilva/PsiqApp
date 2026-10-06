@@ -4,6 +4,8 @@
 
 RF-001/002, RNF-001; AC-RF001-01/02 e AC-RF002-01/02; TS-001/002/003. Dependências: PRD/spec-review e TechSpec sem bloqueadores.
 
+Retorno visual do usuário: incluir AC-RF001-03 na mesma task/branch, corrigindo o ícone das evidências na apresentação completa e lateral.
+
 ## Escopo e subtarefas
 
 - [x] 1.1 Corrigir layout da Análise em `styles.css`.
@@ -11,6 +13,7 @@ RF-001/002, RNF-001; AC-RF001-01/02 e AC-RF002-01/02; TS-001/002/003. Dependênc
 - [x] 1.3 Validar checks e E2E existentes/afetados, medidas e capturas responsivas.
 - [x] 1.4 Executar task review, code review, manutenção documental, QA e revisão final.
 - [x] 1.5 Atualizar o frontend local em 5173 e verificar as URLs fornecidas.
+- [x] 1.6 Corrigir o ícone das evidências, verificar renderização/ação e atualizar o frontend local e reviews.
 
 Fora de escopo: edição, API, dados persistidos, comportamento clínico, integrações e mudanças gerais de arquitetura. Skill: `ui-ux-pro-max`; consulta focada de layout e largura de conteúdo, mantendo o padrão visual existente.
 
@@ -24,4 +27,4 @@ Preservar composição em registros-clinicos, apresentação cadastral em pacien
 
 ## Estado
 
-CONCLUÍDA. Task/code review aprovados; QA, segurança clínica e manutenção documental concluídos. Evidências em `qa-report.md` e `evidencias/`. Proteção da identidade cadastral contra a rota incluída no escopo de privacidade e validada por teste de resposta pendente.
+CONCLUÍDA. AC-RF001-03 e checks afetados revalidados; ícone corrigido e frontend atualizado em 5173. Entrega anterior e suas evidências preservadas. Task/code review, documentação, QA e segurança clínica revalidados.

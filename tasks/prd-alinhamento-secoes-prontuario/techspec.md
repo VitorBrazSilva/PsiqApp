@@ -8,6 +8,8 @@ Stack confirmada: React 19, TypeScript, CSS local, Vite, Vitest e Playwright. `f
 - **TS-002 — RF-002 / RNF-001:** renderizar `PainelAnaliseAtual` somente em Histórico clínico e Análise de IA. Reutilizar `section-panel` e `details-grid` em `DadosPaciente`; remover a regra legada que escondia o primeiro bloco de contexto. Exibir o cadastro somente quando `paciente.id` corresponder à rota, evitando apresentar o cadastro anterior durante o carregamento de outro paciente. Em Dados pessoais, usar `display: contents` no contêiner dos diálogos, preservando suas ações sem reservar uma coluna ou linha vazia. No mobile, dar respiro ao conteúdo abaixo das abas.
 - **TS-003 — RF-001/002 / RNF-001:** executar os checks frontend e os E2E afetados com API mock local, comparar medidas das seções e conferir capturas. O serviço atual em 5173 é Nginx/Compose: reconstruir somente o frontend e conferir as duas URLs fornecidas.
 
+Correção visual solicitada no retorno do usuário: **TS-001 / AC-RF001-03** aplica os estilos SVG a `.evidence-link svg` nas duas apresentações (sem preenchimento, traço na cor do botão, extremidades arredondadas), com espaço entre ícone e rótulo. Remover o tamanho redundante específico de `.analysis-entry` para conservar a mesma escala dos ícones. Preservar os SVGs decorativos com `aria-hidden` e a ação do botão. Verificar por captura/estilos computados e E2E existente; nenhum teste novo para reproduzir CSS.
+
 ## Matriz de compatibilidade
 
 | Rule / fonte | Módulo e responsabilidade | Compatibilidade | Verificação |

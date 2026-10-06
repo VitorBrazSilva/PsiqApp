@@ -1,0 +1,102 @@
+[
+  {
+    "viewport": 360,
+    "section": "analise",
+    "gap": "6px",
+    "color": "rgb(40, 92, 71)",
+    "icons": [
+      {
+        "fill": "none",
+        "stroke": "rgb(40, 92, 71)",
+        "strokeWidth": "1.7px",
+        "width": "14px",
+        "height": "14px",
+        "ariaHidden": "true"
+      },
+      {
+        "fill": "none",
+        "stroke": "rgb(40, 92, 71)",
+        "strokeWidth": "1.7px",
+        "width": "12px",
+        "height": "12px",
+        "ariaHidden": "true"
+      }
+    ],
+    "evidenceDialog": "opened-and-closed"
+  },
+  {
+    "viewport": 360,
+    "section": "historico",
+    "gap": "6px",
+    "color": "rgb(40, 92, 71)",
+    "icons": [
+      {
+        "fill": "none",
+        "stroke": "rgb(40, 92, 71)",
+        "strokeWidth": "1.7px",
+        "width": "14px",
+        "height": "14px",
+        "ariaHidden": "true"
+      },
+      {
+        "fill": "none",
+        "stroke": "rgb(40, 92, 71)",
+        "strokeWidth": "1.7px",
+        "width": "12px",
+        "height": "12px",
+        "ariaHidden": "true"
+      }
+    ],
+    "evidenceDialog": "opened-and-closed"
+  },
+  {
+    "viewport": 1440,
+    "section": "analise",
+    "gap": "6px",
+    "color": "rgb(40, 92, 71)",
+    "icons": [
+      {
+        "fill": "none",
+        "stroke": "rgb(40, 92, 71)",
+        "strokeWidth": "1.7px",
+        "width": "14px",
+        "height": "14px",
+        "ariaHidden": "true"
+      },
+      {
+        "fill": "none",
+        "stroke": "rgb(40, 92, 71)",
+        "strokeWidth": "1.7px",
+        "width": "12px",
+        "height": "12px",
+        "ariaHidden": "true"
+      }
+    ],
+    "evidenceDialog": "opened-and-closed"
+  },
+  {
+    "viewport": 1440,
+    "section": "historico",
+    "gap": "6px",
+    "color": "rgb(40, 92, 71)",
+    "icons": [
+      {
+        "fill": "none",
+        "stroke": "rgb(40, 92, 71)",
+        "strokeWidth": "1.7px",
+        "width": "14px",
+        "height": "14px",
+        "ariaHidden": "true"
+      },
+      {
+        "fill": "none",
+        "stroke": "rgb(40, 92, 71)",
+        "strokeWidth": "1.7px",
+        "width": "12px",
+        "height": "12px",
+        "ariaHidden": "true"
+      }
+    ],
+    "evidenceDialog": "opened-and-closed"
+  }
+]
