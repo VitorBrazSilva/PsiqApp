@@ -6,7 +6,7 @@ const geracaoAtualId = 'c3333333-3333-4333-8333-333333333333'
 const geracaoAnteriorId = 'd4444444-4444-4444-8444-444444444444'
 const analiseAtualId = 'e5555555-5555-4555-8555-555555555555'
 const analiseAnteriorId = 'f6666666-6666-4666-8666-666666666666'
-const referenceUrl = new URL('../../../docs/redesign/index.html?direcao=foco&tela=prontuario&secao=analise&paciente=helena-demo', import.meta.url).href
+const paciente = { id: pacienteId, nome: 'Helena Martins', cpf: '***.***.***-09', dataNascimento: '1989-04-12', telefone: '+5511999999999', email: 'helena@example.test', queixaInicial: 'Queixa inicial fictícia para teste.', criadoEm: '2026-01-01T12:00:00Z' }
 
 const registro = { id: registroId, pacienteId, tipo: 'ORIGINAL', parecerOriginalId: null, consultaId: null, dataHoraClinica: '2026-09-10T12:00:00Z', criadoEm: '2026-09-10T12:01:00Z', texto: 'Relato ficticio de teste sobre sono e rotina.', humor: 'Ansioso, colaborativo', medicamentos: null, revisao: 1 }
 const itemAtual = { texto: 'O sono apresenta melhora gradual com oscilacoes em semanas de maior demanda.', natureza: 'INTERPRETACAO', evidencias: [{ apelidoRegistro: 'R1', registroId, campo: 'TEXTO', citacao: 'melhora gradual com oscilacoes em semanas de maior demanda' }] }
@@ -20,11 +20,12 @@ test.beforeEach(async ({ page }) => {
     const url = new URL(route.request().url())
     const path = url.pathname
     let data: unknown = { itens: [], pagina: 0, tamanho: 25, total: 0 }
-    if (path === `/api/v1/pacientes/${pacienteId}`) data = { id: pacienteId, nome: 'Helena Martins', cpf: '***.***.***-09', dataNascimento: '1989-04-12', telefone: '+5511999999999', email: 'helena@example.test', queixaInicial: null, criadoEm: '2026-01-01T12:00:00Z' }
+    if (path === `/api/v1/pacientes/${pacienteId}`) data = paciente
     else if (path.startsWith('/api/v1/pacientes?')) data = { itens: [], pagina: 0, tamanho: 100, total: 0 }
     else if (path === `/api/v1/pacientes/${pacienteId}/registros-clinicos?pagina=0&tamanho=100`) data = { itens: [registro], pagina: 0, tamanho: 100, total: 1 }
     else if (path === `/api/v1/pacientes/${pacienteId}/registros-clinicos/${registroId}`) data = registro
     else if (path.startsWith('/api/v1/consultas')) data = { itens: [], pagina: 0, tamanho: 50, total: 0 }
+    else if (path === '/api/v1/integracoes/google-agenda') data = { estado: 'NAO_CONFIGURADA' }
     else if (path === `/api/v1/pacientes/${pacienteId}/estado-analise`) data = { analiseAtual, ultimaGeracao: geracaoAtual, geracaoAtiva: null, podeRegenerar: true, motivo: null }
     else if (path.startsWith(`/api/v1/pacientes/${pacienteId}/geracoes-analise`)) data = { itens: [geracaoAtual, geracaoAnterior], pagina: 0, tamanho: 25, total: 2 }
     else if (path === `/api/v1/pacientes/${pacienteId}/analises/${analiseAnteriorId}`) data = analiseAnterior
@@ -32,43 +33,72 @@ test.beforeEach(async ({ page }) => {
   })
 })
 
-test('analysis view matches reference position, typography, and responsive layout', async ({ page }) => {
-  const comparisons: Array<{ width: number; referencePanel: number; appPanel: number; referenceLeft: number; appLeft: number; referenceFonts: Record<string, string>; appFonts: Record<string, string>; horizontalOverflow: boolean }> = []
-  for (const width of [768, 1024, 1440]) {
+test('analysis view aligns with patient sections on mobile and wide screens', async ({ page }) => {
+  const comparisons = []
+  for (const width of [360, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 1000 })
-    await page.goto(referenceUrl)
-    await page.locator('.ai-full .insights').waitFor()
-    const referenceScreenshot = await page.screenshot({ path: `test-results/analysis-comparison/reference-${width}.png`, fullPage: true })
-    await test.info().attach(`reference-${width}.png`, { body: referenceScreenshot, contentType: 'image/png' })
-    const referenceMetrics = await page.locator('.ai-full .insights').evaluate(node => {
-      const font = (selector: string) => { const element = node.querySelector(selector); return element ? getComputedStyle(element).fontSize : '' }
-      return { width: node.getBoundingClientRect().width, left: node.getBoundingClientRect().left, fonts: {
-        title: font('.insight-title h2'), metadata: font('.insight-meta'), section: font('.analysis-group summary'),
-        observation: font('.analysis-observation p'), nature: font('.observation-nature'), evidence: font('.analysis-observation .evidence-link'),
-        count: font('.analysis-count'), limits: font('.ai-disclaimer'),
-      } }
-    })
-    await page.goto(`/prontuario/${pacienteId}?secao=analise`)
+    await page.goto(`/prontuario/${pacienteId}?secao=dados`)
+    await expect(page.getByRole('region', { name: 'Dados pessoais' })).toBeVisible()
+    const referenceHeading = await page.locator('.patient-heading').boundingBox()
+    const referenceTabs = await page.locator('.patient-tabs').boundingBox()
+    const referenceContent = await page.locator('.dados-paciente').boundingBox()
+    expect(referenceContent).not.toBeNull()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width)
+    await expect(page.locator('.analise')).toHaveCount(0)
+    const dataScreenshot = await page.screenshot({ path: `test-results/analysis-comparison/dados-${width}.png`, fullPage: true })
+    await test.info().attach(`dados-${width}.png`, { body: dataScreenshot, contentType: 'image/png' })
+
+    const tabs = page.getByRole('navigation', { name: 'Seções do prontuário' })
+    for (const section of ['Histórico clínico', 'Consultas', 'Análise de IA']) {
+      await tabs.getByRole('button', { name: new RegExp(section) }).click()
+      expect(await page.locator('.patient-heading').boundingBox()).toEqual(referenceHeading)
+      expect(await page.locator('.patient-tabs').boundingBox()).toEqual(referenceTabs)
+    }
     await expect(page.getByRole('heading', { name: 'Análise longitudinal' })).toBeVisible()
     await expect(page.locator('.analysis-section-button')).toHaveCount(3)
-    const metrics = await page.evaluate(() => ({ viewport: innerWidth, document: document.documentElement.scrollWidth, panel: document.querySelector('.ai-full')?.getBoundingClientRect().width ?? 0 }))
-    const appMetrics = await page.locator('.ai-full').evaluate(node => {
-      const font = (selector: string) => { const element = node.querySelector(selector); return element ? getComputedStyle(element).fontSize : '' }
-      return { left: node.getBoundingClientRect().left, fonts: {
-        title: font('.analysis-view-heading h2'), metadata: font('.analysis-summary'), section: font('.analysis-section-button'),
-        observation: font('.analysis-entry p'), nature: font('.observation-nature'), evidence: font('.analysis-entry .evidence-link'),
-        count: font('.analysis-count'), limits: font('.analysis-limits'),
-      } }
-    })
-    expect(metrics.document, `horizontal overflow at ${width}px`).toBeLessThanOrEqual(width)
-    expect(metrics.panel).toBeLessThanOrEqual(width)
-    expect(referenceMetrics.width).toBeGreaterThan(0)
-    expect(appMetrics.left).toBeGreaterThanOrEqual(0)
-    comparisons.push({ width, referencePanel: referenceMetrics.width, appPanel: metrics.panel, referenceLeft: referenceMetrics.left, appLeft: appMetrics.left, referenceFonts: referenceMetrics.fonts, appFonts: appMetrics.fonts, horizontalOverflow: metrics.document > width })
+    const appContent = await page.locator('.ai-full').boundingBox()
+    expect(appContent).not.toBeNull()
+    expect(appContent!.x).toBeCloseTo(referenceContent!.x, 0)
+    expect(appContent!.y).toBeCloseTo(referenceContent!.y, 0)
+    expect(appContent!.width).toBeCloseTo(referenceContent!.width, 0)
+    const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth)
+    expect(documentWidth, `horizontal overflow at ${width}px`).toBeLessThanOrEqual(width)
+    comparisons.push({ width, data: referenceContent, analysis: appContent, documentWidth })
     const appScreenshot = await page.screenshot({ path: `test-results/analysis-comparison/automated-${width}.png`, fullPage: true })
     await test.info().attach(`app-${width}.png`, { body: appScreenshot, contentType: 'image/png' })
   }
   await test.info().attach('analysis-layout-comparison.json', { body: JSON.stringify(comparisons, null, 2), contentType: 'application/json' })
+})
+
+test('personal data displays the registered fields without an AI panel and keeps header actions available', async ({ page }) => {
+  await page.goto(`/prontuario/${pacienteId}?secao=dados`)
+  const panel = page.getByRole('region', { name: 'Dados pessoais' })
+  await expect(panel).toBeVisible()
+  for (const [label, value] of [
+    ['Nome', paciente.nome], ['CPF', paciente.cpf], ['Nascimento', '12/04/1989'],
+    ['Telefone', paciente.telefone], ['E-mail', paciente.email], ['Queixa inicial', paciente.queixaInicial],
+  ]) {
+    await expect(panel.locator('dl > div').filter({ has: page.getByText(label, { exact: true }) }).locator('dd')).toHaveText(value)
+  }
+  await expect(page.locator('.analise')).toHaveCount(0)
+
+  const appointmentButton = page.getByRole('button', { name: 'Agendar consulta', exact: true })
+  await appointmentButton.focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('dialog', { name: 'Agendar consulta' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog', { name: 'Agendar consulta' })).not.toBeVisible()
+  await expect(appointmentButton).toBeFocused()
+  await page.getByRole('button', { name: /Novo parecer/ }).click()
+  await expect(page.getByRole('dialog', { name: 'Novo parecer' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog', { name: 'Novo parecer' })).not.toBeVisible()
+
+  await page.route(`**/api/v1/pacientes/${pacienteId}`, route => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify({ ...paciente, queixaInicial: null }),
+  }))
+  await page.reload()
+  await expect(panel.locator('dl > div').filter({ has: page.getByText('Queixa inicial', { exact: true }) }).locator('dd')).toHaveText('Não informada')
 })
 
 test('history dialog supports keyboard, preserved versions, and evidence navigation', async ({ page }) => {

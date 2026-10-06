@@ -148,7 +148,6 @@ button { background: #285c47; min-height: 44px; }
 .pagina-prontuario { display: grid; grid-template-columns: minmax(0,1fr) 318px; gap: 28px; align-items: start; }
 .pagina-prontuario > .patient-heading, .pagina-prontuario > .patient-tabs, .pagina-prontuario > .contexto-paciente { grid-column: 1 / -1; }
 .pagina-prontuario > .contexto-paciente { padding: 0; border: 0; background: transparent; box-shadow: none; }
-.pagina-prontuario > .contexto-paciente > .bloco:first-of-type { display: none; }
 .pagina-prontuario > .contexto-paciente .bloco { margin-top: 0; }
 .pagina-prontuario > .acoes-registro { display: none; }
 .pagina-prontuario > .historico-clinico-painel { grid-column: 1; grid-row: 4; }
@@ -156,10 +155,11 @@ button { background: #285c47; min-height: 44px; }
 .pagina-prontuario .analise-coluna > .painel { background: #f1f6f0; border-color: #d7e3d4; }
 .pagina-prontuario .analise { background: #f1f6f0; border-color: #d7e3d4; }
 .pagina-prontuario .timeline-clinica { margin-top: 0; }.pagina-prontuario .registro { background: #fff; border-radius: 10px; padding: 21px 23px 15px; }.pagina-prontuario .registro p { line-height: 1.8; }.pagina-prontuario .metadados { color: #62716a; }
-.prontuario-secao-analise > .historico-clinico-painel, .prontuario-secao-analise > .contexto-paciente { display: none; }.prontuario-secao-analise > .analise-coluna { grid-column: 1 / -1; }.prontuario-secao-analise > .analise-coluna > .painel { width: min(820px,100%); margin: 0; }
-.pagina-prontuario.prontuario-secao-analise { row-gap: 20px; }
+.prontuario-secao-analise > .historico-clinico-painel, .prontuario-secao-analise > .contexto-paciente { display: none; }
+.prontuario-secao-analise > .analise-coluna { grid-column: 1 / -1; grid-row: 3; }
 .prontuario-secao-consultas > .historico-clinico-painel, .prontuario-secao-consultas > .analise-coluna { display: none; }.prontuario-secao-consultas > .contexto-paciente { grid-column: 1 / -1; }
 .prontuario-secao-dados > .historico-clinico-painel, .prontuario-secao-dados > .analise-coluna { display: none; }.prontuario-secao-dados > .contexto-paciente { grid-column: 1 / -1; }
+.pagina-prontuario.prontuario-secao-dados > .analise-coluna { display: contents; }
 @media (max-width: 740px) { .pagina-prontuario { display: flex; flex-direction: column; }.pagina-prontuario > .painel,.pagina-prontuario > section.painel,.pagina-prontuario > div:last-child,.pagina-prontuario > .grade-prontuario { width: 100%; }.pagina-prontuario .grade-prontuario { grid-template-columns: 1fr; } }
 @media (max-width: 740px) { .review-bar { padding: 10px 15px; }.review-about { display: none; }.app-shell { display: block; }.sidebar { padding: 18px 18px 12px; flex-direction: row; align-items: center; flex-wrap: wrap; gap: 16px; }.workspace-label,.sidebar-note,.account { display: none; }.primary-nav { width: 100%; display: flex; gap: 6px; }.primary-nav a { justify-content: center; flex: 1; padding: 8px 10px; font-size: 12px; }.topbar { padding: 10px 18px; min-height: 60px; }.topbar-tools .search-button { display: none; }.app-body main { padding: 20px 18px 30px; }.page-heading { flex-wrap: wrap; gap: 15px; }.page-heading .primary { width: 100%; }.section-panel { padding: 21px; }.patients-page .list-toolbar { align-items: stretch; flex-direction: column; gap: 9px; }.patient-result { padding: 17px 12px; gap: 10px; }.patient-open { display: none; }.page-footer { padding: 0 18px 20px; flex-direction: column; gap: 4px; } }
 
@@ -242,13 +242,14 @@ button { background: #285c47; min-height: 44px; }
 .analysis-observation p { color: #435749; font-size: 13px; line-height: 1.75; margin: 5px 0 6px; overflow-wrap: anywhere; }
 .observation-nature { color: #62716a; font-size: 11px; }
 .evidence-link, .text-button { display: inline-flex; align-items: center; min-height: 36px; padding: 0; border: 0; background: transparent; color: #285c47; font-family: inherit; font-size: 12px; font-weight: 600; }
+.evidence-link { gap: 6px; }
 .text-button { gap: 6px; padding: 3px 0; }
 .a.text-button { text-decoration: underline; text-decoration-color: #a1bca0; text-underline-offset: 4px; }
 .a.text-button:hover { text-decoration-color: #285c47; }
 .text-button > svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .analysis-observation .evidence-link { font-size: 11px; text-decoration: none; }
-.analysis-observation .evidence-link svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-.analysis-observation .evidence-link svg:last-child { width: 12px; height: 12px; }
+.evidence-link svg { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.evidence-link svg:last-child { width: 12px; height: 12px; }
 .evidence-link:hover:not(:disabled), .text-button:hover:not(:disabled) { background: transparent; text-decoration: underline; text-underline-offset: 3px; }
 .dialog-evidencias { position: fixed; inset: 50% auto auto 50%; transform: translate(-50%, -50%); z-index: 20; width: min(660px, calc(100% - 32px)); max-height: calc(100dvh - 48px); overflow: auto; border: 1px solid #dbe7dc; border-radius: 16px; padding: 0; color: #24382f; background: #fff; box-shadow: 0 25px 90px #14271d30; }
 .dialog-evidencias::backdrop, .dialog-fonte::backdrop { background: #18271f70; }
@@ -667,15 +668,14 @@ body { font-size: 13px; }
   .ai-full .analise-meta span:last-child { grid-column: 1 / -1; }
 }
 
-/* Mantém a tela completa alinhada ao layout aprovado no redesign v2. */
-.pagina-prontuario.prontuario-secao-analise > .analise-coluna > .ai-full.analysis-view { width: min(100%, 1180px); margin-inline: auto; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
+/* A análise completa segue as mesmas bordas das outras seções do prontuário. */
+.pagina-prontuario.prontuario-secao-analise > .analise-coluna > .ai-full.analysis-view { width: 100%; margin: 0; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
 .ai-full .analysis-view-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 0 0 20px; border-bottom: 1px solid #dde5df; }
 .ai-full .analysis-view-heading { min-width: 0; }
 .ai-full .analysis-heading-kicker { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 5px; color: #285c47; font-size: 12px; font-weight: 650; }
 .ai-full .analysis-heading-kicker svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .ai-full .analysis-view-heading h2 { margin: 0; color: #24382f; font-size: 24px; letter-spacing: -.7px; }
 .ai-full .analysis-view-heading > p { max-width: 65ch; margin: 5px 0 0; color: #62716a; font-size: 13px; }
-.ai-full .analysis-view-heading > p { max-width: none; white-space: nowrap; }
 .ai-full .analysis-view-actions { display: flex; flex-shrink: 0; gap: 8px; flex-wrap: wrap; }
 .ai-full .analysis-view-actions .primary, .ai-full .analysis-view-actions .secondary { min-height: 44px; padding: 0 12px; font-size: 12px; }
 .ai-full .analysis-view-actions .secondary { border: 1px solid #c8d8cc; background: #f1f6f0; color: #285c47; }
@@ -702,7 +702,6 @@ body { font-size: 13px; }
 .ai-full .analysis-entry > p { max-width: 70ch; margin: 6px 0; color: #354c3b; font-size: 15px; line-height: 1.72; overflow-wrap: anywhere; }
 .ai-full .analysis-entry .evidence-link { min-height: 44px; flex-wrap: wrap; font-size: 12px; text-decoration: none; }
 .ai-full .analysis-entry .evidence-link:hover { text-decoration: underline; }
-.ai-full .analysis-entry .evidence-link svg { width: 14px; height: 14px; }
 .ai-full .analysis-category-empty { padding: 26px 22px; }
 .ai-full .analysis-category-empty h4 { margin: 0; font-size: 14px; }
 .ai-full .analysis-category-empty p { margin: 5px 0 0; color: #62716a; font-size: 13px; }
@@ -717,6 +716,8 @@ body { font-size: 13px; }
   .ai-full .analysis-entry-list { padding-inline: 18px; }
 }
 @media (max-width: 740px) {
+  .pagina-prontuario.prontuario-secao-analise > .analise-coluna,
+  .pagina-prontuario.prontuario-secao-dados > .contexto-paciente { margin-top: 20px; }
   .ai-full .analysis-view-header { align-items: stretch; flex-direction: column; gap: 13px; padding-bottom: 15px; }
   .ai-full .analysis-view-heading h2 { font-size: 21px; }
   .ai-full .analysis-view-heading > p { max-width: 50ch; font-size: 12px; }

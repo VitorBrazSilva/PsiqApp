@@ -49,6 +49,8 @@ Antes de qualquer uso com pacientes reais, o produto precisará de decisões e i
 
 O sistema permite cadastrar pacientes pela interface e pela API, com nome, CPF, data de nascimento, telefone, e-mail e queixa inicial opcional. Nome, CPF, data de nascimento, telefone e e-mail são obrigatórios.
 
+No prontuário, a seção Dados pessoais apresenta essas informações cadastrais, com CPF mascarado e indicação quando a queixa inicial não foi informada. A análise de IA é consultada nas seções clínicas do prontuário.
+
 Regras funcionais:
 
 - CPF deve ser válido e único.

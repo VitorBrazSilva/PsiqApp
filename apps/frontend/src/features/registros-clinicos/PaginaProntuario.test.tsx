@@ -75,6 +75,29 @@ afterEach(() => {
 })
 
 describe('PaginaProntuario', () => {
+  it('aguarda o cadastro do paciente da rota antes de mostrar os dados pessoais após uma troca', async () => {
+    const padrao = fetchMock.getMockImplementation()!
+    let responderPacienteB!: (resposta: Response) => void
+    const respostaPacienteB = new Promise<Response>(resolver => { responderPacienteB = resolver })
+    fetchMock.mockImplementation((url, opcoes) => url === `/api/v1/pacientes/${pacienteB.id}`
+      ? respostaPacienteB : padrao(url, opcoes))
+    const usuario = userEvent.setup()
+    renderProntuario()
+    await screen.findByRole('heading', { name: pacienteA.nome })
+    await usuario.click(screen.getByRole('button', { name: 'Dados pessoais' }))
+    expect(within(screen.getByRole('region', { name: 'Dados pessoais' })).getByText(pacienteA.email)).toBeInTheDocument()
+
+    await usuario.click(screen.getByRole('button', { name: 'Trocar paciente teste' }))
+    await usuario.click(screen.getByRole('button', { name: 'Dados pessoais' }))
+    expect(screen.queryByRole('region', { name: 'Dados pessoais' })).not.toBeInTheDocument()
+    expect(screen.queryByText(pacienteA.email)).not.toBeInTheDocument()
+    responderPacienteB(json(pacienteB))
+    const dados = await screen.findByRole('region', { name: 'Dados pessoais' })
+    expect(within(dados).getByText(pacienteB.nome)).toBeInTheDocument()
+    expect(within(dados).getByText(pacienteB.email)).toBeInTheDocument()
+    expect(within(dados).queryByText(pacienteA.email)).not.toBeInTheDocument()
+  })
+
   it('compartilha próxima consulta com histórico e mantém resumo completo após filtros e atualização de status', async () => {
     const padrao = fetchMock.getMockImplementation()!
     const proxima = { id: 'consulta-proxima-ficticia', pacienteId: pacienteA.id, agendadaPara: '2099-09-24T17:30:00Z',
